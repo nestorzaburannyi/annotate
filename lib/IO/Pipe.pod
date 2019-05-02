@@ -1,0 +1,97 @@
+=head1 NAME
+
+IO::Pipe - supply object methods for pipes
+
+=head1 SYNOPSIS
+
+	use IO::Pipe;
+
+	$pipe = IO::Pipe->new();
+
+	if($pid = fork()) { # Parent
+	    $pipe->reader();
+
+	    while(<$pipe>) {
+		...
+	    }
+
+	}
+	elsif(defined $pid) { # Child
+	    $pipe->writer();
+
+	    print $pipe ...
+	}
+
+	or
+
+	$pipe = IO::Pipe->new();
+
+	$pipe->reader(qw(ls -l));
+
+	while(<$pipe>) {
+	    ...
+	}
+
+=head1 DESCRIPTION
+
+C<IO::Pipe> provides an interface to creating pipes between
+processes.
+
+=head1 CONSTRUCTOR
+
+=over 4
+
+=item new ( [READER, WRITER] )
+
+Creates an C<IO::Pipe>, which is a reference to a newly created symbol
+(see the C<Symbol> package). C<IO::Pipe::new> optionally takes two
+arguments, which should be objects blessed into C<IO::Handle>, or a
+subclass thereof. These two objects will be used for the system call
+to C<pipe>. If no arguments are given then method C<handles> is called
+on the new C<IO::Pipe> object.
+
+These two handles are held in the array part of the GLOB until either
+C<reader> or C<writer> is called.
+
+=back
+
+=head1 METHODS
+
+=over 4
+
+=item reader ([ARGS])
+
+The object is re-blessed into a sub-class of C<IO::Handle>, and becomes a
+handle at the reading end of the pipe. If C<ARGS> are given then C<fork>
+is called and C<ARGS> are passed to exec.
+
+=item writer ([ARGS])
+
+The object is re-blessed into a sub-class of C<IO::Handle>, and becomes a
+handle at the writing end of the pipe. If C<ARGS> are given then C<fork>
+is called and C<ARGS> are passed to exec.
+
+=item handles ()
+
+This method is called during construction by C<IO::Pipe::new>
+on the newly created C<IO::Pipe> object. It returns an array of two objects
+blessed into C<IO::Pipe::End>, or a subclass thereof.
+
+=back
+
+=head1 SEE ALSO
+
+L<IO::Handle>
+
+=head1 AUTHOR
+
+Graham Barr. Currently maintained by the Perl Porters.  Please report all
+bugs to <perlbug@perl.org>.
+
+=head1 COPYRIGHT
+
+Copyright (c) 1996-8 Graham Barr <gbarr@pobox.com>. All rights reserved.
+This program is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+=cut

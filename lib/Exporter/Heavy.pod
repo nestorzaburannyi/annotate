@@ -1,0 +1,13 @@
+=head1 NAME
+
+Exporter::Heavy - Exporter guts
+
+=head1 SYNOPSIS
+
+(internal use only)
+
+=head1 DESCRIPTION
+
+No user-serviceable parts inside.
+
+=cut

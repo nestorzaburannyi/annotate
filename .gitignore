@@ -1,0 +1,13 @@
+bin/antismash
+bin/antismash/*
+bin/antismash_deps
+databases
+server
+public
+install
+templates
+conf
+hypnotoad.pid
+.git
+.gitignore
+cert

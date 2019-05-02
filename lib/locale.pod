@@ -1,0 +1,40 @@
+=head1 NAME
+
+locale - Perl pragma to use or avoid POSIX locales for built-in operations
+
+=head1 WARNING
+
+DO NOT USE this pragma in scripts that have multiple
+L<threads|threads> active.  The locale is not local to a single thread.
+Another thread may change the locale at any time, which could cause at a
+minimum that a given thread is operating in a locale it isn't expecting
+to be in.  On some platforms, segfaults can also occur.  The locale
+change need not be explicit; some operations cause perl to change the
+locale itself.  You are vulnerable simply by having done a C<"use
+locale">.
+
+=head1 SYNOPSIS
+
+    @x = sort @y;      # Native-platform/Unicode code point sort order
+    {
+        use locale;
+        @x = sort @y;  # Locale-defined sort order
+    }
+    @x = sort @y;      # Native-platform/Unicode code point sort order
+                       # again
+
+=head1 DESCRIPTION
+
+This pragma tells the compiler to enable (or disable) the use of POSIX
+locales for built-in operations (for example, LC_CTYPE for regular
+expressions, LC_COLLATE for string comparison, and LC_NUMERIC for number
+formatting).  Each "use locale" or "no locale"
+affects statements to the end of the enclosing BLOCK.
+
+See L<perllocale> for more detailed information on how Perl supports
+locales.
+
+On systems that don't have locales, this pragma will cause your operations
+to behave as if in the "C" locale; attempts to change the locale will fail.
+
+=cut

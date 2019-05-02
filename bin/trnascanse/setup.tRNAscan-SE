@@ -1,0 +1,3 @@
+setenv PATH "$PATH"":""/annotate/bin/trnascanse"
+setenv PERL5LIB "$PERL5LIB"":""/annotate/bin/trnascanse"
+setenv MANPATH "$MANPATH"":""/home/nestor/man"

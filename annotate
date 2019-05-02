@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $working_folder;
+
+BEGIN {
+    $working_folder = "/annotate";
+}
+
+use lib "$working_folder/lib";
+use SAP::Common;
+use SAP::Update;
+use SAP::RNA;
+use SAP::CDS;
+use SAP::Output;
+
+# creating a reference to a hash containing all the options
+my $o = initialize_options($working_folder);
+
+# download and initialize databases if requested
+update( $o ) if ( $o->{"update"} );
+
+# creating a reference to a hash containing input sequences (SeqIO objects) as values, we will pass this data structure to all our modules
+my $s = create_seq_hash ( $o );
+
+# prepare input fasta file which will be used for most of the subcommands
+prepare_input ( $o, $s, "sequences" );
+
+# perform RNA gene prediction if required
+rna_prediction ( $o, $s ) if ( $o->{"rna"} );
+
+# perform CDS gene prediction if required
+cds_prediction ( $o, $s ) if ( $o->{"cds"} );
+
+# generate output files and validate them if required
+output_and_validate ( $o, $s );
+
+# finish
+print_log ( $o, "Done.\x0" );
+
+exit 0;

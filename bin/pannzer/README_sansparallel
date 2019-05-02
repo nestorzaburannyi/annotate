@@ -1,0 +1,145 @@
+SANSparallel is an MPI implementation of a suffix array neighborhood search client-server. 
+
+SANSparallel takes FASTA formatted sequences as input and returns similar sequences from the sequence database.
+
+SANSparallel was tested on Linux and its memory usage is about nine bytes per character in sequence database.
+
+
+Installation:
+=============
+
+1. tar -zxvf SANSparallel.2.3.tar.gz
+2. cd SANSparallel.2/
+3. open saisformatdb.pl in a text editor and modify $HOME on lines 17 and 30
+4. module add openmpi-x86_64
+5. make clean
+6. make 
+
+- step 4 prepares the MPI environment
+- ignore warnings from C compiler in step 6
+
+
+Benchmark data:
+===============
+
+1. tar -zxvf benchmark.tar.gz
+2. you get the following files:
+        - benchid.dat = the reference of truth, tuples (query id, reference id, e-value, sequence identity)
+        - uniprot_ECCB.fasta = reference sequence database in FASTA format
+        - dickeya_solanii.fasta = test set query sequences in FASTA format
+
+
+Running SANSparallel:
+=====================
+
+SANSparallel runs as a client and a server. The server holds the database in memory. 
+Client processes call the server and transmit the result to the user. 
+The client can run on the same host as the server or on a different host.
+
+1. Update database
+
+	1.1 Fetch database by anonymous ftp
+
+ftp ftp.ebi.ac.uk
+ftp> cd /pub/databases/uniprot/current_release/knowledgebase/complete
+ftp> get uniprot_sprot.fasta.gz
+ftp> get uniprot_trembl.fasta.gz
+ftp> cd /pub/databases/uniprot/current_release/uniref/uniref50
+ftp> get uniref50.fasta.gz
+ftp> cd /pub/databases/uniprot/current_release/uniref/uniref90
+ftp> get uniref90.fasta.gz
+ftp> cd /pub/databases/uniprot/current_release/uniref/uniref100
+ftp> get uniref100.fasta.gz
+
+	1.2 Index database
+
+perl saisformatdb.pl uniprot /data/uniprot/uniprot_sprot.fasta.gz /data/uniprot/uniprot_trembl.fasta.gz
+perl saisformatdb.pl uniref100 /data/uniprot/uniref100.fasta.gz
+perl saisformatdb.pl uniref90 /data/uniprot/uniref90.fasta.gz
+perl saisformatdb.pl uniref50 /data/uniprot/uniref50.fasta.gz
+perl saisformatdb.pl swiss /data/uniprot/uniprot_sprot.fasta.gz
+
+- add path to saisformatdb.pl according to your installation
+- the first argument of saisformatdb.pl is a name for the database. Index files have this name as prefix. 
+- the rest are FASTA-formatted sequence files. Gzipped files are accepted, but all files must be of the same type (gz or text). 
+- replace the path /data/uniprot/ by wherever you copied the databases in step 1.1.
+
+2. Start server 
+
+module add openmpi-x86_64
+nohup mpirun -np 16 -output-filename x /home/luholm/sansserver/server uniprot 54321 uniprot.Apr2015 &
+
+- replace path to server according to your installation
+- the server is left to run in the background
+- mpirun options -np = number of processes; -output-filename = prefix of log file for each process
+- the first argument is the name for the database (from step 1.2). A path can be included if the database was installed elsewhere than the current working directory.
+- the second argument is the port number. The client must connect to this socket (see step 3).
+- the third argument is the version of the database. This will be echoed in the output.
+- there can only be one server connected to one port at a time. If the server is killed, there is a short timeout before the port number can be re-used.
+
+3. Run client 
+
+./client [OPTIONS] < input.fasta > output.txt
+
+OPTIONS:
+-h integer = number of hits
+-R integer = number of rejected tests (evalue > evalue-cutoff)
+-x integer = width of suffix array window 
+-W integer = width of diagonal band in vote clustering
+-w integer = width of diagonal band in alignment
+-s integer = minumum vote in suffix array search
+-E real = evalue-cutoff
+-T integer = minimum BLOSUM62 score of 4-tuple to find alignment diagonal
+-H string = host name, where the server is running. Default is localhost.
+-P integer = server port number, must match port number selected in step 2
+-V integer = size of vote list
+-m integer: < 0 = no alignment, 0 = alignment, 2 = alignment with iteration until convergence of Hth alignment score  
+
+The web server uses the following pre-set parameter combinations ("protocols"):
+Option    protocol  -X  -V      -R     -m
+verifast    <0       H   H       H     -3
+fast         0       H   100+H   H      0
+slow         1       H   100+2H  V      2
+verislow     2       H   4000    2000   2
+
+4. Output format
+The output of SANSparallel is a FASTA file with tagged additional information. The general format is:
+
+< DATABASE= db-version >
+< QUERY query attributes >
+ >query-header
+ query-sequence
+ < SBJCT sbjct attributes > 
+  >sbjct-header
+  sbjct-sequence
+ < /SBJCT >
+ ... n SBJCT blocks ...
+< /QUERY >
+... m QUERY blocks ...
+
+4.1 Query attributes
+
+nid= integer: sequential number of query in input 
+vote_cutoff= integer: H database sequences have vote better or equal 
+LSEQ= integer: length of sequence
+
+4.2 Sbjct attributes
+
+VOTE= integer: initial score used for sorting database
+TUPS= integer; secondary score used to re-sort shortlisted candidates
+PIDE= real; number of identities divided by the number of aligned residues
+LALI= integer; number of aligned residues
+BITS= real; bitscore of alignment
+EVALUE= real; evalue calculated applying Karlin-Altschul statistics
+DIAG= integer; (query-sbjct) diagonal used for banded alignment 
+LSEQ= integer; length of sequence
+QFROM= integer; start position of alignment in query sequence
+QTO= integer; end position of alignment in query sequence
+SFROM= integer; start position of alignment in database sequence
+STO= integer; end position of alignment in database sequence 
+
+4.3 Error messages
+
+ERROR in connect: server is down, or server is loading the database. 
+
+Big databases take many hours to index and load.

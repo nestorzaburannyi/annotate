@@ -1,0 +1,554 @@
+<TITLE>test RM3</TITLE>
+<style type='text/css'>
+table,td,th{border-collapse:collapse;padding:2px 10px;}
+th{cursor:n-resize;background-color:lightgrey;}
+</style>
+<style>
+span.color0 { background-color: rgb(255,5,0); }
+span.color1 { background-color: rgb(255,10,0); }
+span.color2 { background-color: rgb(255,15,0); }
+span.color3 { background-color: rgb(255,20,0); }
+span.color4 { background-color: rgb(255,25,0); }
+span.color5 { background-color: rgb(255,30,0); }
+span.color6 { background-color: rgb(255,35,0); }
+span.color7 { background-color: rgb(255,40,0); }
+span.color8 { background-color: rgb(255,45,0); }
+span.color9 { background-color: rgb(255,50,0); }
+span.color10 { background-color: rgb(255,56,0); }
+span.color11 { background-color: rgb(255,61,0); }
+span.color12 { background-color: rgb(255,66,0); }
+span.color13 { background-color: rgb(255,71,0); }
+span.color14 { background-color: rgb(255,76,0); }
+span.color15 { background-color: rgb(255,81,0); }
+span.color16 { background-color: rgb(255,86,0); }
+span.color17 { background-color: rgb(255,91,0); }
+span.color18 { background-color: rgb(255,96,0); }
+span.color19 { background-color: rgb(255,102,0); }
+span.color20 { background-color: rgb(255,107,0); }
+span.color21 { background-color: rgb(255,112,0); }
+span.color22 { background-color: rgb(255,117,0); }
+span.color23 { background-color: rgb(255,122,0); }
+span.color24 { background-color: rgb(255,127,0); }
+span.color25 { background-color: rgb(255,132,0); }
+span.color26 { background-color: rgb(255,137,0); }
+span.color27 { background-color: rgb(255,142,0); }
+span.color28 { background-color: rgb(255,147,0); }
+span.color29 { background-color: rgb(255,153,0); }
+span.color30 { background-color: rgb(255,158,0); }
+span.color31 { background-color: rgb(255,163,0); }
+span.color32 { background-color: rgb(255,168,0); }
+span.color33 { background-color: rgb(255,173,0); }
+span.color34 { background-color: rgb(255,178,0); }
+span.color35 { background-color: rgb(255,183,0); }
+span.color36 { background-color: rgb(255,188,0); }
+span.color37 { background-color: rgb(255,193,0); }
+span.color38 { background-color: rgb(255,198,0); }
+span.color39 { background-color: rgb(255,204,0); }
+span.color40 { background-color: rgb(255,209,0); }
+span.color41 { background-color: rgb(255,214,0); }
+span.color42 { background-color: rgb(255,219,0); }
+span.color43 { background-color: rgb(255,224,0); }
+span.color44 { background-color: rgb(255,229,0); }
+span.color45 { background-color: rgb(255,234,0); }
+span.color46 { background-color: rgb(255,239,0); }
+span.color47 { background-color: rgb(255,244,0); }
+span.color48 { background-color: rgb(255,249,0); }
+span.color49 { background-color: rgb(254,255,0); }
+span.color50 { background-color: rgb(249,255,0); }
+span.color51 { background-color: rgb(244,255,0); }
+span.color52 { background-color: rgb(239,255,0); }
+span.color53 { background-color: rgb(234,255,0); }
+span.color54 { background-color: rgb(229,255,0); }
+span.color55 { background-color: rgb(224,255,0); }
+span.color56 { background-color: rgb(219,255,0); }
+span.color57 { background-color: rgb(214,255,0); }
+span.color58 { background-color: rgb(209,255,0); }
+span.color59 { background-color: rgb(203,255,0); }
+span.color60 { background-color: rgb(198,255,0); }
+span.color61 { background-color: rgb(193,255,0); }
+span.color62 { background-color: rgb(188,255,0); }
+span.color63 { background-color: rgb(183,255,0); }
+span.color64 { background-color: rgb(178,255,0); }
+span.color65 { background-color: rgb(173,255,0); }
+span.color66 { background-color: rgb(168,255,0); }
+span.color67 { background-color: rgb(163,255,0); }
+span.color68 { background-color: rgb(158,255,0); }
+span.color69 { background-color: rgb(152,255,0); }
+span.color70 { background-color: rgb(147,255,0); }
+span.color71 { background-color: rgb(142,255,0); }
+span.color72 { background-color: rgb(137,255,0); }
+span.color73 { background-color: rgb(132,255,0); }
+span.color74 { background-color: rgb(127,255,0); }
+span.color75 { background-color: rgb(122,255,0); }
+span.color76 { background-color: rgb(117,255,0); }
+span.color77 { background-color: rgb(112,255,0); }
+span.color78 { background-color: rgb(107,255,0); }
+span.color79 { background-color: rgb(101,255,0); }
+span.color80 { background-color: rgb(96,255,0); }
+span.color81 { background-color: rgb(91,255,0); }
+span.color82 { background-color: rgb(86,255,0); }
+span.color83 { background-color: rgb(81,255,0); }
+span.color84 { background-color: rgb(76,255,0); }
+span.color85 { background-color: rgb(71,255,0); }
+span.color86 { background-color: rgb(66,255,0); }
+span.color87 { background-color: rgb(61,255,0); }
+span.color88 { background-color: rgb(56,255,0); }
+span.color89 { background-color: rgb(50,255,0); }
+span.color90 { background-color: rgb(45,255,0); }
+span.color91 { background-color: rgb(40,255,0); }
+span.color92 { background-color: rgb(35,255,0); }
+span.color93 { background-color: rgb(30,255,0); }
+span.color94 { background-color: rgb(25,255,0); }
+span.color95 { background-color: rgb(20,255,0); }
+span.color96 { background-color: rgb(15,255,0); }
+span.color97 { background-color: rgb(10,255,0); }
+span.color98 { background-color: rgb(5,255,0); }
+span.color99 { background-color: rgb(0,255,0); }
+</style>
+</TR>
+</TABLE>
+<TABLE BORDER>
+<TR><TH>Query header</TH><TH>GN</TH><TH>Description<BR>Estimated PPV, description</TH><TH>Biological process<BR>Estimated PPV, GO-id, description</TH><TH>Molecular function<BR>Estimated PPV, GO-id, description</TH><TH>Cellular component<BR>Estimated PPV, GO-id, description</TH><TH>Inverse ec2go, kegg2go</TH></TR>
+<TR><TD></TD><TD></TD>
+<TD><TABLE style="width:300 px">
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+</TABLE></TD><TD><TABLE style="width:300 px">
+
+</TABLE></TD>
+</TR><TR><TD>tr|F7GNE4|F7GNE4_MACMU<BR>Catenin beta-1<BR><A HREF=http://ekhidna2.biocenter.helsinki.fi/cgi-bin/sans/sans.cgi?mode=table&seq=MATQADLMELDMAMEPDRKAAVSHWQQQSYLDSGIHSGATTTAPSLSGKGNPEEEDVDTSQVLYEWEQGFSQSFTQEQVADIDGQYAMTRAQRVRAAMFPETLDEGMQIPSTQFDAAHPTNVQRLAEPSQMLKHAVVNLINYQDDAELATRAIPELTKLLNDEDQVVVNKAAVMVHQLSKKEASRHAIMRSPQMVSAIVRTMQNTNDVETARCTAGTLHNLSHHREGLLAIFKSGGIPALVKMLGSPVDSVLFYAITTLHNLLLHQEGAKMAVRLAGGLQKMVALLNKTNVKFLAITTDCLQILAYGNQESKLIILASGGPQALVNIMRTYTYEKLLWTTSRVLKVLSVCSSNKPAIVEAGGMQALGLHLTDPSQRLVQNCLWTLRNLSDAATKQEGMEGLLGTLVQLLGSDDINVVTCAAGILSNLTCNNYKNKMMVCQVGGIEALVRTVLRAGDREDITEPAICALRHLTSRHQEAEMAQNAVRLHYGLPVVVKLLHPPSHWPLIKATVGLIRNLALCPANHAPLREQGAIPRLVQLLVRAHQDTQRRTSMGGTQQQFVEGVRMEEIVEGCTGALHILARDVHNRIVIRGLNTIPLFVQLLYSPIENIQRVAAGVLCELAQDKEAAEAIEAEGATAPLTELLHSRNEGVATYAAAVLFRMSEDKPQDYKKRLSVELTSSLFRTEPMAWNETADLGLDIGAQGEPLGYRQDDPSYRSFHSGGYGQDALGMDPMMEHEMGGHHPGADYPVDGLPDLGHAQDLMDGLPPGDSNQLAWFDTDL&hdr=tr|F7GNE4|F7GNE4_MACMU target=_blank>Search</A></TD><TD>CTNNB1</TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color88>0.88</span></TD><TD>Catenin (Cadherin-associated protein) beta 1</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color84>0.84</span></TD><TD>GO:1904499</TD><TD>regulation of chromatin-mediated maintenance of transcription</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:1904793</TD><TD>regulation of euchromatin binding</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:1904501</TD><TD>positive regulation of chromatin-mediated maintenance of transcription</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0061324</TD><TD>canonical Wnt signaling pathway involved in positive regulation of cardiac outflow tract cell proliferation</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0072054</TD><TD>renal outer medulla development</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0072053</TD><TD>renal inner medulla development</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0061198</TD><TD>fungiform papilla formation</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0044334</TD><TD>canonical Wnt signaling pathway involved in positive regulation of epithelial to mesenchymal transition</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0003340</TD><TD>negative regulation of mesenchymal to epithelial transition involved in metanephros morphogenesis</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0045976</TD><TD>negative regulation of mitotic cell cycle, embryonic</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color78>0.78</span></TD><TD>GO:0070411</TD><TD>I-SMAD binding</TD></TR>
+ <TR><TD><span class=color76>0.76</span></TD><TD>GO:0045294</TD><TD>alpha-catenin binding</TD></TR>
+ <TR><TD><span class=color75>0.75</span></TD><TD>GO:0030331</TD><TD>estrogen receptor binding</TD></TR>
+ <TR><TD><span class=color73>0.73</span></TD><TD>GO:0097718</TD><TD>disordered domain specific binding</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0001102</TD><TD>RNA polymerase II activating transcription factor binding</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0035258</TD><TD>steroid hormone receptor binding</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0000979</TD><TD>RNA polymerase II core promoter sequence-specific DNA binding</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0070491</TD><TD>repressing transcription factor binding</TD></TR>
+ <TR><TD><span class=color71>0.71</span></TD><TD>GO:0033613</TD><TD>activating transcription factor binding</TD></TR>
+ <TR><TD><span class=color71>0.71</span></TD><TD>GO:0044325</TD><TD>ion channel binding</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color83>0.83</span></TD><TD>GO:0070369</TD><TD>beta-catenin-TCF7L2 complex</TD></TR>
+ <TR><TD><span class=color82>0.82</span></TD><TD>GO:0034750</TD><TD>Scrib-APC-beta-catenin complex</TD></TR>
+ <TR><TD><span class=color82>0.82</span></TD><TD>GO:0071664</TD><TD>catenin-TCF7L2 complex</TD></TR>
+ <TR><TD><span class=color81>0.81</span></TD><TD>GO:1990907</TD><TD>beta-catenin-TCF complex</TD></TR>
+ <TR><TD><span class=color80>0.80</span></TD><TD>GO:1990909</TD><TD>Wnt signalosome</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0005916</TD><TD>fascia adherens</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0016600</TD><TD>flotillin complex</TD></TR>
+ <TR><TD><span class=color77>0.77</span></TD><TD>GO:0031528</TD><TD>microvillus membrane</TD></TR>
+ <TR><TD><span class=color76>0.76</span></TD><TD>GO:0016342</TD><TD>catenin complex</TD></TR>
+ <TR><TD><span class=color76>0.76</span></TD><TD>GO:0030877</TD><TD>beta-catenin destruction complex</TD></TR>
+</TABLE></TD><TD><TABLE style="width:300 px">
+
+</TABLE></TD>
+</TR><TR><TD>tr|F7HCV5|F7HCV5_MACMU<BR>Uncharacterized protein<BR><A HREF=http://ekhidna2.biocenter.helsinki.fi/cgi-bin/sans/sans.cgi?mode=table&seq=MPPSGLRLLPLLLPLLWLLVLTPGRPAAGLSTCKTIDMELVKRKRIEAIRGQILSKLRLASPPSQGEVPPGPLPEAVLALYNSTRDRVAGESAEPEPEPEADYYAKEVTRVLMVETHNEIYDKFKQSTHSIYMFFNTSELREAVPEPVLLSRAELRLLRLKLKVEQHVELYQKYSNNSWRYLSNRLLAPSDSPEWLSFDVTGVVRQWLSREIEGFRLSAHCSCDSKDNTLQVDINGFTTGRRGDLATIHGMNRPFLLLMATPLERAQHLQSSRHRRALDTNYCFSSTEKNCCVRQLYIDFRKDLGWKWIHEPKGYHANFCLGPCPYIWSLDTQYSKVLALYNQHNPGASAAPCCVPQALEPLPIVYYVGRKPKVEQLSNMIVRSCKCS&hdr=tr|F7HCV5|F7HCV5_MACMU target=_blank>Search</A></TD><TD>TGFB1</TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color93>0.93</span></TD><TD>Transforming growth factor beta</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color87>0.87</span></TD><TD>GO:1901664</TD><TD>regulation of NAD+ ADP-ribosyltransferase activity</TD></TR>
+ <TR><TD><span class=color87>0.87</span></TD><TD>GO:1901666</TD><TD>positive regulation of NAD+ ADP-ribosyltransferase activity</TD></TR>
+ <TR><TD><span class=color87>0.87</span></TD><TD>GO:1900126</TD><TD>negative regulation of hyaluronan biosynthetic process</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:0043932</TD><TD>ossification involved in bone remodeling</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0048298</TD><TD>positive regulation of isotype switching to IgA isotypes</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:1900125</TD><TD>regulation of hyaluronan biosynthetic process</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0007182</TD><TD>common-partner SMAD protein phosphorylation</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0048296</TD><TD>regulation of isotype switching to IgA isotypes</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0007183</TD><TD>SMAD protein complex assembly</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0010936</TD><TD>negative regulation of macrophage cytokine production</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color85>0.85</span></TD><TD>GO:0034714</TD><TD>type III transforming growth factor beta receptor binding</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0005114</TD><TD>type II transforming growth factor beta receptor binding</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0034713</TD><TD>type I transforming growth factor beta receptor binding</TD></TR>
+ <TR><TD><span class=color81>0.81</span></TD><TD>GO:0005160</TD><TD>transforming growth factor beta receptor binding</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0003823</TD><TD>antigen binding</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0001948</TD><TD>glycoprotein binding</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0005126</TD><TD>cytokine receptor binding</TD></TR>
+ <TR><TD><span class=color71>0.71</span></TD><TD>GO:0043539</TD><TD>protein serine/threonine kinase activator activity</TD></TR>
+ <TR><TD><span class=color71>0.71</span></TD><TD>GO:0008083</TD><TD>growth factor activity</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0030295</TD><TD>protein kinase activator activity</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color75>0.75</span></TD><TD>GO:0072562</TD><TD>blood microparticle</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0005902</TD><TD>microvillus</TD></TR>
+ <TR><TD><span class=color70>0.70</span></TD><TD>GO:0098858</TD><TD>actin-based cell projection</TD></TR>
+ <TR><TD><span class=color69>0.69</span></TD><TD>GO:0031093</TD><TD>platelet alpha granule lumen</TD></TR>
+ <TR><TD><span class=color66>0.66</span></TD><TD>GO:0009986</TD><TD>cell surface</TD></TR>
+ <TR><TD><span class=color65>0.65</span></TD><TD>GO:0005796</TD><TD>Golgi lumen</TD></TR>
+ <TR><TD><span class=color64>0.64</span></TD><TD>GO:0034774</TD><TD>secretory granule lumen</TD></TR>
+ <TR><TD><span class=color64>0.64</span></TD><TD>GO:0005615</TD><TD>extracellular space</TD></TR>
+ <TR><TD><span class=color63>0.63</span></TD><TD>GO:0060205</TD><TD>cytoplasmic vesicle lumen</TD></TR>
+ <TR><TD><span class=color63>0.63</span></TD><TD>GO:0031983</TD><TD>vesicle lumen</TD></TR>
+</TABLE></TD><TD><TABLE style="width:300 px">
+
+</TABLE></TD>
+</TR><TR><TD>sp|P56424|P53_MACMU<BR>Cellular tumor antigen p53<BR><A HREF=http://ekhidna2.biocenter.helsinki.fi/cgi-bin/sans/sans.cgi?mode=table&seq=MEEPQSDPSIEPPLSQETFSDLWKLLPENNVLSPLPSQAVDDLMLSPDDLAQWLTEDPGPDEAPRMSEAAPPMAPTPAAPTPAAPAPAPSWPLSSSVPSQKTYHGSYGFRLGFLHSGTAKSVTCTYSPDLNKMFCQLAKTCPVQLWVDSTPPPGSRVRAMAIYKQSQHMTEVVRRCPHHERCSDSDGLAPPQHLIRVEGNLRVEYSDDRNTFRHSVVVPYEPPEVGSDCTTIHYNYMCNSSCMGGMNRRPILTIITLEDSSGNLLGRNSFEVRVCACPGRDRRTEEENFRKKGEPCHQLPPGSTKRALPNNTSSSPQPKKKPLDGEYFTLQIRGRERFEMFRELNEALELKDAQAGKEPAGSRAHSSHLKSKKGQSTSRHKKFMFKTEGPDSD&hdr=sp|P56424|P53_MACMU target=_blank>Search</A></TD><TD>TP53</TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color82>0.82</span></TD><TD>Cellular tumor antigen p53</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color86>0.86</span></TD><TD>GO:0097252</TD><TD>oligodendrocyte apoptotic process</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0034349</TD><TD>glial cell apoptotic process</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0072717</TD><TD>cellular response to actinomycin D</TD></TR>
+ <TR><TD><span class=color82>0.82</span></TD><TD>GO:0072716</TD><TD>response to actinomycin D</TD></TR>
+ <TR><TD><span class=color82>0.82</span></TD><TD>GO:0090403</TD><TD>oxidative stress-induced premature senescence</TD></TR>
+ <TR><TD><span class=color81>0.81</span></TD><TD>GO:0090400</TD><TD>stress-induced premature senescence</TD></TR>
+ <TR><TD><span class=color80>0.80</span></TD><TD>GO:0006983</TD><TD>ER overload response</TD></TR>
+ <TR><TD><span class=color80>0.80</span></TD><TD>GO:0090200</TD><TD>positive regulation of release of cytochrome c from mitochondria</TD></TR>
+ <TR><TD><span class=color80>0.80</span></TD><TD>GO:0006977</TD><TD>DNA damage response, signal transduction by p53 class mediator resulting in cell cycle arrest</TD></TR>
+ <TR><TD><span class=color80>0.80</span></TD><TD>GO:0006978</TD><TD>DNA damage response, signal transduction by p53 class mediator resulting in transcription of p21 class mediator</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color77>0.77</span></TD><TD>GO:0035035</TD><TD>histone acetyltransferase binding</TD></TR>
+ <TR><TD><span class=color76>0.76</span></TD><TD>GO:0051721</TD><TD>protein phosphatase 2A binding</TD></TR>
+ <TR><TD><span class=color75>0.75</span></TD><TD>GO:0097718</TD><TD>disordered domain specific binding</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0002039</TD><TD>p53 binding</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0043621</TD><TD>protein self-association</TD></TR>
+ <TR><TD><span class=color73>0.73</span></TD><TD>GO:0047485</TD><TD>protein N-terminus binding</TD></TR>
+ <TR><TD><span class=color73>0.73</span></TD><TD>GO:0030971</TD><TD>receptor tyrosine kinase binding</TD></TR>
+ <TR><TD><span class=color73>0.73</span></TD><TD>GO:1990782</TD><TD>protein tyrosine kinase binding</TD></TR>
+ <TR><TD><span class=color73>0.73</span></TD><TD>GO:0042826</TD><TD>histone deacetylase binding</TD></TR>
+ <TR><TD><span class=color73>0.73</span></TD><TD>GO:0001046</TD><TD>core promoter sequence-specific DNA binding</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color73>0.73</span></TD><TD>GO:0016605</TD><TD>PML body</TD></TR>
+ <TR><TD><span class=color73>0.73</span></TD><TD>GO:0016363</TD><TD>nuclear matrix</TD></TR>
+ <TR><TD><span class=color69>0.69</span></TD><TD>GO:0034399</TD><TD>nuclear periphery</TD></TR>
+ <TR><TD><span class=color69>0.69</span></TD><TD>GO:0005669</TD><TD>transcription factor TFIID complex</TD></TR>
+ <TR><TD><span class=color65>0.65</span></TD><TD>GO:0016604</TD><TD>nuclear body</TD></TR>
+ <TR><TD><span class=color65>0.65</span></TD><TD>GO:0090575</TD><TD>RNA polymerase II transcription factor complex</TD></TR>
+ <TR><TD><span class=color64>0.64</span></TD><TD>GO:0000790</TD><TD>nuclear chromatin</TD></TR>
+ <TR><TD><span class=color64>0.64</span></TD><TD>GO:0044798</TD><TD>nuclear transcription factor complex</TD></TR>
+ <TR><TD><span class=color63>0.63</span></TD><TD>GO:0016591</TD><TD>DNA-directed RNA polymerase II, holoenzyme</TD></TR>
+ <TR><TD><span class=color63>0.63</span></TD><TD>GO:0055029</TD><TD>nuclear DNA-directed RNA polymerase complex</TD></TR>
+</TABLE></TD><TD><TABLE style="width:300 px">
+
+</TABLE></TD>
+</TR><TR><TD>sp|F7EQ49|GPER1_MACMU<BR>G-protein coupled estrogen receptor 1<BR><A HREF=http://ekhidna2.biocenter.helsinki.fi/cgi-bin/sans/sans.cgi?mode=table&seq=MEVTSQARGMGLEMYPGTMQPAAPNTTSPELNLSHPLLGASLANGTGELSEHQQYVIGLFLSCLYTIFLFPIGFVGNILILVVNISFREKMTIPDLYFINLAVADLILVADSLIEVFNLHEQYYDIAVLCTFMSLFLQVNMYSSVFFLTWMSFDRYIALARAMRCSLFRTKHHARLSCGLIWMASVSATLVPFTAVHLQHTDEACFCFADVREVQWLEVTLGFIVPFAIIGLCYSLIVRVLVRAHRHRGLRPRRQKALRMILAVVLVFFVCWLPENVFISVHLLQRTQPGAAPCKQSFRHAHPLTGHIVNLAAFSNSCLNPLIYSFLGETFREKLRLYIEQKTNLPALNRFCHAALKAVIPDSTEQSDVRFSSAV&hdr=sp|F7EQ49|GPER1_MACMU target=_blank>Search</A></TD><TD>GPER1</TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color97>0.97</span></TD><TD>G protein-coupled estrogen receptor</TD></TR>
+ <TR><TD><span class=color49>0.49</span></TD><TD>G protein-coupled receptor 30</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color82>0.82</span></TD><TD>GO:2000724</TD><TD>positive regulation of cardiac vascular smooth muscle cell differentiation</TD></TR>
+ <TR><TD><span class=color82>0.82</span></TD><TD>GO:2000722</TD><TD>regulation of cardiac vascular smooth muscle cell differentiation</TD></TR>
+ <TR><TD><span class=color81>0.81</span></TD><TD>GO:0070474</TD><TD>positive regulation of uterine smooth muscle contraction</TD></TR>
+ <TR><TD><span class=color80>0.80</span></TD><TD>GO:0031959</TD><TD>mineralocorticoid receptor signaling pathway</TD></TR>
+ <TR><TD><span class=color80>0.80</span></TD><TD>GO:0032962</TD><TD>positive regulation of inositol trisphosphate biosynthetic process</TD></TR>
+ <TR><TD><span class=color79>0.79</span></TD><TD>GO:0070472</TD><TD>regulation of uterine smooth muscle contraction</TD></TR>
+ <TR><TD><span class=color79>0.79</span></TD><TD>GO:1905065</TD><TD>positive regulation of vascular smooth muscle cell differentiation</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0032960</TD><TD>regulation of inositol trisphosphate biosynthetic process</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0030264</TD><TD>nuclear fragmentation involved in apoptotic nuclear change</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0060732</TD><TD>positive regulation of inositol phosphate biosynthetic process</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color80>0.80</span></TD><TD>GO:0017082</TD><TD>mineralocorticoid receptor activity</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:1990239</TD><TD>steroid hormone binding</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0030284</TD><TD>estrogen receptor activity</TD></TR>
+ <TR><TD><span class=color71>0.71</span></TD><TD>GO:0042562</TD><TD>hormone binding</TD></TR>
+ <TR><TD><span class=color67>0.67</span></TD><TD>GO:0004945</TD><TD>angiotensin type II receptor activity</TD></TR>
+ <TR><TD><span class=color67>0.67</span></TD><TD>GO:0005496</TD><TD>steroid binding</TD></TR>
+ <TR><TD><span class=color67>0.67</span></TD><TD>GO:0001595</TD><TD>angiotensin receptor activity</TD></TR>
+ <TR><TD><span class=color64>0.64</span></TD><TD>GO:0003707</TD><TD>steroid hormone receptor activity</TD></TR>
+ <TR><TD><span class=color63>0.63</span></TD><TD>GO:0004930</TD><TD>G-protein coupled receptor activity</TD></TR>
+ <TR><TD><span class=color62>0.62</span></TD><TD>GO:0004879</TD><TD>RNA polymerase II transcription factor activity, ligand-activated sequence-specific DNA binding</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color77>0.77</span></TD><TD>GO:0044327</TD><TD>dendritic spine head</TD></TR>
+ <TR><TD><span class=color76>0.76</span></TD><TD>GO:0032591</TD><TD>dendritic spine membrane</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0032590</TD><TD>dendrite membrane</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0043198</TD><TD>dendritic shaft</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0032589</TD><TD>neuron projection membrane</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0055037</TD><TD>recycling endosome</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0045095</TD><TD>keratin filament</TD></TR>
+ <TR><TD><span class=color67>0.67</span></TD><TD>GO:0043197</TD><TD>dendritic spine</TD></TR>
+ <TR><TD><span class=color67>0.67</span></TD><TD>GO:0044309</TD><TD>neuron spine</TD></TR>
+ <TR><TD><span class=color66>0.66</span></TD><TD>GO:0042734</TD><TD>presynaptic membrane</TD></TR>
+</TABLE></TD><TD><TABLE style="width:300 px">
+
+</TABLE></TD>
+</TR><TR><TD>tr|F7ACJ7|F7ACJ7_MACMU<BR>Putative uncharacterized protein<BR><A HREF=http://ekhidna2.biocenter.helsinki.fi/cgi-bin/sans/sans.cgi?mode=table&seq=MIPGNRMLMVVLLCQVLLGGASHASLIPETGKKKVAEIQGHAGGRRSGQSHELLRDFEATLLQMFGLRRRPQPSKSAVIPDYMRDLYRLQSGEEEEEQIHSAGLEYPERPASRANTVRSFHHEEHLENIPGTSENSAFRFLFNLSSIPENEVISSAELRLFREQVDQGPDWERGFHRINIYEVMKPPAEVVPGHLITRLLDTRLVHHNVTRWETFDVSPAVLRWTREKQPNYGLAIEVTHLHQTRTHQGQHVRISRSLPQGSGNWAQLRPLLVTFGHDGRGHALTRRRRAKRSPKHHPQRARKKNKNCRRHSLYVDFSDVGWNDWIVAPPGYQAFYCHGDCPFPLADHLNSTNHAIVQTLVNSVNSSIPKACCVPTELSAISMLYLDEYDKVVLKNYQEMVVEGCGCR&hdr=tr|F7ACJ7|F7ACJ7_MACMU target=_blank>Search</A></TD><TD>BMP4</TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color75>0.75</span></TD><TD>Bone morphogenetic protein 4</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color85>0.85</span></TD><TD>GO:0061149</TD><TD>BMP signaling pathway involved in ureter morphogenesis</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0061150</TD><TD>renal system segmentation</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0061151</TD><TD>BMP signaling pathway involved in renal system segmentation</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0072192</TD><TD>ureter epithelial cell differentiation</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0071893</TD><TD>BMP signaling pathway involved in nephric duct formation</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0061155</TD><TD>pulmonary artery endothelial tube morphogenesis</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:2000005</TD><TD>negative regulation of metanephric S-shaped body morphogenesis</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:2000007</TD><TD>negative regulation of metanephric comma-shaped body morphogenesis</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0055018</TD><TD>regulation of cardiac muscle fiber development</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:2000004</TD><TD>regulation of metanephric S-shaped body morphogenesis</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color80>0.80</span></TD><TD>GO:0070700</TD><TD>BMP receptor binding</TD></TR>
+ <TR><TD><span class=color79>0.79</span></TD><TD>GO:0070696</TD><TD>transmembrane receptor protein serine/threonine kinase binding</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0039706</TD><TD>co-receptor binding</TD></TR>
+ <TR><TD><span class=color77>0.77</span></TD><TD>GO:0033612</TD><TD>receptor serine/threonine kinase binding</TD></TR>
+ <TR><TD><span class=color76>0.76</span></TD><TD>GO:0042056</TD><TD>chemoattractant activity</TD></TR>
+ <TR><TD><span class=color71>0.71</span></TD><TD>GO:0008083</TD><TD>growth factor activity</TD></TR>
+ <TR><TD><span class=color70>0.70</span></TD><TD>GO:0005160</TD><TD>transforming growth factor beta receptor binding</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0008201</TD><TD>heparin binding</TD></TR>
+ <TR><TD><span class=color67>0.67</span></TD><TD>GO:0005125</TD><TD>cytokine activity</TD></TR>
+ <TR><TD><span class=color62>0.62</span></TD><TD>GO:0005126</TD><TD>cytokine receptor binding</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color57>0.58</span></TD><TD>GO:0005576</TD><TD>extracellular region</TD></TR>
+ <TR><TD><span class=color57>0.58</span></TD><TD>GO:0005615</TD><TD>extracellular space</TD></TR>
+ <TR><TD><span class=color57>0.58</span></TD><TD>GO:0005578</TD><TD>proteinaceous extracellular matrix</TD></TR>
+ <TR><TD><span class=color56>0.57</span></TD><TD>GO:0005788</TD><TD>endoplasmic reticulum lumen</TD></TR>
+ <TR><TD><span class=color56>0.56</span></TD><TD>GO:0031012</TD><TD>extracellular matrix</TD></TR>
+ <TR><TD><span class=color56>0.56</span></TD><TD>GO:0044421</TD><TD>extracellular region part</TD></TR>
+ <TR><TD><span class=color43>0.43</span></TD><TD>GO:0044432</TD><TD>endoplasmic reticulum part</TD></TR>
+ <TR><TD><span class=color40>0.40</span></TD><TD>GO:0031982</TD><TD>vesicle</TD></TR>
+ <TR><TD><span class=color40>0.40</span></TD><TD>GO:0005783</TD><TD>endoplasmic reticulum</TD></TR>
+ <TR><TD><span class=color35>0.35</span></TD><TD>GO:0070013</TD><TD>intracellular organelle lumen</TD></TR>
+</TABLE></TD><TD><TABLE style="width:300 px">
+
+</TABLE></TD>
+</TR><TR><TD>sp|Q0PF16|TRIM5_MACMU<BR>Tripartite motif-containing protein 5<BR><A HREF=http://ekhidna2.biocenter.helsinki.fi/cgi-bin/sans/sans.cgi?mode=table&seq=MASGILLNVKEEVTCPICLELLTEPLSLHCGHSFCQACITANHKKSMLYKEGERSCPVCRISYQPENIQPNRHVANIVEKLREVKLSPEEGQKVDHCARHGEKLLLFCQEDSKVICWLCERSQEHRGHHTFLMEEVAQEYHVKLQTALEMLRQKQQEAEKLEADIREEKASWKIQIDYDKTNVSADFEQLREILDWEESNELQNLEKEEEDILKSLTKSETEMVQQTQYMRELISELEHRLQGSMMDLLQGVDGIIKRIENMTLKKPKTFHKNQRRVFRAPDLKGMLDMFRELTDARRYWVDVTLAPNNISHAVIAEDKRQVSSRNPQIMYQAPGTLFTFPSLTNFNYCTGVLGSQSITSGKHYWEVDVSKKSAWILGVCAGFQSDAMYNIEQNENYQPKYGYWVIGLQEGVKYSVFQDGSSHTPFAPFIVPLSVIICPDRVGVFVDYEACTVSFFNITNHGFLIYKFSQCSFSKPVFPYLNPRKCTVPMTLCSPSS&hdr=sp|Q0PF16|TRIM5_MACMU target=_blank>Search</A></TD><TD>TRIM5</TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color97>0.97</span></TD><TD>Tripartite motif-containing 5 transcript variant alpha</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color80>0.80</span></TD><TD>GO:0031664</TD><TD>regulation of lipopolysaccharide-mediated signaling pathway</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0070534</TD><TD>protein K63-linked ubiquitination</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0046597</TD><TD>negative regulation of viral entry into host cell</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0051092</TD><TD>positive regulation of NF-kappaB transcription factor activity</TD></TR>
+ <TR><TD><span class=color73>0.73</span></TD><TD>GO:1902187</TD><TD>negative regulation of viral release from host cell</TD></TR>
+ <TR><TD><span class=color73>0.73</span></TD><TD>GO:0002831</TD><TD>regulation of response to biotic stimulus</TD></TR>
+ <TR><TD><span class=color73>0.73</span></TD><TD>GO:0043123</TD><TD>positive regulation of I-kappaB kinase/NF-kappaB signaling</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0045087</TD><TD>innate immune response</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0002221</TD><TD>pattern recognition receptor signaling pathway</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0002758</TD><TD>innate immune response-activating signal transduction</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color78>0.78</span></TD><TD>GO:0008329</TD><TD>signaling pattern recognition receptor activity</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0038187</TD><TD>pattern recognition receptor activity</TD></TR>
+ <TR><TD><span class=color66>0.66</span></TD><TD>GO:0004842</TD><TD>ubiquitin-protein transferase activity</TD></TR>
+ <TR><TD><span class=color66>0.66</span></TD><TD>GO:0019787</TD><TD>ubiquitin-like protein transferase activity</TD></TR>
+ <TR><TD><span class=color63>0.63</span></TD><TD>GO:0030674</TD><TD>protein binding, bridging</TD></TR>
+ <TR><TD><span class=color62>0.62</span></TD><TD>GO:0060090</TD><TD>binding, bridging</TD></TR>
+ <TR><TD><span class=color59>0.59</span></TD><TD>GO:0019901</TD><TD>protein kinase binding</TD></TR>
+ <TR><TD><span class=color59>0.59</span></TD><TD>GO:0019900</TD><TD>kinase binding</TD></TR>
+ <TR><TD><span class=color56>0.56</span></TD><TD>GO:0042803</TD><TD>protein homodimerization activity</TD></TR>
+ <TR><TD><span class=color54>0.54</span></TD><TD>GO:0042802</TD><TD>identical protein binding</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color76>0.76</span></TD><TD>GO:1990462</TD><TD>omegasome</TD></TR>
+ <TR><TD><span class=color71>0.71</span></TD><TD>GO:0000932</TD><TD>P-body</TD></TR>
+ <TR><TD><span class=color69>0.69</span></TD><TD>GO:0036464</TD><TD>cytoplasmic ribonucleoprotein granule</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0035770</TD><TD>ribonucleoprotein granule</TD></TR>
+ <TR><TD><span class=color47>0.47</span></TD><TD>GO:0030529</TD><TD>intracellular ribonucleoprotein complex</TD></TR>
+ <TR><TD><span class=color47>0.47</span></TD><TD>GO:1990904</TD><TD>ribonucleoprotein complex</TD></TR>
+ <TR><TD><span class=color47>0.47</span></TD><TD>GO:0012505</TD><TD>endomembrane system</TD></TR>
+ <TR><TD><span class=color46>0.46</span></TD><TD>GO:0005634</TD><TD>nucleus</TD></TR>
+ <TR><TD><span class=color45>0.45</span></TD><TD>GO:0043232</TD><TD>intracellular non-membrane-bounded organelle</TD></TR>
+ <TR><TD><span class=color44>0.44</span></TD><TD>GO:0043228</TD><TD>non-membrane-bounded organelle</TD></TR>
+</TABLE></TD><TD><TABLE style="width:300 px">
+<TR><TD><span class=color34>0.34</span></TD><TD><A HREF=http://enzyme.expasy.org/EC/2.-.-.->EC:2 </A></TD><TD>GO:0016740</TD></TR>
+
+<TR><TD><span class=color66>0.66</span></TD><TD><A HREF=http://www.genome.jp/dbget-bin/www_bget?KEGG:R03876 >KEGG:R03876 </A></TD><TD>GO:0004842</TD></TR>
+</TABLE></TD>
+</TR><TR><TD>tr|F7H8I5|F7H8I5_MACMU<BR>Uncharacterized protein<BR><A HREF=http://ekhidna2.biocenter.helsinki.fi/cgi-bin/sans/sans.cgi?mode=table&seq=MPPLLAPLLCLALLPALAARGPRCSQPGETCLNGGKCEAANGTEACVCGGAFVGPRCQDPNPCLSTPCKNAGTCHVVDRGGMADYACSCPLGFSGPLCLTPLDNACLTNPCRNGGTCDLLTLTEYKCRCPPGWSGKSCQQADPCASNPCANGGQCLPFEASYICHCPPSFHGPTCRQDVNECGQNPGLCRHGGTCHNEVGSYRCVCRATHTGPNCERPYVPCSPSPCQNGGTCRPTGDVTHECACLPGFTGQNCEENIDDCPGNNCKNGGACVDGVNTYNCRCPPEWTGQYCTEDVDECQLMPNACQNGGTCHNTHGGYNCVCVNGWTGEDCSENIDDCASAACFHGATCHDRVASFYCECPHGRTGLLCHLNDACISNPCNEGSNCDTNPVNGKAICTCPSGYTGPACSQDVDECSLGANPCEHAGKCINTLGSFECQCLQGYTGPRCEIDVNECVSNPCQNDATCLDQIGEFQCICMPGYEGVHCEVNTDECASSPCLHNGRCLDKINEFQCECPTGFTGHLCQYDVDECASTPCKNGAKCLDGPNTYTCVCTEGYTGMHCEVDIDECDPDPCHYGSCKDGVATFTCLCRPGYTGHHCETNINECSSQPCRHGGTCQDRDNAYLCFCLKGTTGPNCEINLDDCASSPCDSGTCLDKIDGYECACEPGYTGSMCNINIDECAGNPCHNGGTCQDGINGFTCRCPEGYHDPTCLSEVNECNSNPCVHGACRDSLNGYKCDCDPGWSGTNCDINNNECESNPCVNGGTCKDMTSGYVCTCREGFSGPNCQTNINECASNPCLNQGTCIDDVAGYKCNCLLPYTGATCEVVLAPCAPSPCRNGGECRESEDYESFSCVCPTGWQGQTCEVDINECVVSPCRHGASCQNTHGGYRCHCQAGYSGRNCETDIDDCRPNPCHNGGSCTDGINTAFCDCLPGFQGTFCEEDINECASDPCRNGANCTDCVDSYTCTCPAGFSGIHCENNTPDCTESSCFNGGTCVDGINSFTCLCPPGFTGSYCQHDVNECDSQPCLHGGTCQDGCGSYRCTCPQGYTGPNCQNLVHWCDSSPCKNGGKCWQTHTQYRCECPSGWTGLYCDVPSVSCEVAAQRQGVDVAQLCQHGGLCVDAGNTHHCRCQAGYTGSYCEDLVDECSPSPCQNGATCTDYLGGYSCKCVAGYHGVNCSEEIDECLSHPCQNGGTCLDLPNTYKCSCPRGTQGVHCEINVDDCNPPVDPVSRSPKCFNNGTCVDQVGGYSCTCPPGFVGERCEGDVNECLSNPCDARGTQNCVQRVNDFHCECRAGHTGRRCESVINGCKGKPCKNGGTCAVASNTARGFICKCPAGFEGATCENDARTCGSLRCLNGGTCISGPRSPTCLCLGPFTGPECQFPASSPCLGGNPCYNQGTCEPTSESPFYRCLCPAKFNGLLCHILDYSFGGGAGRDIPPPQIEEACELPECQEDAGNKVCSLQCNNHACGWDGGDCSLNFNDPWKNCTQSLQCWKYFSDGHCDSQCNSAGCLFDGFDCQRAEGQCNPLYDQYCKDHFSDGHCDQGCNSAECEWDGLDCAEHVPERLAAGTLVVVVLMPPEQLRNSSFHFLRELSRVLHTNVVFKRDAHGQQMIFPYYGREEELRKHPIKRAAEGWAAPEALLGQVKASLLPGGGGGGRRRRELDPMDVRGSIVYLEIDNRQCVQASSQCFQSATDVAAFLGALASLGSLNIPYKIEAVQSETVEPPPPAQLHFMYVAAAAFVLLFFVGCGVLLSRKRRRQHGQLWFPEGFKVSEASKKKRREPLGEDSVGLKPLKNASDGALMDDNQNEWGDEDLETKKFRFEEPVVLPDLDDQTDHRQWTQQHLDAADLRMSAMAPTPPQGEVDADCMDVNVRGPDGFTPLMIASCSGGGLETGNSEEEEDAPAVISDFIYQGASLHNQTDRTGETALHLAARYSRSDAAKRLLEASADANIQDNMGRTPLHAAVSADAQGVFQILIRNRATDLDARMHDGTTPLILAARLAVEGMLEDLINSHADVNAVDDLGKSALHWAAAVNNVDAAVVLLKNGANKDMQNNKEETPLFLAAREGSYETAKVLLDHFANRDITDHMDRLPRDIAQERMHHDIVRLLDEYNLVRSPQLHGAPLGGTPTLSPPLCSPNGYLGSLKPGVQGKKVRKPSSKGLACGSKEAKDLKARRKKSQDGKGCLLDSSGMLSPVDSLESPHGYLSDVASPPLLPSPFQQSPSVPLNHLPGMPDTHLGIGHLNVAAKPEMAALGGGSRLAFEAGPPRLSHLPVASGTSTVLGCSSGGAMNFTVGGSTSLNGQCEWLSRLQSGMVPNQYNPLRGSVAPGPLSTQAPSLQHGMVGPLHSSLAASALSQMMSYQGLPSTRLATQPHLVQTQQVQPQNLQMQQQNLQPPNIQQQPNLQPPPPPPQPHLGVSSAASGHLGRSFLGGEPSQADVQPLGPSSLAVHTILPQESPALPTSLPSSLVPPVTAAQFLTPPSQHSYSSSPVDNTPSHQLQVPEHPFLTPSPESPDQWSSSSPHSNVSDWSEGVSSPPTSMQSQIARIPEAFK&hdr=tr|F7H8I5|F7H8I5_MACMU target=_blank>Search</A></TD><TD>NOTCH1B</TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color96>0.96</span></TD><TD>Receptor protein Notch1</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color71>0.71</span></TD><TD>GO:0007219</TD><TD>Notch signaling pathway</TD></TR>
+ <TR><TD><span class=color59>0.59</span></TD><TD>GO:0030154</TD><TD>cell differentiation</TD></TR>
+ <TR><TD><span class=color59>0.59</span></TD><TD>GO:0007166</TD><TD>cell surface receptor signaling pathway</TD></TR>
+ <TR><TD><span class=color57>0.58</span></TD><TD>GO:0048869</TD><TD>cellular developmental process</TD></TR>
+ <TR><TD><span class=color56>0.57</span></TD><TD>GO:0003270</TD><TD>Notch signaling pathway involved in regulation of secondary heart field cardioblast proliferation</TD></TR>
+ <TR><TD><span class=color56>0.57</span></TD><TD>GO:0003169</TD><TD>coronary vein morphogenesis</TD></TR>
+ <TR><TD><span class=color56>0.57</span></TD><TD>GO:0007275</TD><TD>multicellular organism development</TD></TR>
+ <TR><TD><span class=color56>0.56</span></TD><TD>GO:0060843</TD><TD>venous endothelial cell differentiation</TD></TR>
+ <TR><TD><span class=color56>0.56</span></TD><TD>GO:0060979</TD><TD>vasculogenesis involved in coronary vascular morphogenesis</TD></TR>
+ <TR><TD><span class=color56>0.56</span></TD><TD>GO:0003213</TD><TD>cardiac right atrium morphogenesis</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color56>0.57</span></TD><TD>GO:0005509</TD><TD>calcium ion binding</TD></TR>
+ <TR><TD><span class=color52>0.52</span></TD><TD>GO:0005112</TD><TD>Notch binding</TD></TR>
+ <TR><TD><span class=color51>0.51</span></TD><TD>GO:0001190</TD><TD>transcriptional activator activity, RNA polymerase II transcription factor binding</TD></TR>
+ <TR><TD><span class=color51>0.51</span></TD><TD>GO:0098811</TD><TD>transcriptional repressor activity, RNA polymerase II activating transcription factor binding</TD></TR>
+ <TR><TD><span class=color50>0.50</span></TD><TD>GO:0001191</TD><TD>transcriptional repressor activity, RNA polymerase II transcription factor binding</TD></TR>
+ <TR><TD><span class=color50>0.50</span></TD><TD>GO:0031490</TD><TD>chromatin DNA binding</TD></TR>
+ <TR><TD><span class=color49>0.49</span></TD><TD>GO:0004872</TD><TD>receptor activity</TD></TR>
+ <TR><TD><span class=color49>0.49</span></TD><TD>GO:0060089</TD><TD>molecular transducer activity</TD></TR>
+ <TR><TD><span class=color49>0.49</span></TD><TD>GO:0001047</TD><TD>core promoter binding</TD></TR>
+ <TR><TD><span class=color46>0.46</span></TD><TD>GO:0001076</TD><TD>transcription factor activity, RNA polymerase II transcription factor binding</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color56>0.56</span></TD><TD>GO:0002193</TD><TD>MAML1-RBP-Jkappa- ICN1 complex</TD></TR>
+ <TR><TD><span class=color49>0.49</span></TD><TD>GO:0016324</TD><TD>apical plasma membrane</TD></TR>
+ <TR><TD><span class=color49>0.49</span></TD><TD>GO:0005796</TD><TD>Golgi lumen</TD></TR>
+ <TR><TD><span class=color49>0.49</span></TD><TD>GO:0045177</TD><TD>apical part of cell</TD></TR>
+ <TR><TD><span class=color48>0.48</span></TD><TD>GO:0001669</TD><TD>acrosomal vesicle</TD></TR>
+ <TR><TD><span class=color47>0.47</span></TD><TD>GO:0043235</TD><TD>receptor complex</TD></TR>
+ <TR><TD><span class=color47>0.47</span></TD><TD>GO:0005912</TD><TD>adherens junction</TD></TR>
+ <TR><TD><span class=color47>0.47</span></TD><TD>GO:0070161</TD><TD>anchoring junction</TD></TR>
+ <TR><TD><span class=color47>0.47</span></TD><TD>GO:0097223</TD><TD>sperm part</TD></TR>
+ <TR><TD><span class=color46>0.46</span></TD><TD>GO:0001726</TD><TD>ruffle</TD></TR>
+</TABLE></TD><TD><TABLE style="width:300 px">
+
+</TABLE></TD>
+</TR><TR><TD>tr|F6ZJX4|F6ZJX4_MACMU<BR>Uncharacterized protein<BR><A HREF=http://ekhidna2.biocenter.helsinki.fi/cgi-bin/sans/sans.cgi?mode=table&seq=MHYCVLSAFLILHLVTVALSLSTCSTLDMDQFMRKRIEAIRGQILSKLKLTSPPEDYPEPEEVPPEVISIYNSTRDLLQEKASRRAAACERERSDEEYYAKEVYKIDMPPFFPSETVCPVVTTPSGSVGSLCSRQSQVLCGYLDAIPPTFYRPYFRIVRFDVSAMEKNASNLVKAEFRVFRLQNPKARVPEQRIELYQILKSKDLTSPTQRYIDSKVVKTRAEGEWLSFDVTDAVHEWLHHKDRNLGFKISLHCPCCTFVPSNNYIIPNKSEELEARFAGIDGTSTYTSGDQKTIKSTRKKNSGKTPHLLLMLLPSYRLESQQTNRRKKRALDAAYCFRNVQDNCCLRPLYIDFKRDLGWKWIHEPKGYNANFCAGACPYLWSSDTQHSRVLSLYNTINPEASASPCCVSQDLEPLTILYYIGKTPKIEQLSNMIVKSCKCS&hdr=tr|F6ZJX4|F6ZJX4_MACMU target=_blank>Search</A></TD><TD>TGFB2</TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color81>0.81</span></TD><TD>Transforming growth factor beta-2</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color85>0.85</span></TD><TD>GO:0045726</TD><TD>positive regulation of integrin biosynthetic process</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0051795</TD><TD>positive regulation of timing of catagen</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0010693</TD><TD>negative regulation of alkaline phosphatase activity</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0051794</TD><TD>regulation of timing of catagen</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0045113</TD><TD>regulation of integrin biosynthetic process</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0051891</TD><TD>positive regulation of cardioblast differentiation</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0048818</TD><TD>positive regulation of hair follicle maturation</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0010936</TD><TD>negative regulation of macrophage cytokine production</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0010692</TD><TD>regulation of alkaline phosphatase activity</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0048819</TD><TD>regulation of hair follicle maturation</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color84>0.84</span></TD><TD>GO:0034714</TD><TD>type III transforming growth factor beta receptor binding</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0005114</TD><TD>type II transforming growth factor beta receptor binding</TD></TR>
+ <TR><TD><span class=color81>0.81</span></TD><TD>GO:0005160</TD><TD>transforming growth factor beta receptor binding</TD></TR>
+ <TR><TD><span class=color77>0.77</span></TD><TD>GO:0001540</TD><TD>amyloid-beta binding</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0005126</TD><TD>cytokine receptor binding</TD></TR>
+ <TR><TD><span class=color71>0.71</span></TD><TD>GO:0008083</TD><TD>growth factor activity</TD></TR>
+ <TR><TD><span class=color69>0.69</span></TD><TD>GO:0004702</TD><TD>signal transducer, downstream of receptor, with serine/threonine kinase activity</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0042277</TD><TD>peptide binding</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0005057</TD><TD>signal transducer activity, downstream of receptor</TD></TR>
+ <TR><TD><span class=color64>0.64</span></TD><TD>GO:0042803</TD><TD>protein homodimerization activity</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color68>0.68</span></TD><TD>GO:0031093</TD><TD>platelet alpha granule lumen</TD></TR>
+ <TR><TD><span class=color64>0.64</span></TD><TD>GO:0005615</TD><TD>extracellular space</TD></TR>
+ <TR><TD><span class=color63>0.63</span></TD><TD>GO:0031012</TD><TD>extracellular matrix</TD></TR>
+ <TR><TD><span class=color63>0.63</span></TD><TD>GO:0034774</TD><TD>secretory granule lumen</TD></TR>
+ <TR><TD><span class=color63>0.63</span></TD><TD>GO:0060205</TD><TD>cytoplasmic vesicle lumen</TD></TR>
+ <TR><TD><span class=color63>0.63</span></TD><TD>GO:0031983</TD><TD>vesicle lumen</TD></TR>
+ <TR><TD><span class=color62>0.62</span></TD><TD>GO:0031091</TD><TD>platelet alpha granule</TD></TR>
+ <TR><TD><span class=color62>0.62</span></TD><TD>GO:0043025</TD><TD>neuronal cell body</TD></TR>
+ <TR><TD><span class=color62>0.62</span></TD><TD>GO:0044421</TD><TD>extracellular region part</TD></TR>
+ <TR><TD><span class=color62>0.62</span></TD><TD>GO:0044297</TD><TD>cell body</TD></TR>
+</TABLE></TD><TD><TABLE style="width:300 px">
+<TR><TD><span class=color69>0.69</span></TD><TD><A HREF=http://enzyme.expasy.org/EC/2.7.11.->EC:2.7.11 </A></TD><TD>GO:0004702</TD></TR>
+
+</TABLE></TD>
+</TR></TR>
+</TABLE>
+<TABLE BORDER>
+<TR><TH>Query header</TH><TH>GN</TH><TH>Description<BR>Estimated PPV, description</TH><TH>Biological process<BR>Estimated PPV, GO-id, description</TH><TH>Molecular function<BR>Estimated PPV, GO-id, description</TH><TH>Cellular component<BR>Estimated PPV, GO-id, description</TH><TH>Inverse ec2go, kegg2go</TH></TR>
+<TR><TD>sp|P61143|SYUA_MACMU<BR>Alpha-synuclein<BR><A HREF=http://ekhidna2.biocenter.helsinki.fi/cgi-bin/sans/sans.cgi?mode=table&seq=MDVFMKGLSKAKEGVVAAAEKTKQGVAEAAGKTKEGVLYVGSKTKEGVVHGVATVAEKTKEQVTNVGGAVVTGVTAVAQKTVEGAGSIAAATGFIKKDQLGKNEEGAPQEGILQDMPVDPDNEAYEMPSEEGYQDYEPEA&hdr=sp|P61143|SYUA_MACMU target=_blank>Search</A></TD><TD>SNCA</TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color97>0.97</span></TD><TD>Alpha-synuclein</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color86>0.86</span></TD><TD>GO:0051945</TD><TD>negative regulation of catecholamine uptake involved in synaptic transmission</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:0051621</TD><TD>regulation of norepinephrine uptake</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:0051622</TD><TD>negative regulation of norepinephrine uptake</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:1903284</TD><TD>positive regulation of glutathione peroxidase activity</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:1903285</TD><TD>positive regulation of hydrogen peroxide catabolic process</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:1903282</TD><TD>regulation of glutathione peroxidase activity</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:0051585</TD><TD>negative regulation of dopamine uptake involved in synaptic transmission</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:1904715</TD><TD>negative regulation of chaperone-mediated autophagy</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:2000295</TD><TD>regulation of hydrogen peroxide catabolic process</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:0032227</TD><TD>negative regulation of synaptic transmission, dopaminergic</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color82>0.82</span></TD><TD>GO:0048156</TD><TD>tau protein binding</TD></TR>
+ <TR><TD><span class=color81>0.81</span></TD><TD>GO:0050544</TD><TD>arachidonic acid binding</TD></TR>
+ <TR><TD><span class=color81>0.81</span></TD><TD>GO:0050542</TD><TD>icosanoid binding</TD></TR>
+ <TR><TD><span class=color81>0.81</span></TD><TD>GO:0050543</TD><TD>icosatetraenoic acid binding</TD></TR>
+ <TR><TD><span class=color80>0.80</span></TD><TD>GO:1903136</TD><TD>cuprous ion binding</TD></TR>
+ <TR><TD><span class=color79>0.79</span></TD><TD>GO:0036041</TD><TD>long-chain fatty acid binding</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0043027</TD><TD>cysteine-type endopeptidase inhibitor activity involved in apoptotic process</TD></TR>
+ <TR><TD><span class=color77>0.77</span></TD><TD>GO:0030544</TD><TD>Hsp70 protein binding</TD></TR>
+ <TR><TD><span class=color77>0.77</span></TD><TD>GO:0043028</TD><TD>cysteine-type endopeptidase regulator activity involved in apoptotic process</TD></TR>
+ <TR><TD><span class=color77>0.77</span></TD><TD>GO:0043014</TD><TD>alpha-tubulin binding</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color83>0.83</span></TD><TD>GO:0031092</TD><TD>platelet alpha granule membrane</TD></TR>
+ <TR><TD><span class=color78>0.78</span></TD><TD>GO:0031091</TD><TD>platelet alpha granule</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0016234</TD><TD>inclusion body</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0030667</TD><TD>secretory granule membrane</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0030426</TD><TD>growth cone</TD></TR>
+ <TR><TD><span class=color69>0.69</span></TD><TD>GO:0030141</TD><TD>secretory granule</TD></TR>
+ <TR><TD><span class=color69>0.69</span></TD><TD>GO:0043025</TD><TD>neuronal cell body</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0044297</TD><TD>cell body</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0030427</TD><TD>site of polarized growth</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0030424</TD><TD>axon</TD></TR>
+</TABLE></TD><TD><TABLE style="width:300 px">
+<TR><TD><span class=color30>0.30</span></TD><TD><A HREF=http://enzyme.expasy.org/EC/1.-.-.->EC:1 </A></TD><TD>GO:0016491</TD></TR>
+
+</TABLE></TD>
+</TR><TR><TD>tr|F7AGU8|F7AGU8_MACMU<BR>Presenilin<BR><A HREF=http://ekhidna2.biocenter.helsinki.fi/cgi-bin/sans/sans.cgi?mode=table&seq=MTELPAPLSYFQNAQMSEDNHLSNTVRSQNDNRERQEHNDRRSLGHPEPLSNGRPQGNSRQVVEQDEEEDEELTLKYGAKHVIMLFVPVTLCMVVVVATIKSVSFYTRKDGQLIYTPFTEDTETVGQRALHSILNAAIMISVIVVMTILLVVLYKYRCYKVIHAWLIISSLLLLFFFSFIYLGEVFKTYNVAVDYITVALLIWNFGVVGMISIHWKGPLRLQQAYLIMISALMALVFIKYLPEWTAWLILAVISVYDLVAVLCPKGPLRMLVETAQERNETLFPALIYSSTMVWLVNMAEGDPEAQRRVSKNSKYNAESTERESQDTVAENDDGGFSEEWEAQRDSHLGPHRSTPESRAAVQELSSSILAGEDPEERGVKLGLGDFIFYSVLVGKASATASGDWNTTIACFVAILIGLCLTLLLLAIFKKALPALPISITFGLVFYFATDYLVQPFMDQLAFHQFYI&hdr=tr|F7AGU8|F7AGU8_MACMU target=_blank>Search</A></TD><TD>PSEN1</TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color77>0.77</span></TD><TD>Presenilin</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color86>0.86</span></TD><TD>GO:1904797</TD><TD>negative regulation of core promoter binding</TD></TR>
+ <TR><TD><span class=color86>0.86</span></TD><TD>GO:0021870</TD><TD>Cajal-Retzius cell differentiation</TD></TR>
+ <TR><TD><span class=color85>0.85</span></TD><TD>GO:0051563</TD><TD>smooth endoplasmic reticulum calcium ion homeostasis</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0034205</TD><TD>amyloid-beta formation</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0042987</TD><TD>amyloid precursor protein catabolic process</TD></TR>
+ <TR><TD><span class=color84>0.84</span></TD><TD>GO:0002265</TD><TD>astrocyte activation involved in immune response</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0042982</TD><TD>amyloid precursor protein metabolic process</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0016080</TD><TD>synaptic vesicle targeting</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0060075</TD><TD>regulation of resting membrane potential</TD></TR>
+ <TR><TD><span class=color83>0.83</span></TD><TD>GO:0048143</TD><TD>astrocyte activation</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color83>0.83</span></TD><TD>GO:0042500</TD><TD>aspartic endopeptidase activity, intramembrane cleaving</TD></TR>
+ <TR><TD><span class=color75>0.75</span></TD><TD>GO:0030165</TD><TD>PDZ domain binding</TD></TR>
+ <TR><TD><span class=color72>0.72</span></TD><TD>GO:0008013</TD><TD>beta-catenin binding</TD></TR>
+ <TR><TD><span class=color70>0.70</span></TD><TD>GO:0045296</TD><TD>cadherin binding</TD></TR>
+ <TR><TD><span class=color68>0.68</span></TD><TD>GO:0050839</TD><TD>cell adhesion molecule binding</TD></TR>
+ <TR><TD><span class=color67>0.67</span></TD><TD>GO:0005262</TD><TD>calcium channel activity</TD></TR>
+ <TR><TD><span class=color65>0.65</span></TD><TD>GO:0019904</TD><TD>protein domain specific binding</TD></TR>
+ <TR><TD><span class=color64>0.64</span></TD><TD>GO:0015085</TD><TD>calcium ion transmembrane transporter activity</TD></TR>
+ <TR><TD><span class=color61>0.61</span></TD><TD>GO:0004190</TD><TD>aspartic-type endopeptidase activity</TD></TR>
+ <TR><TD><span class=color61>0.61</span></TD><TD>GO:0070001</TD><TD>aspartic-type peptidase activity</TD></TR>
+</TABLE></TD>
+<TD><TABLE style="width:300 px">
+<TR><TD><span class=color81>0.81</span></TD><TD>GO:0070765</TD><TD>gamma-secretase complex</TD></TR>
+ <TR><TD><span class=color79>0.79</span></TD><TD>GO:0005790</TD><TD>smooth endoplasmic reticulum</TD></TR>
+ <TR><TD><span class=color79>0.79</span></TD><TD>GO:0005640</TD><TD>nuclear outer membrane</TD></TR>
+ <TR><TD><span class=color79>0.79</span></TD><TD>GO:0035253</TD><TD>ciliary rootlet</TD></TR>
+ <TR><TD><span class=color77>0.77</span></TD><TD>GO:0043198</TD><TD>dendritic shaft</TD></TR>
+ <TR><TD><span class=color77>0.77</span></TD><TD>GO:0016235</TD><TD>aggresome</TD></TR>
+ <TR><TD><span class=color75>0.75</span></TD><TD>GO:0016234</TD><TD>inclusion body</TD></TR>
+ <TR><TD><span class=color74>0.74</span></TD><TD>GO:0030426</TD><TD>growth cone</TD></TR>
+ <TR><TD><span class=color71>0.71</span></TD><TD>GO:0005791</TD><TD>rough endoplasmic reticulum</TD></TR>
+ <TR><TD><span class=color71>0.71</span></TD><TD>GO:0031594</TD><TD>neuromuscular junction</TD></TR>
+</TABLE></TD><TD><TABLE style="width:300 px">
+<TR><TD><span class=color83>0.83</span></TD><TD><A HREF=http://enzyme.expasy.org/EC/3.4.23.->EC:3.4.23 </A></TD><TD>GO:0042500</TD></TR>
+
+</TABLE></TD>
+</TR></TR>
+</TABLE>

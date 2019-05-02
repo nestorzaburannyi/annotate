@@ -1,0 +1,48 @@
+PANNZER2 is able to perform high-throughput annotation of ten thousand sequences per hour. It uses the SANSparallel server to search for homologous proteins in the Uniprot database.
+
+Home page: http://ekhidna2.biocenter.helsinki.fi/sanspanz/
+
+System requirements:
+====================
+
+	Linux OS
+	Python (https://www.python.org), modules:
+		numpy
+		scipy
+		fastcluster
+		requests
+		Standard modules:
+			ConfigParser
+			getopt
+			operator
+			os
+			math
+			random
+			socket
+			re
+			sys
+			SocketServer
+			threading
+			signal
+			time
+			argparse
+	Perl module:
+		Switch 
+	Internet connection
+
+Installation:
+=============
+
+	Download SANSPANZ3.tar.gz to /home/you
+	cd /home/you
+	tar -zxvf SANSPANZ3.tar.gz
+
+Testing:
+========
+
+	cd /home/you/SANSPANZ3
+	python runsanspanz.py -R -o ",DE.out,GO.out,anno.out" -s "Macaca mulatta" < testdata/querysequences.fasta
+	perl anno2html.pl "Test result" argot < anno.out > anno.html
+
+	The python command calls network servers for sequence search and GO database. It writes description prediction details to DE.out, GO prediction details to GO.out, and annotation summary to anno.out. The perl command converts annotation summary to nested HTML tables with colour code. More test cases can be found in examples.csh and reference outputs in the testresults folder.
+
