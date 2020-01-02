@@ -10,6 +10,7 @@
 #       	3.3 . create SAP, sres (4 + 2 bytes)
 
 use strict;
+use lib "/annotate/lib";
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Check the SANS_HOME env setting or you modify it here directly
