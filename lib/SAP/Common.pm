@@ -848,7 +848,7 @@ sub clean_up_description {
         my ( $o, $file, $action, $divider, $program ) = @_;
         # open file if it"s not open.
         if (not $filehandles{$file}) {
-            open $filehandles{$file}, "<", $file or die "Could not open $file - $!";
+            open $filehandles{$file}, "<", $file;
         }
         # get-a-record
         if ( $action eq "record" ) {
