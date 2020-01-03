@@ -12,7 +12,11 @@ Pull the docker image (optional, will be pulled automatically by the next comman
 
 ```docker pull nestorzaburannyi/annotate```
 
-Then run the image as a container in an interactive mode. It might be beneficial to also mount your host's working directory to /pwd within the container:
+Then run the image as a container in an interactive mode:
+
+```docker run -it nestorzaburannyi/annotate```
+
+Alternatively, it might be beneficial to also mount some of your host's working directory to a directory within the container. In this example we are mounting the current working directory to the /pwd withing the container:
 
 ```docker run -it -v "$(pwd)":/pwd nestorzaburannyi/annotate```
 
