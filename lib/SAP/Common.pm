@@ -179,6 +179,8 @@ sub initialize_options {
     $o->{"o"} = $o->{"o"} || $o->{"cwd"}."/public/jobs/".$o->{"job_uuid"};
     # create folder for the job if does not exits
     make_path($o->{"o"});
+    # change the current working folder to the created one, as some tools (e.g. GeneMarks, rnammer) will spam and create temporary files in the cwd
+    chdir $o->{"o"};
     # no input file specifed
     exit_program($o, "Input file specified via -input parameter is required.") if not $o->{"i"};
     # input file does not exist
