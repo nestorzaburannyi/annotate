@@ -56,7 +56,7 @@ sub add_source_features {
     my ( $o, $s ) = @_;
     foreach my $seq_id (sort keys %$s) {
         my $feature = create_feature ( "source", $seq_id, 1, "EXACT", $s->{$seq_id}->length, "EXACT", 0, 0 );
-        $feature->add_tag_value ( "organism", $o->{"organism"} );
+        $feature->add_tag_value ( "organism", $o->{"organism"} // "unidentified" );
         $feature->add_tag_value ( "strain", $o->{"strain"} ) if ( $o->{"strain"} );
         $feature->add_tag_value ( "db_xref", "taxon:".$o->{"taxid"} ) if ( $o->{"taxid"} );
         #store source feature
@@ -203,7 +203,7 @@ sub write_fasta_output {
     foreach my $seq_id (sort keys %$s) {
         #add some data that is needed later by tbl2asn and also if *.fsa is required for the submission (BankIt)
         $s->{$seq_id}->description(
-                                            ($o->{"organism"} ? "[organism=".$o->{"organism"}."] " : "").
+                                            ("[organism=".($o->{"organism"} ? $o->{"organism"} : "unidentified")."] ").
                                             "[gcode=11] ".
                                             "[division=BCT] ".
                                             ($o->{"classification"} ? "[lineage=".$o->{"classification"}."] " : "").
@@ -212,8 +212,8 @@ sub write_fasta_output {
                                             # reuse the description without changes in transparent mode, if it exists
                                             # ( $o->{"transparent"} and $s->{$seq_id}->description ? $s->{$seq_id}->description :
                                               (
-                                                  ($o->{"organism"} ? $o->{"organism"}." " : "").
-                                                  ($o->{"strain"} ? "strain ".$o->{"strain"}." " : "").
+                                                  ($o->{"organism"} ? $o->{"organism"} : "Unidentified organism").
+                                                  ($o->{"strain"} ? " strain ".$o->{"strain"} : "").
                                                   ", ".
                                                   ($o->{"complete"} ? "complete genome" : "draft genome")
                                               )
