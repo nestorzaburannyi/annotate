@@ -247,9 +247,7 @@ sub write_table_output {
 sub write_gbf_and_sqn_output {
     my ( $o, $s ) = @_;
     print_log ( $o, "Writing Sequin .sqn output file..." );
-    open my $output_filehandle, ">", $o->{"o"}."/output.sbt" or die "Could not open ".$o->{"o"}."/output.sbt for writing - $!";
-    print {$output_filehandle} get_the_sbt_form;
-    run_program ( $o, $o->{"cwd"}."/bin/tbl2asn/tbl2asn -T T -i ".$o->{"o"}."/output.fsa -w ".$o->{"o"}."/output.cmt -t ".$o->{"o"}."/output.sbt -o ".$o->{"o"}."/output.sqn -V vb -s T -Z ".$o->{"o"}."/output.dis" );
+    run_program ( $o, $o->{"cwd"}."/bin/tbl2asn/tbl2asn -T T -i ".$o->{"o"}."/output.fsa -w ".$o->{"o"}."/output.cmt -o ".$o->{"o"}."/output.sqn -V vb -s T -Z ".$o->{"o"}."/output.dis" );
 }
 
 1;

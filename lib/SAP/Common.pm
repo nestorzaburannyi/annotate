@@ -41,7 +41,6 @@ our @EXPORT = qw(
                 add_leading_zeros
                 find_appropriate_cds_feature
                 get_overlapped_features
-                get_the_sbt_form
                 clean_up_description
             );
 
@@ -936,22 +935,6 @@ sub get_command {
     elsif ( $program eq "emapper" ) {
         return $o->{"cwd"}."/bin/emapper/emapper.py --override --cpu 1 --data_dir ".$o->{"cwd"}."/databases/emapper -m diamond -i ".$o->{"o"}."/input_annotation -o ".$o->{"o"}."/output"
     }
-}
-
-sub get_the_sbt_form {
-my $form = <<END_FORM;
-Submit-block ::= {
-  contact {
-  },
-  cit {
-    authors {
-      names std {
-      },
-    }
-  },
-}
-END_FORM
-return $form;
 }
 
 1;
