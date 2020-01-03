@@ -13,7 +13,7 @@ sub output_and_validate {
     my ( $o, $s ) = @_;
     add_general_information ( $o, $s );
     add_source_features ( $o, $s );
-    add_locus_numbering ( $o, $s ) if $o->{"bioproject"} and $o->{"prefix"};
+    add_locus_numbering ( $o, $s ) if $o->{"prefix"};
     add_gene_features ( $o, $s );
     move_features_to_sequence_hash ( $o, $s );
     count_features ( $o, $s );
