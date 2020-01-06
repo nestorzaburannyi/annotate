@@ -205,8 +205,7 @@ sub pannzer {
 sub emapper {
   my ( $o ) = @_;
   print_log( $o, "Updating emapper..." );
-  system( "wget https://github.com/jhcepas/eggnog-mapper/releases -O - | gzip -d > ".$o->{"cwd"}."/databases/emapper/" );
-  system( "./download_eggnog_data.py -y -f --data_dir /annotate/databases/emapper/ none" );
+  system( $o->{"cwd"}."/bin/emapper/download_eggnog_data.py -y -f --data_dir ".$o->{"cwd"}."/databases/emapper/ none" );
 }
 
 sub antismash {
