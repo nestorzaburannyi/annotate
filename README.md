@@ -8,7 +8,7 @@ A modular annotation pipeline for prokaryotic nucleotide sequences.
 
 You can run it as a docker container, providing you have [installed](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce) the docker first:
 
-Pull the docker image (optional, will be pulled automatically by the next command):
+Pull the latest version of the image:
 
 ```docker pull nestorzaburannyi/annotate```
 
@@ -16,7 +16,7 @@ Then run the image as a container in an interactive mode:
 
 ```docker run -it nestorzaburannyi/annotate```
 
-Alternatively, it might be beneficial to also mount some of your host's working directory to a directory within the container. In this example we are mounting the current working directory to the /pwd withing the container:
+Or, also mount your working directory as /pwd within the container.
 
 ```docker run -it -v "$(pwd)":/pwd nestorzaburannyi/annotate```
 
