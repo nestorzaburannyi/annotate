@@ -86,7 +86,7 @@ sub initialize_options {
                 "cds-a-program" => "pannzer",
         #additional parameters
         "program-name" => "Sequence Annotation Pipeline",
-        "program-version" => "20191219",
+        "program-version" => "20200106",
         "rnammer-version" => "1.2",
         "trnascanse-version" => "1.3.1",
         "aragorn-version" => "1.2.38",
