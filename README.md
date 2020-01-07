@@ -26,6 +26,8 @@ Update the databases before the first use:
 
 ```annotate -update```
 
+Note: this process requires at least 4 TB of hard disk space and at least 512 GB of available RAM on your server
+
 Start the annotation
 
 ```Usage: annotate -input <input_file> [OPTIONS]
