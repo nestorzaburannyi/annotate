@@ -205,6 +205,7 @@ sub pannzer {
 sub emapper {
   my ( $o ) = @_;
   print_log( $o, "Updating emapper..." );
+  mkdir( $o->{"cwd"}."/databases/emapper" );
   system( $o->{"cwd"}."/bin/emapper/download_eggnog_data.py -y -f --data_dir ".$o->{"cwd"}."/databases/emapper/ none" );
 }
 
