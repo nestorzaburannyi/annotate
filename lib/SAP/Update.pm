@@ -22,7 +22,6 @@ sub update {
     sprot ( $o );
     pannzer ( $o );
     emapper ( $o );
-    antismash ( $o );
     print_log( $o, "Updating databases complete." );
     exit 0;
 }
@@ -207,12 +206,6 @@ sub emapper {
   print_log( $o, "Updating emapper..." );
   mkdir( $o->{"cwd"}."/databases/emapper" );
   system( $o->{"cwd"}."/bin/emapper/download_eggnog_data.py -y -f --data_dir ".$o->{"cwd"}."/databases/emapper/ none" );
-}
-
-sub antismash {
-  my ( $o ) = @_;
-  print_log( $o, "Updating antismash..." );
-  system( "PATH=\$PATH:/annotate/bin/antismash_deps python3 ./download_databases.py" );
 }
 
 sub download_file {
