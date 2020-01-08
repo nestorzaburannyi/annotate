@@ -102,7 +102,7 @@ sub parse_rrna_prediction {
         my $inference = "profile:".$o->{"rna-r-program"}.":".$o->{$o->{"rna-r-program"}."-version"};
         $feature->add_tag_value ( "inference", $inference );
         #store rRNA sequence feature
-        store_and_check_feature ( $o, $feature );
+        store_feature ( $o, $feature );
     }
 }
 
@@ -141,7 +141,7 @@ sub parse_trna_prediction {
         my $inference = "profile:".$o->{"rna-t-program"}.":".$o->{$o->{"rna-t-program"}."-version"};
         $feature->add_tag_value ( "inference", $inference );
         # store tRNA sequence feature
-        store_and_check_feature ( $o, $feature );
+        store_feature ( $o, $feature );
     }
 }
 
@@ -172,7 +172,7 @@ sub parse_tmrna_prediction {
         my $inference = "profile:".$o->{"rna-tm-program"}.":".$o->{$o->{"rna-tm-program"}."-version"};
         $feature->add_tag_value ("inference", $inference );
         #store tmRNA sequence feature
-        store_and_check_feature ( $o, $feature );
+        store_feature ( $o, $feature );
     }
 }
 
@@ -360,7 +360,7 @@ sub parse_ncrna_prediction {
         my $inference = "profile:".$o->{"rna-nc-program"}.":".$o->{$o->{"rna-nc-program"}."-version"}.":rfam:$l->[1]";
         $feature->add_tag_value ( "inference", $inference );
         # store ncRNA sequence feature
-        store_and_check_feature ( $o, $feature );
+        store_feature ( $o, $feature );
         }
     }
 }
