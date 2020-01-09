@@ -482,38 +482,66 @@ sub check_and_store_feature {
 }
 
 sub delete_feature {
-    my ( $o, $feature ) = @_;
-    if ( $feature->has_tag("locus_tag") ) {
-        foreach my $locus_tag_value ( $feature->get_tag_values("locus_tag") ) {
-            if ( exists $o->{"forbidden_locus_tags"}->{$locus_tag_value} ) {
-                delete $o->{"forbidden_locus_tags"}->{$locus_tag_value};
-            }
-        }
+  # removes the feature from the feature pool
+  # accepts: a Bio::SeqFeature::Generic object to be deleted
+  # returns: undef
+  my ( $o, $outgoing_feature ) = @_;
+  if ( ! $outgoing_feature->isa("Bio::SeqFeature::Generic") ) {
+    exit_program( $o, "outgoing feature is not a Bio::SeqFeature::Generic object" );
+  }
+  if ( $outgoing_feature->has_tag("locus_tag") ) {
+    foreach my $locus_tag_value ( $outgoing_feature->get_tag_values("locus_tag") ) {
+      if ( exists $o->{"forbidden_locus_tags"}->{$locus_tag_value} ) {
+        delete $o->{"forbidden_locus_tags"}->{$locus_tag_value};
+      }
     }
-    $o->{"dbh_uuid"}->delete( $feature ) or die "Could not delete feature.";
+  }
+  $o->{"dbh_uuid"}->delete( $outgoing_feature ) or die "Could not delete feature";
 }
 
 sub clone_feature {
-    my ( $o, $old_feature ) = @_;
-    my $new_feature = create_feature ( $old_feature->primary_tag, $old_feature->seq_id, $old_feature->start, $old_feature->location->start_pos_type, $old_feature->end, $old_feature->location->end_pos_type, $old_feature->strand, $old_feature->score );
-    foreach my $old_tag_type ( $old_feature->get_all_tags ) {
-        foreach my $old_tag_value ( $old_feature->get_tag_values( $old_tag_type ) ) {
-            $new_feature->add_tag_value( $old_tag_type, $old_tag_value );
-        }
+  # clones a feature, that is creates an independently mutable copy
+  # accepts: a Bio::SeqFeature::Generic object to be cloned
+  # returns: a cloned Bio::SeqFeature::Generic object
+  my ( $o, $source_feature ) = @_;
+  $source_feature->isa("Bio::SeqFeature::Generic") or die "source feature is not a Bio::SeqFeature::Generic object";
+  # create a feature wuth the same location parameters as the source feature
+  my $new_feature = create_feature ( $source_feature->primary_tag,
+                                     $source_feature->seq_id,
+                                     $source_feature->start,
+                                     $source_feature->location->start_pos_type,
+                                     $source_feature->end,
+                                     $source_feature->location->end_pos_type,
+                                     $source_feature->strand,
+                                     $source_feature->score );
+  # transfer all the tags from the source feature to its clone
+  foreach my $source_tag_type ( $source_feature->get_all_tags ) {
+    foreach my $source_tag_value ( $source_feature->get_tag_values( $source_tag_type ) ) {
+      $new_feature->add_tag_value( $source_tag_type, $source_tag_value );
     }
-    return $new_feature;
+  }
+  $new_feature->isa("Bio::SeqFeature::Generic") or die "new feature is not a Bio::SeqFeature::Generic object";
+  return $new_feature;
 }
 
 sub get_overlapped_features {
-    my ( $o, $new_feature, $rule, $old_features ) = @_;
-    my $old_feature_iterator = $o->{"dbh_uuid"}->get_seq_stream( -seq_id => $new_feature->seq_id, -start => $new_feature->start, -end => $new_feature->end, -type => $old_features );
-    my @return_features;
-    while (my $old_feature = $old_feature_iterator->next_seq) {
-        if ( $new_feature->$rule( $old_feature, "ignore") ) {
-            push @return_features, $old_feature;
-        }
-    }
-    return @return_features;
+  # checks if a feature overlaps / contains certain feature types
+  # accepts: $new_feature - a feature to check for overlaps
+  #          $rule - rule, according to which the check is being performed
+  #          $source_features - a list of one or more feature types to include in checking
+  # returns: a list of features that overlap the feature in question
+  my ( $o, $new_feature, $rule, $source_features ) = @_;
+  my $source_feature_iterator = $o->{"dbh_uuid"}->get_seq_stream( -seq_id => $new_feature->seq_id,
+                                                                  -start => $new_feature->start,
+                                                                  -end => $new_feature->end,
+                                                                  -type => $source_features );
+  my @return_features;
+  while (my $source_feature = $source_feature_iterator->next_seq) {
+      if ( $new_feature->$rule( $source_feature, "ignore") ) {
+          push @return_features, $source_feature;
+      }
+  }
+  return @return_features;
 }
 
 sub get_intergenic_and_cds_sequences {
