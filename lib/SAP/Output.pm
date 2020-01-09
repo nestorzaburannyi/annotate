@@ -154,8 +154,7 @@ sub move_features_to_sequence_hash {
             $feature->remove_tag( "score" ) if $feature->has_tag( "score" );
             # make sure all the CDS features have at least some product tag
             $feature->add_tag_value ( "product", "Hypothetical protein" ) if ( ( $feature->primary_tag eq "CDS" ) and not ( $feature->has_tag( "product" ) ) );
-            # todo: change location to < or > if there is no stop codon
-            # print_log ( $o, $feature->seq );
+            print_verbose ( $o, "Adding feature on sequence ".$feature->seq_id.", start ".$feature->start.", end ".$feature->end.", strand ".$feature->strand );
             $s->{$seq_id}->add_SeqFeature( $feature );
         }
     }
