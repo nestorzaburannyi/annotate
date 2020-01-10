@@ -216,7 +216,7 @@ sub parse_annotation {
 
     elsif ( $o->{"cds-a-program"} eq "emapper" ) {
       while ( my $l = parse_file( $o, $o->{"o"}."/output.emapper.annotations", "line", "\t", $o->{"cds-a-program"} ) ) {
-          my ( $query_id, $description ) = ( $l->[0], clean_up_description($l->[-1]) );
+          my ( $query_id, $description ) = ( $l->[0], clean_up_description($l->[12]) );
           if ( ! $feature or $feature->primary_id ne $query_id ) {
             store_feature ( $o, $feature ) if $feature;
             $feature = $o->{"dbh_uuid"}->fetch( $query_id );
