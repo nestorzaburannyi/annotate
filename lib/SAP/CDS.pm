@@ -182,8 +182,8 @@ sub parse_annotation {
               store_feature ( $o, $feature ) if $feature;
               $feature = $o->{"dbh_uuid"}->fetch( $query_id );
               # remove all previous product tags, add the best hit from PANNZER
-              $feature->remove_tag( "product" ) if $feature->has_tag("product") and $description;
-              $feature->add_tag_value ( "product", $description ) if $description;
+              $feature->remove_tag( "product" ) if $feature->has_tag("product");
+              $feature->add_tag_value ( "product", $description );
             }
             print_verbose( $o, "Found 'product: $description' for query '$query_id'." );
         }
@@ -221,8 +221,8 @@ sub parse_annotation {
             store_feature ( $o, $feature ) if $feature;
             $feature = $o->{"dbh_uuid"}->fetch( $query_id );
             # remove all previous product tags, add the best hit from emapper
-            $feature->remove_tag( "product" ) if $feature->has_tag("product") and $description;
-            $feature->add_tag_value ( "product", $description ) if $description;
+            $feature->remove_tag( "product" ) if $feature->has_tag("product");
+            $feature->add_tag_value ( "product", $description );
           }
           print_verbose( $o, "Found 'product: $description' for query '$query_id'." );
       }
