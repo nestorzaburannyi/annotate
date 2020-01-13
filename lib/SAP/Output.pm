@@ -58,7 +58,7 @@ sub add_source_features {
         my $feature = create_feature ( "source", $seq_id, 1, "EXACT", $s->{$seq_id}->length, "EXACT", 0, 0 );
         $feature->add_tag_value ( "organism", $o->{"organism"} // "unidentified" );
         $feature->add_tag_value ( "strain", $o->{"strain"} ) if ( $o->{"strain"} );
-        $feature->add_tag_value ( "db_xref", "taxon:".$o->{"taxid"} ) if ( $o->{"taxid"} );
+        # $feature->add_tag_value ( "db_xref", "taxon:".$o->{"taxid"} ) if ( $o->{"taxid"} );
         #store source feature
         check_and_store_feature ( $o, $feature );
     }
