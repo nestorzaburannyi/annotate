@@ -636,39 +636,40 @@ sub overlap_rules {
     }
 
     if ( $check_feature->primary_tag eq "source" ) {
-        # source features
+        # source features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "gene" ) {
-        # genes features are copied exclusively from other feature types (rRNA, tRNA, tmRNA, CDS), so if those features pass the overlap detection, we should not check it again during storage
+        # genes features are copied exclusively from other feature types (rRNA, tRNA, tmRNA, CDS),
+        # so if those features pass the overlap detection, we should not check it again during storage
     }
 
     elsif ( $check_feature->primary_tag eq "rRNA" ) {
-        # rRNA feature are far too important to skip
+        # rRNA features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "tRNA" ) {
-        # so are tRNA features
+        # tRNA features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "tmRNA" ) {
-        # so are tmRNA features
+        # tmRNA features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "ncRNA" ) {
-        # so are ncRNA features
+        # ncRNA features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "misc_feature" ) {
-        # so are misc features
+        # misc_feature features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "misc_binding" ) {
-        # so are misc_binding features
+        # misc_binding features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "ORF" ) {
-        # so are ORF features
+        # ORF features are not to be skipped
     }
 
     # CDS features are most difficult
