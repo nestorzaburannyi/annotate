@@ -821,51 +821,63 @@ sub clean_up_description {
   # [4] We prefer that the terms like 'homolog', 'paralog' or 'analog' not be
   # used as part of a protein name as this infers an evolutionary relationship
   # that has generally not been determined. Please use '-like protein' instead.
-  # 2 features contain 'Homolog'
+  # feature contains 'Homolog'
   # CDS     60-kDa SS-A/Ro ribonucleoprotein homolog        lcl|PBC10988:2544384-2546009    PBC10988_15970
   $description =~ s/\shomolog/-like/gi;
   $description =~ s/\sparalog/-like/gi;
   $description =~ s/\sanalog/-like/gi;
-  # FATAL! 4 features contain '@'
+  # feature contains '@'
   # CDS     Acetaldehyde dehydrogenase @ Acetaldehyde dehydrogenase, ethanolamine utilization cluster       lcl|PBC10988:c161956-160472
   $description =~ s/\s\@.*//g;
   # [1] Some proteins are described as fragments or truncated.
   # 85 features contain 'Fragment'
   # CDS     MFS domain-containing protein (Fragment)        lcl|PBC10988:c2765-1416 PBC10988_0020
   $description =~ s/\s\(Fragment\)//gi;
-  # FATAL: 1 feature contains 'Bacteroides'
-  # FATAL: SUSPECT_PRODUCT_NAMES: 1 feature contains 'Bacteroides'
+  # feature contains 'Bacteroides'
   # /tmp/tmp.CBX0IaLU0p:CDS	Bacteroides aerotolerance operon BatA	lcl|sequence_1:c840585-839548	PBC10988_4360
   $description =~ s/^Bacteroides\s//gi;
-  # features contains 'disulphide', Replace with 'disulfide'
+  # feature contains 'disulphide', Replace with 'disulfide'
   $description =~ s/disulphide/disulfide/gi;
-  # features contains 'dyhydrogenase', Replace with 'dehydrogenase'
+  # feature contains 'dyhydrogenase', Replace with 'dehydrogenase'
   $description =~ s/dyhydrogenase/dehydrogenase/gi;
-  # features contains 'methlytransferase', Replace with 'methyltransferase'
+  # feature contains 'methlytransferase', Replace with 'methyltransferase'
   $description =~ s/methlytransferase/methyltransferase/gi;
-  # features contains 'predicted', Replace with 'putative'
+  # feature contains 'predicted', Replace with 'putative'
   $description =~ s/predicted/putative/gi;
-  # features contains 'probable', Replace with 'putative'
+  # feature contains 'probable', Replace with 'putative'
   $description =~ s/probable/putative/gi;
-  # features contains 'sulpho', Replace with 'sulfo'
+  # feature contains 'sulpho', Replace with 'sulfo'
   $description =~ s/sulpho/sulfo/gi;
-  # features contains 'SWIM zinc finger', Replace with 'SWIM zinc finger protein'
+  # feature contains 'SWIM zinc finger', Replace with 'SWIM zinc finger protein'
   $description =~ s/SWIM zinc finger/SWIM zinc finger protein/gi;
-  # features contains 'transposase and inactivated derivative', Replace with 'transposase'
+  # feature contains 'transposase and inactivated derivative', Replace with 'transposase'
   $description =~ s/transposase and inactivated derivative/Transposase/gi;
-  # features contains 'dimerisation', Replace with 'dimerization'
+  # feature contains 'dimerisation', Replace with 'dimerization'
   $description =~ s/dimerisation/dimerization/gi;
-  # features contains 'sulphate', Replace with 'sulfate'
+  # feature contains 'sulphate', Replace with 'sulfate'
   $description =~ s/sulphate/sulfate/gi;
-  # features contains 'sulphide', Replace with 'sulfide'
+  # feature contains 'sulphide', Replace with 'sulfide'
   $description =~ s/sulphide/sulfide/gi;
-  # features contains 'utilisation', Replace with 'utilization'
+  # feature contains 'utilisation', Replace with 'utilization'
   $description =~ s/utilisation/utilization/gi;
-  # features contains 'highly conserved'
+  # feature contains 'highly conserved'
   $description =~ s/^Highly conserved //gi;
-  # Protein name ends with bracket and may contain organism name FEATURE: Prot: Phosphoenolpyruvate carboxykinase [GTP]
-  $description =~ s/ ?\[.*$//gi;
-  return $description;
+  # feature starts with 'domain of unknown function', Replace with 'protein of unknown function'
+  $description =~ s/^Domain of unknown function (DUF3291)$//;
+  # Protein name ends with bracket and may contain organism name FEATURE: Prot: Bifunctional deaminase-reductase domain-containing protein [Kribbella flavida DSM] [gnl|PRJNA578297|GC106_64800:1-162] [gnl|PRJNA578297|GC106_64800: raw, aa len= 162]
+  $description =~ s/ \[.+\]$//; # remove square brackets, but only from the end, avoid removing  3-oxoacyl-[acyl-carrier-protein] reductase or [Butirosin acyl-carrier protein]--L-glutamate ligase or 3-hydroxyacyl-[acyl-carrier-protein] dehydratase
+  # feature contain 'faimly', Replace with 'family'.
+  $description =~ s/faimly/family/gi;
+  # feature contains 'doubtful'
+  $description =~ s/, doubtful CDS$//gi;
+  # feature contains 'doubtful'
+  $description =~ s/ # A$//gi;
+  # feature contains 'DNA for'
+  $description =~ s/^DNA for //gi;
+  # feature contains 'paralog'
+  $description =~ s/paralog without usual motifs$//gi;
+
+  return $description // "Hypothetical protein";
 }
 
 
