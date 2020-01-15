@@ -97,7 +97,11 @@ sub add_locus_numbering {
                 # forbid the use of the same locus_tag again
                 $o->{"forbidden_locus_tags"}->{$new_locus_tag} = 1;
                 $feature->add_tag_value ( "locus_tag", $new_locus_tag);
-                $feature->add_tag_value ( "protein_id", "gnl|".$o->{"bioproject"}."|$new_locus_tag" );
+                # protein_id tag is only valid in conjunction with CDS features
+                # see http://www.insdc.org/documents/feature-table#7.3.1
+                if ( $feature->primary_tag eq "CDS" ) {
+                  $feature->add_tag_value ( "protein_id", "gnl|".$o->{"bioproject"}."|$new_locus_tag" );
+                }
                 #update feature
                 store_feature ( $o, $feature );
             }
