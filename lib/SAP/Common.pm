@@ -590,8 +590,12 @@ sub create_seq_hash {
     my $input_filehandle = Bio::SeqIO->new(-file => $o->{"i"}, -format => $o->{"input_format"} );
     my %s;
     while ( my $input_record = $input_filehandle->next_seq ) {
+      my $counter = ( keys %s ) + 1;
         # we have to change the name in the very beginning, otherwise transparency won"t work
-        $input_record->id(add_leading_zeros((1 + keys %s), $o->{"sequence_digit"}));
+        $input_record->id(add_leading_zeros($counter, $o->{"sequence_digit"}));
+
+        # set the sequence to circular if specified
+        $input_record->is_circular( $o->{"circular"}->{$counter} );
 
         # transparent
         if ( $o->{"transparent"} ) {
