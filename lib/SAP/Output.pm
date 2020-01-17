@@ -202,7 +202,6 @@ sub write_fasta_output {
     my ( $o, $s ) = @_;
     print_log ( $o, "Writing .fsa output file..." );
     my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"o"}."/output.fsa", -format => "fasta" );
-    my $counter = 1;
     foreach my $seq_id (sort keys %$s) {
         #add some data that is needed later by tbl2asn and also if *.fsa is required for the submission (BankIt)
         $s->{$seq_id}->description(
@@ -210,7 +209,7 @@ sub write_fasta_output {
                                             "[gcode=11] ".
                                             "[division=BCT] ".
                                             ($o->{"classification"} ? "[lineage=".$o->{"classification"}."] " : "").
-                                            (( $o->{"circular"}->{$counter} // 0 ) ? "[topology=circular] " : "[topology=linear] ").
+                                            ($s->{$seq_id}->is_circular ? "[topology=circular] " : "[topology=linear] ").
                                             ($o->{"complete"} ? "[completeness=complete] " : "").
                                             # reuse the description without changes in transparent mode, if it exists
                                             # ( $o->{"transparent"} and $s->{$seq_id}->description ? $s->{$seq_id}->description :
