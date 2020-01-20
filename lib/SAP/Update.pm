@@ -198,7 +198,7 @@ sub pannzer {
     system( "perl ".$o->{"cwd"}."/bin/pannzer/uniprot/generate_godict.pl ".$o->{"cwd"}."/databases/pannzer/go_data ".$o->{"cwd"}."/databases/pannzer/obo_with_ic.tab ".$o->{"cwd"}."/databases/pannzer/ec2go.tab ".$o->{"cwd"}."/databases/pannzer/kegg2go.tab > ".$o->{"cwd"}."/databases/pannzer/mergeGO.out" );
     # all done, start the servers
     system( "nohup python ".$o->{"cwd"}."/bin/pannzer/DictServer.py -H localhost -d ".$o->{"cwd"}."/databases/pannzer&" );
-    system( "nohup mpirun -np 2 -output-filename ".$o->{"cwd"}."/bin/pannzer/log ".$o->{"cwd"}."/bin/pannzer/server ".$o->{"cwd"}."/databases/pannzer/uniprot 54321 uniprot&" );
+    system( "nohup mpirun --allow-run-as-root -np 2 -output-filename ".$o->{"cwd"}."/bin/pannzer/log ".$o->{"cwd"}."/bin/pannzer/server ".$o->{"cwd"}."/databases/pannzer/uniprot 54321 uniprot&" );
 }
 
 sub emapper {
