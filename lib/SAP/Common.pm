@@ -278,7 +278,7 @@ sub get_translation {
     }
   }
 
-  # lack of -complete translation exposes stop codons as *
+  # lack of -complete passed to ->translate allows to expose stop codons as asterisks *
   $translation = $sequence->translate( -codontable_id => $o->{"codon_table_id"} )->seq;
   # checking for stop codon part
   if ( $type eq "stop" ) {
@@ -736,7 +736,7 @@ sub overlap_rules {
             }
         }
 
-        #########################REVERSE CONTAINS#########################
+        #########################INVERSE CONTAINMENT#########################
         foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "overlaps", ["CDS"] ) ) {
             if ( $overlapped_feature->contains( $check_feature, "ignore" ) ) {
                 # new CDS is inside a larger old CDS
@@ -782,6 +782,7 @@ sub get_protein_sequence_of_feature {
 
 ##################################################### IO FILE ######################################################
 sub prepare_input {
+  # prepares the input
     my ( $o, $s, $input_type ) = @_;
     prepare_sequences ( $o, $s ) if ( $input_type eq "sequences" );
     prepare_homology ( $o, $s ) if ( $input_type eq "homology" );
@@ -817,7 +818,6 @@ sub prepare_homology {
 
 sub prepare_annotation {
     my ( $o, $s ) = @_;
-    # query file contains emapper input if is has NOT been calculated previously
     my $query_filehandle = Bio::SeqIO->new(-file => ">".$o->{"o"}."/input_annotation", -format => "fasta" );
     foreach my $seq_id (sort keys %$s) {
         foreach my $feature ( $o->{"dbh_uuid"}->features( -seq_id => $seq_id, -type => ["CDS"] ) ) {
