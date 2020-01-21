@@ -299,7 +299,17 @@ sub get_translation {
     }
   }
   # recurse in case there is still chance for success
-  return get_translation( $o, $s, $seq_id, $start, $end, $strand, $action, $type, ( $type eq "start" ? $start_extension + ( $action eq "extend" ? 3 : -3 ) : $start_extension ), ( $type eq "stop" ? $end_extension + ( $action eq "extend" ? 3 : -3 ) : $end_extension ) );
+  return get_translation( $o,
+                          $s,
+                          $seq_id,
+                          $start,
+                          $end,
+                          $strand,
+                          $action,
+                          $type,
+                          ( $type eq "start" ? $start_extension + ( $action eq "extend" ? 3 : -3 ) : $start_extension ), # pass new start coordinate
+                          ( $type eq "stop" ? $end_extension + ( $action eq "extend" ? 3 : -3 ) : $end_extension ), # pass new end coordinate
+                        );
 }
 
 sub find_appropriate_cds_feature {
