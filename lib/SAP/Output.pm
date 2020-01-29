@@ -28,8 +28,8 @@ sub output_and_validate {
 sub run_antismash {
     my ( $o, $s ) = @_;
     print_log ( $o, "Running optional antismash tool..." );
-    run_program ( $o, "cp ".$o->{"o"}."/output.gbf ".$o->{"o"}."/output.gbk" );
-    run_program ( $o, "PATH=\$PATH:".$o->{"cwd"}."/bin/antismash_deps ".$o->{"cwd"}."/bin/antismash/run_antismash.py --genefinding-tool prodigal --cb-general --cb-subclusters --cb-knownclusters --minlength 1 -c 1 --output-dir ".$o->{"o"}."/antismash ".$o->{"o"}."/output.gbk" );
+    run_program ( $o, "cp ".$o->{"job"}."/output.gbf ".$o->{"job"}."/output.gbk" );
+    run_program ( $o, "PATH=\$PATH:".$o->{"cwd"}."/bin/antismash_deps ".$o->{"cwd"}."/bin/antismash/run_antismash.py --genefinding-tool prodigal --cb-general --cb-subclusters --cb-knownclusters --minlength 1 -c 1 --output-dir ".$o->{"job"}."/antismash ".$o->{"job"}."/output.gbk" );
 }
 
 sub add_general_information {
@@ -181,7 +181,7 @@ sub write_cmt_output {
     print_log ( $o, "Writing statistics .cmt output file..." );
     my $all_feature_types = join "; ", keys %{ $o->{"feature_count"} };
     my $current_date_and_time = current_date_and_time;
-    open my $output_filehandle, ">", $o->{"o"}."/output.cmt" or die "Could not open ".$o->{"o"}."/output.cmt for writing - $!";
+    open my $output_filehandle, ">", $o->{"job"}."/output.cmt" or die "Could not open ".$o->{"job"}."/output.cmt for writing - $!";
     print {$output_filehandle} "##Genome-Annotation-Data-START##
 Annotation Provider          :: HZI/HIPS
 Annotation Date              :: ".$current_date_and_time."
@@ -201,7 +201,7 @@ Total gene                   :: ".($o->{"feature_count"}->{"gene"} // 0)."
 sub write_fasta_output {
     my ( $o, $s ) = @_;
     print_log ( $o, "Writing .fsa output file..." );
-    my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"o"}."/output.fsa", -format => "fasta" );
+    my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/output.fsa", -format => "fasta" );
     foreach my $seq_id (sort keys %$s) {
         #add some data that is needed later by tbl2asn and also if *.fsa is required for the submission (BankIt)
         $s->{$seq_id}->description(
@@ -229,7 +229,7 @@ sub write_fasta_output {
 sub write_table_output {
     my ( $o, $s ) = @_;
     print_log ( $o, "Writing Sequin/BankIt .tbl output file..." );
-    open my $output_filehandle, ">", $o->{"o"}."/output.tbl" or die "Could not open ".$o->{"o"}."/output.tbl for writing - $!";
+    open my $output_filehandle, ">", $o->{"job"}."/output.tbl" or die "Could not open ".$o->{"job"}."/output.tbl for writing - $!";
     foreach my $seq_id (sort keys %$s) {
         print {$output_filehandle} ">Feature ".$s->{$seq_id}->id."\n";
         foreach my $feature ( $s->{$seq_id}->get_SeqFeatures ) {
@@ -249,7 +249,7 @@ sub write_table_output {
 sub write_gbf_and_sqn_output {
     my ( $o, $s ) = @_;
     print_log ( $o, "Writing Sequin .sqn output file..." );
-    run_program ( $o, $o->{"cwd"}."/bin/tbl2asn/tbl2asn -T T -i ".$o->{"o"}."/output.fsa -w ".$o->{"o"}."/output.cmt -o ".$o->{"o"}."/output.sqn -V vb -s T -Z ".$o->{"o"}."/output.dis" );
+    run_program ( $o, $o->{"cwd"}."/bin/tbl2asn/tbl2asn -T T -i ".$o->{"job"}."/output.fsa -w ".$o->{"job"}."/output.cmt -o ".$o->{"job"}."/output.sqn -V vb -s T -Z ".$o->{"job"}."/output.dis" );
 }
 
 1;

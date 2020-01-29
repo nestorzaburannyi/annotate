@@ -161,7 +161,7 @@ sub initialize_options {
         "verbose"                                           => \$o->{"verbose"},
         "transparent"                                       => \$o->{"transparent"},
         "antismash"                                         => \$o->{"antismash"},
-        "output|o"                                          => \$o->{"o"},
+        "output|o=s"                                        => \$o->{"output"},
     ) or exit;
     # set the option to cwd
     $o->{"cwd"} = $cwd;
@@ -176,11 +176,11 @@ sub initialize_options {
     $o->{"job_uuid"} = $o->{"uuid"} || Data::UUID->new->create_str;
 
     # the the base for output folder for files
-    $o->{"o"} = $o->{"o"} || $o->{"cwd"}."/public/jobs/".$o->{"job_uuid"};
+    $o->{"job"} = $o->{"cwd"}."/public/jobs/".$o->{"job_uuid"};
     # create folder for the job if does not exits
-    make_path($o->{"o"});
+    make_path($o->{"job"});
     # change the current working folder to the created one, as some tools (e.g. GeneMarks, rnammer) will spam and create temporary files in the cwd
-    chdir $o->{"o"};
+    chdir $o->{"job"};
     # no input file specifed
     exit_program($o, "Input file specified via -input parameter is required.") if not $o->{"i"};
     # input file does not exist
@@ -208,7 +208,7 @@ sub initialize_options {
     print_log($o, "\tBase1   = TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG" );
     print_log($o, "\tBase2   = TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG" );
     print_log($o, "\tBase3   = TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG" );
-    $o->{"dbh_uuid"} = Bio::DB::SeqFeature::Store->new( -adaptor => "DBI::SQLite", -dsn => $o->{"o"}."/sqlite", -create  => 1 );
+    $o->{"dbh_uuid"} = Bio::DB::SeqFeature::Store->new( -adaptor => "DBI::SQLite", -dsn => $o->{"job"}."/sqlite", -create  => 1 );
     $o->{"dbh_taxonomy"} = Bio::DB::Taxonomy->new( -source => "flatfile", -directory => $o->{"cwd"}."/databases/taxonomy", -nodesfile => $o->{"cwd"}."/databases/taxonomy/nodes.dmp", -namesfile => $o->{"cwd"}."/databases/taxonomy/names.dmp" );
     $o->{"forbidden_locus_tags"} = ();
     return $o;
@@ -420,11 +420,11 @@ sub print_log {
     # do not print to log on updates
     if ( ! $o->{"update"} ) {
       # print to log
-      open my $output_filehandle, ">>", $o->{"o"}."/log" or die "Could not open ".$o->{"o"}."/log for writing - $!";
+      open my $output_filehandle, ">>", $o->{"job"}."/log" or die "Could not open ".$o->{"job"}."/log for writing - $!";
       print {$output_filehandle} print_message( $o, $message );
       close $output_filehandle;
       # print to verbose log
-      open $output_filehandle, ">>", $o->{"o"}."/verbose" or die "Could not open ".$o->{"o"}."/verbose for writing - $!";
+      open $output_filehandle, ">>", $o->{"job"}."/verbose" or die "Could not open ".$o->{"job"}."/verbose for writing - $!";
       print {$output_filehandle} print_message( $o, $message );
       close $output_filehandle;
     }
@@ -438,7 +438,7 @@ sub print_verbose {
     }
     # do not print to log on updates
     if ( ! $o->{"update"} ) {
-      open my $output_filehandle, ">>", $o->{"o"}."/verbose" or die "Could not open ".$o->{"o"}."/verbose for writing - $!";
+      open my $output_filehandle, ">>", $o->{"job"}."/verbose" or die "Could not open ".$o->{"job"}."/verbose for writing - $!";
       print {$output_filehandle} print_message( $o, $message );
       close $output_filehandle;
     }
@@ -450,7 +450,7 @@ sub run_program {
     print_verbose( $o, "Command used: $command" );
     # this is the only system call allowed, always wrap calls in run_program()
     # tee everything to verbose log
-    system ( $command . "| tee -a ".$o->{"o"}."/verbose 1>/dev/null 2>/dev/null" );
+    system ( $command . "| tee -a ".$o->{"job"}."/verbose 1>/dev/null 2>/dev/null" );
 }
 
 sub exit_program {
@@ -792,19 +792,19 @@ sub prepare_input {
 
 sub prepare_sequences {
     my ( $o, $s ) = @_;
-    my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"o"}."/input_sequences", -format => "fasta");
+    my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_sequences", -format => "fasta");
     foreach my $seq_id (sort keys %$s) {
         # suppress the description (breaks some tools, like genemarks)
         $s->{$seq_id}->description(undef);
         $output_filehandle->write_seq( $s->{$seq_id} );
     }
-    exit_program ( $o, "Required file ".$o->{"o"}."/input_sequences does not exist.") if not (-e $o->{"o"}."/input_sequences" );
+    exit_program ( $o, "Required file ".$o->{"job"}."/input_sequences does not exist.") if not (-e $o->{"job"}."/input_sequences" );
 }
 
 sub prepare_homology {
     my ( $o, $s ) = @_;
     # query file contains blast input if is has NOT been calculated previously
-    my $query_filehandle = Bio::SeqIO->new(-file => ">".$o->{"o"}."/input_homology_".$o->{"cds-h"}, -format => "fasta" );
+    my $query_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_homology_".$o->{"cds-h"}, -format => "fasta" );
     foreach my $intergenic_and_cds_sequence ( get_intergenic_and_cds_sequences ( $o, $s ) ) {
         $intergenic_and_cds_sequence->id ( $intergenic_and_cds_sequence->id );
         if ( not exists $o->{"homology"}->{$intergenic_and_cds_sequence->id} ) {
@@ -818,7 +818,7 @@ sub prepare_homology {
 
 sub prepare_annotation {
     my ( $o, $s ) = @_;
-    my $query_filehandle = Bio::SeqIO->new(-file => ">".$o->{"o"}."/input_annotation", -format => "fasta" );
+    my $query_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_annotation", -format => "fasta" );
     foreach my $seq_id (sort keys %$s) {
         foreach my $feature ( $o->{"dbh_uuid"}->features( -seq_id => $seq_id, -type => ["CDS"] ) ) {
             my $sequence_object = get_protein_sequence_of_feature( $o, $feature );
@@ -951,23 +951,23 @@ sub clean_up_description {
 sub get_command {
     my ( $o, $program ) = @_;
     if ( $program eq "rnammer" ) {
-      return $o->{"cwd"}."/bin/rnammer/rnammer -m lsu,ssu,tsu -S bac -T /tmp ".$o->{"o"}."/input_sequences -gff ".$o->{"o"}."/rnammer";
+      return $o->{"cwd"}."/bin/rnammer/rnammer -m lsu,ssu,tsu -S bac -T /tmp ".$o->{"job"}."/input_sequences -gff ".$o->{"job"}."/rnammer";
     }
     elsif ( $program eq "trnascanse" ) {
-      return $o->{"cwd"}."/bin/trnascanse/tRNAscan-SE -q -Q -B ".$o->{"o"}."/input_sequences -o ".$o->{"o"}."/trnascanse";
+      return $o->{"cwd"}."/bin/trnascanse/tRNAscan-SE -q -Q -B ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/trnascanse";
     }
     elsif ( $program eq "aragorn" ) {
-      return $o->{"cwd"}."/bin/aragorn/aragorn -w -gc11 ".$o->{"o"}."/input_sequences -o ".$o->{"o"}."/aragorn";
+      return $o->{"cwd"}."/bin/aragorn/aragorn -w -gc11 ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/aragorn";
     }
     elsif ( $program eq "infernal" ) {
-      return $o->{"cwd"}."/bin/infernal/cmscan --tblout ".$o->{"o"}."/infernal --notextw --cut_tc --cpu 1 ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm ".$o->{"o"}."/input_sequences";
+      return $o->{"cwd"}."/bin/infernal/cmscan --tblout ".$o->{"job"}."/infernal --notextw --cut_tc --cpu 1 ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm ".$o->{"job"}."/input_sequences";
     }
     elsif ( $program eq "glimmer" ) {
-      return $o->{"cwd"}."/bin/glimmer/long-orfs --trans_table 11 --linear -n -t 1.15 ".$o->{"o"}."/input_sequences ".$o->{"o"}."/glimmer.longorfs; ".
-             $o->{"cwd"}."/bin/glimmer/extract --nowrap -t ".$o->{"o"}."/input_sequences ".$o->{"o"}."/glimmer.longorfs | tee ".$o->{"o"}."/glimmer.train; ".
-             $o->{"cwd"}."/bin/glimmer/build-icm -r ".$o->{"o"}."/glimmer.icm < ".$o->{"o"}."/glimmer.train; ".
-             $o->{"cwd"}."/bin/glimmer/glimmer3 --trans_table 11 --linear --extend ".$o->{"o"}."/input_sequences ".$o->{"o"}."/glimmer.icm ".$o->{"o"}."/glimmer; ".
-             "mv ".$o->{"o"}."/glimmer.predict ".$o->{"o"}."/glimmer";
+      return $o->{"cwd"}."/bin/glimmer/long-orfs --trans_table 11 --linear -n -t 1.15 ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs; ".
+             $o->{"cwd"}."/bin/glimmer/extract --nowrap -t ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs | tee ".$o->{"job"}."/glimmer.train; ".
+             $o->{"cwd"}."/bin/glimmer/build-icm -r ".$o->{"job"}."/glimmer.icm < ".$o->{"job"}."/glimmer.train; ".
+             $o->{"cwd"}."/bin/glimmer/glimmer3 --trans_table 11 --linear --extend ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.icm ".$o->{"job"}."/glimmer; ".
+             "mv ".$o->{"job"}."/glimmer.predict ".$o->{"job"}."/glimmer";
     }
     elsif ( $program eq "prodigal" ) {
         # Error: Sequence must be 20000 characters (only 16084 read).
@@ -975,22 +975,22 @@ sub get_command {
         # on the other hand:
         # Error: Can't specify translation table with anon mode or training file.
         # therefore, either -p anon, or -g 11
-        return $o->{"cwd"}."/bin/prodigal/prodigal -e 0 -q -f gff".( $o->{"input_size"} < 20000 ? " -p anon" : " -g 11 -i " ).$o->{"o"}."/input_sequences -o ".$o->{"o"}."/prodigal";
+        return $o->{"cwd"}."/bin/prodigal/prodigal -e 0 -q -f gff".( $o->{"input_size"} < 20000 ? " -p anon" : " -g 11 -i " ).$o->{"job"}."/input_sequences -o ".$o->{"job"}."/prodigal";
     }
     elsif ( $program eq "genemarks" ) {
-        return $o->{"cwd"}."/bin/genemarks/gmsn.pl --format GFF --prok ".$o->{"o"}."/input_sequences --output ".$o->{"o"}."/genemarks";
+        return $o->{"cwd"}."/bin/genemarks/gmsn.pl --format GFF --prok ".$o->{"job"}."/input_sequences --output ".$o->{"job"}."/genemarks";
     }
     elsif ( $program eq "blast" ) {
-        return $o->{"cwd"}."/bin/blast/blastx -query_gencode 11 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore slen' -max_target_seqs 1 -db ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta -query ".$o->{"o"}."/input_homology_".$o->{"cds-h"}." | tee -a ".$o->{"o"}."/output_homology_".$o->{"cds-h"};
+        return $o->{"cwd"}."/bin/blast/blastx -query_gencode 11 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore slen' -max_target_seqs 1 -db ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta -query ".$o->{"job"}."/input_homology_".$o->{"cds-h"}." | tee -a ".$o->{"job"}."/output_homology_".$o->{"cds-h"};
     }
     elsif ( $program eq "diamond" ) {
-        return $o->{"cwd"}."/bin/diamond/diamond blastx --query-gencode 11 --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore slen --max-target-seqs 1 --query ".$o->{"o"}."/input_homology_".$o->{"cds-h"}." --db ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta --out ".$o->{"o"}."/output_homology_".$o->{"cds-h"};
+        return $o->{"cwd"}."/bin/diamond/diamond blastx --query-gencode 11 --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore slen --max-target-seqs 1 --query ".$o->{"job"}."/input_homology_".$o->{"cds-h"}." --db ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta --out ".$o->{"job"}."/output_homology_".$o->{"cds-h"};
     }
     elsif ( $program eq "pannzer" ) {
-        return "python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -H localhost -T localhost -d ".$o->{"cwd"}."/databases/pannzer -i ".$o->{"o"}."/input_annotation -o ,".$o->{"o"}."/output.desc,".$o->{"o"}."/output.go,".$o->{"o"}."/output.anno";
+        return "python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -H localhost -T localhost -d ".$o->{"cwd"}."/databases/pannzer -i ".$o->{"job"}."/input_annotation -o ,".$o->{"job"}."/output.desc,".$o->{"job"}."/output.go,".$o->{"job"}."/output.anno";
     }
     elsif ( $program eq "emapper" ) {
-        return $o->{"cwd"}."/bin/emapper/emapper.py --override --cpu 1 --data_dir ".$o->{"cwd"}."/databases/emapper -m diamond -i ".$o->{"o"}."/input_annotation -o ".$o->{"o"}."/output"
+        return $o->{"cwd"}."/bin/emapper/emapper.py --override --cpu 1 --data_dir ".$o->{"cwd"}."/databases/emapper -m diamond -i ".$o->{"job"}."/input_annotation -o ".$o->{"job"}."/output"
     }
 }
 

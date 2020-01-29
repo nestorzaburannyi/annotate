@@ -72,7 +72,7 @@ sub run_infernal {
 sub parse_rrna_prediction {
     my ( $o, $s ) = @_;
     print_log( $o, "Parsing rRNA predictions..." );
-    while ( my $l = parse_file( $o, $o->{"o"}."/".$o->{"rna-r-program"}, "line", "\\s+", $o->{"rna-r-program"} ) ) {
+    while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"rna-r-program"}, "line", "\\s+", $o->{"rna-r-program"} ) ) {
         my ( $seq_id, $start, $end, $strand, $product, $score );
         #program-specific part
         if ( $o->{"rna-r-program"} eq "rnammer" ) {
@@ -109,7 +109,7 @@ sub parse_rrna_prediction {
 sub parse_trna_prediction {
     my ( $o, $s ) = @_;
     print_log( $o, "Parsing tRNA predictions..." );
-    while ( my $l = parse_file( $o, $o->{"o"}."/".$o->{"rna-t-program"}, "line", "\\s+", $o->{"rna-t-program"} ) ) {
+    while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"rna-t-program"}, "line", "\\s+", $o->{"rna-t-program"} ) ) {
         my ( $seq_id, $start, $end, $strand, $product, $score );
         # program-specific part
         if ( $o->{"rna-t-program"} eq "trnascanse" ) {
@@ -148,7 +148,7 @@ sub parse_trna_prediction {
 sub parse_tmrna_prediction {
     my ( $o, $s ) = @_;
     print_log( $o, "Parsing tmRNA predictions..." );
-    while ( my $l = parse_file( $o, $o->{"o"}."/".$o->{"rna-tm-program"}, "line", "\\s+", $o->{"rna-tm-program"} ) ) {
+    while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"rna-tm-program"}, "line", "\\s+", $o->{"rna-tm-program"} ) ) {
         my ( $seq_id, $start, $end, $strand, $product, $score );
         #program-specific part
         if ( $o->{"rna-tm-program"} eq "aragorn" ) {
@@ -179,7 +179,7 @@ sub parse_tmrna_prediction {
 sub parse_ncrna_prediction {
     my ( $o, $s ) = @_;
     print_log( $o, "Parsing ncRNA predictions..." );
-    while ( my $l = parse_file( $o, $o->{"o"}."/".$o->{"rna-nc-program"}, "line", "\\s+", $o->{"rna-nc-program"} ) ) {
+    while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"rna-nc-program"}, "line", "\\s+", $o->{"rna-nc-program"} ) ) {
         my ( $seq_id, $start, $end, $strand, $product, $score );
         # program-specific part
         if ( $o->{"rna-nc-program"} eq "infernal" ) {                                                                                                                                                # taking trailing fields (17+) and removing subfields ending with ";", then joining the rest with spaces -> this goes to $product

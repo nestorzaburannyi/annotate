@@ -82,7 +82,7 @@ sub parse_ab_initio {
     my ( $o, $s ) = @_;
     print_log( $o, "Parsing ab initio CDS predictions..." );
     my ( $c ) = get_command ( $o, $o->{"cds-i-program"} );
-    while ( my $l = parse_file( $o, $o->{"o"}."/".$o->{"cds-i-program"}, "line", "\\s+", $o->{"cds-i-program"} ) ) {
+    while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"cds-i-program"}, "line", "\\s+", $o->{"cds-i-program"} ) ) {
         my ( $seq_id, $start, $end, $strand, $score, $start_before, $end_after );
         #program-specific part
         if ( $o->{"cds-i-program"} eq "prodigal" ) {
@@ -131,7 +131,7 @@ sub parse_homology {
     my ( $o, $s ) = @_;
     print_log( $o, "Parsing homology CDS predictions..." );
     my $success;
-    while ( my $l = parse_file( $o, $o->{"o"}."/output_homology_".$o->{"cds-h"}, "line", "\\s+", $o->{"cds-h-program"} ) ) {
+    while ( my $l = parse_file( $o, $o->{"job"}."/output_homology_".$o->{"cds-h"}, "line", "\\s+", $o->{"cds-h-program"} ) ) {
         # program-specific part
         if ( ( $o->{"cds-h-program"} eq "blast" ) or ( $o->{"cds-h-program"} eq "diamond" ) ) {
             #qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue score slen cached
@@ -175,7 +175,7 @@ sub parse_annotation {
     my $feature;
     # program-specific part
     if ( $o->{"cds-a-program"} eq "pannzer" ) {
-        while ( my $l = parse_file( $o, $o->{"o"}."/output.desc", "line", "\t", $o->{"cds-a-program"} ) ) {
+        while ( my $l = parse_file( $o, $o->{"job"}."/output.desc", "line", "\t", $o->{"cds-a-program"} ) ) {
             # qpid    cluster_GSZ     cluster_RM1sum  cluster_size    cluster_desccount       RM2     val_avg jac_avg desc    genename
             my ( $query_id, $description, $symbol ) = ( $l->[0], clean_up_description($l->[8]), $l->[9] );
             if ( ! $feature or $feature->primary_id ne $query_id ) {
@@ -188,7 +188,7 @@ sub parse_annotation {
             print_verbose( $o, "Found 'product: $description' for query '$query_id'." );
         }
 
-        while ( my $l = parse_file( $o, $o->{"o"}."/output.go", "line", "\t", $o->{"cds-a-program"} ) ) {
+        while ( my $l = parse_file( $o, $o->{"job"}."/output.go", "line", "\t", $o->{"cds-a-program"} ) ) {
             # program-specific part
             if ( $o->{"cds-a-program"} eq "pannzer" ) {
                 # qpid    ontology        goid    desc    ARGOT_score     ARGOT_PPV       ARGOT_rank
@@ -215,7 +215,7 @@ sub parse_annotation {
     }
 
     elsif ( $o->{"cds-a-program"} eq "emapper" ) {
-      while ( my $l = parse_file( $o, $o->{"o"}."/output.emapper.annotations", "line", "\t", $o->{"cds-a-program"} ) ) {
+      while ( my $l = parse_file( $o, $o->{"job"}."/output.emapper.annotations", "line", "\t", $o->{"cds-a-program"} ) ) {
           my ( $query_id, $description ) = ( $l->[0], clean_up_description($l->[12]) );
           if ( ! $feature or $feature->primary_id ne $query_id ) {
             store_feature ( $o, $feature ) if $feature;
