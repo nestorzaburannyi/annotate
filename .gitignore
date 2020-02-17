@@ -12,3 +12,4 @@
 .git
 .gitignore
 /cert
+/batch_annotate
