@@ -24,4 +24,5 @@ SOFTWARE.
 
 The abovementioned Sequence Annotation Pipeline license applies to all parts of
 the Sequence Annotation Pipeline that are not externally maintained libraries
-and/or executables.
+and/or executables. The externally maintained libraries used by the Sequence
+Annotation Pipeline are located in the respective folders of the source tree.
