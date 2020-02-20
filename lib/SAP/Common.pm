@@ -376,8 +376,8 @@ Optional parameters:
         -cds-a                  boolean         true                                    annotation of CDS genes
         -taxid                  integer         -                                       NCBI taxonomy id of the organism (e.g. 52)
         -strain                 string          -                                       strain name
-        -bioproject             string          -                                       a BioProject identifier (NCBI-compatibility)
         -prefix                 string          -                                       prefix for locus numbering (NCBI-compatibility)
+        -bioproject             string          -                                       a BioProject identifier (NCBI-compatibility)
         -step                   integer         10                                      increment of locus numbering (NCBI-compatibility)
         -sbt                    string          -                                       file with a filled sbt form
         -transparent            boolean         false                                   transparent mode allows to keep already annotated features
