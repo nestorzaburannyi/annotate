@@ -379,12 +379,13 @@ Optional parameters:
         -prefix                 string          -                                       prefix for locus numbering (NCBI-compatibility)
         -bioproject             string          -                                       a BioProject identifier (NCBI-compatibility)
         -step                   integer         10                                      increment of locus numbering (NCBI-compatibility)
-        -sbt                    string          -                                       file with a filled sbt form
-        -transparent            boolean         false                                   transparent mode allows to keep already annotated features
-        -help                   boolean         false                                   print this help
+        -sbt                    string          -                                       file with sbt formular (NCBI-compatibility)
+        -transparent            boolean         false                                   transparent mode (keep already annotated features)
+        -help                   boolean         false                                   print this help message
         -quiet                  boolean         false                                   suppress messages to the console
         -verbose                boolean         false                                   print more messages to the console
-        -output                 string          current working directory               write output files to: output/UUID
+        -output                 string          current working directory               directory name for output files
+        -uuid                   string          output                                  filename prefix for output files
 
 Advanced parameters:
         -rna-r-program          string          rnammer                                 rnammer, infernal
