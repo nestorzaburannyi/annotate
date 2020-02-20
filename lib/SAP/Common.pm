@@ -397,7 +397,7 @@ Advanced parameters:
         -cds-h-evalue           string          1e-5                                    e-value threshold for homology searches
         -cds-a-program          string          pannzer                                 pannzer, emapper
 
-Note: you can disable parts of the program by prepending "-no" to the respective option: "-no-cds" will cause the pipeline not to predict any CDS
+Note: you can disable modules or submodules of the program by prepending "-no" to the respective option: "-no-cds" will cause the pipeline not to predict any CDS
 ';
     exit (1);
 }
