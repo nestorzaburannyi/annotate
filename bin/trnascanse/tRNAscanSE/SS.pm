@@ -3,7 +3,7 @@
 #
 # --------------------------------------------------------------
 # This module is part of the tRNAscan-SE program.
-# Copyright (C) 2011  Patricia P. Chan & Todd M. Lowe
+# Copyright (C) 2017  Patricia P. Chan & Todd M. Lowe
 # --------------------------------------------------------------
 #
 
@@ -16,8 +16,8 @@ require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(valid_structure get_acceptor_half);
 
-sub valid_structure {
-	
+sub valid_structure
+{	
 	my ($ss, $canonical_intron_len) = @_;
 	my $stem_index = 0;
 	
@@ -33,14 +33,17 @@ sub valid_structure {
 	
 	my ($r_stems, $r_mismatches) = &get_stems($ss);
 
-	for ($stem_index = 0; $stem_index < scalar(@$r_mismatches); $stem_index++) {
+	for ($stem_index = 0; $stem_index < scalar(@$r_mismatches); $stem_index++)
+	{
 		$total_mismatches += $r_mismatches->[$stem_index];
 	}
-	if (($total_mismatches > 1) || (scalar(@$r_stems) < 4) || (scalar(@$r_stems) > 5)) {
+	if (($total_mismatches > 1) || (scalar(@$r_stems) < 4) || (scalar(@$r_stems) > 5))
+	{
 		$valid{tRNA} = 0;
 	}
 
-	if (scalar(@$r_stems) == 5) {
+	if (scalar(@$r_stems) == 5)
+	{
 		$valid{acceptor} = 0 if (($r_mismatches->[0] > 1) || (&get_stem_length($r_stems->[0]) != 7));
 		$valid{darm} = 0 if (($r_mismatches->[1] > 1) || (&get_stem_length($r_stems->[1]) < 3));
 		$valid{anticodon} = 0 if (($r_mismatches->[2] > 1) || (&get_stem_length($r_stems->[2]) != 5));
@@ -49,7 +52,8 @@ sub valid_structure {
 		$valid{tRNA} = $valid{acceptor} && $valid{darm} && $valid{anticodon} && $valid{variable} &&
 			$valid{tstem} && (length($ss) - $canonical_intron_len <= 90);
 	}
-	elsif (scalar(@$r_stems) == 4) {
+	elsif (scalar(@$r_stems) == 4)
+	{
 		$valid{variable} = 0;
 		$valid{acceptor} = 0 if (($r_mismatches->[0] > 1) || (&get_stem_length($r_stems->[0]) != 7));
 		$valid{darm} = 0 if (($r_mismatches->[1] > 1) || (&get_stem_length($r_stems->[1]) < 3));
@@ -57,20 +61,24 @@ sub valid_structure {
 		$valid{tstem} = 0 if (($r_mismatches->[3] > 1) || (&get_stem_length($r_stems->[3]) != 5));
 		$valid{tRNA} = $valid{acceptor} && $valid{darm} && $valid{anticodon} && $valid{tstem} && (length($ss) - $canonical_intron_len <= 80);
 	}
-	elsif (scalar(@$r_stems) == 3) {
+	elsif (scalar(@$r_stems) == 3)
+	{
 		$valid{variable} = 0;
 		$valid{acceptor} = 0 if (($r_mismatches->[0] > 1) || (&get_stem_length($r_stems->[0]) != 7));
-		if ($r_mismatches->[1] == 0) {
+		if ($r_mismatches->[1] == 0)
+		{
 			$valid{darm} = 0 if (($r_mismatches->[1] > 1) || (&get_stem_length($r_stems->[1]) < 3));
 			$valid{anticodon} = 0 if (($r_mismatches->[2] > 1) || (&get_stem_length($r_stems->[2]) != 5));
 			$valid{tstem} = 0;
 		}
-		elsif ($r_mismatches->[2] == 0) {
+		elsif ($r_mismatches->[2] == 0)
+		{
 			$valid{darm} = 0;
 			$valid{anticodon} = 0 if (($r_mismatches->[1] > 1) || (&get_stem_length($r_stems->[1]) != 5));
 			$valid{tstem} = 0 if (($r_mismatches->[2] > 1) || (&get_stem_length($r_stems->[2]) != 5));
 		}
-		else {
+		else
+		{
 			$valid{acceptor} = 0;
 			$valid{darm} = 0;
 			$valid{anticodon} = 0;
@@ -78,7 +86,8 @@ sub valid_structure {
 			$valid{tstem} = 0;		
 		}
 	}
-	else {
+	else
+	{
 		$valid{acceptor} = 0;
 		$valid{darm} = 0;
 		$valid{anticodon} = 0;
@@ -89,14 +98,15 @@ sub valid_structure {
 	return \%valid;
 }
 
-sub get_stem_length {
+sub get_stem_length
+{
 	my ($r_stem) = @_;
 	
 	return ($r_stem->{end_left} - $r_stem->{start_left} + 1);
 }
 
-sub get_stems {
-	
+sub get_stems
+{	
 	my ($ss) = @_;
 	my %pairs = ();
 	my @left = ();
@@ -112,29 +122,37 @@ sub get_stems {
 	my $start_right_index = -1;
 	my $end_right_index = -1;
 	
-	for (my $pos = 0; $pos < length($ss); $pos++) {
-		if (substr($ss, $pos, 1) eq ">") {
+	for (my $pos = 0; $pos < length($ss); $pos++)
+	{
+		if (substr($ss, $pos, 1) eq ">")
+		{
 			push(@left, $pos);
 			$pairs{$#left} = -1;
 		}
-		elsif (substr($ss, $pos, 1) eq "<") {
+		elsif (substr($ss, $pos, 1) eq "<")
+		{
 			push(@right, $pos);
 			$left_index = scalar(@left) - 1;
-			while (($pairs{$left_index} > -1) && ($left_index > -1)) {
+			while (($pairs{$left_index} > -1) && ($left_index > -1))
+			{
 				$left_index--;
 			}
-			if (($left_index > -1) && ($pairs{$left_index} == -1)) {
+			if (($left_index > -1) && ($pairs{$left_index} == -1))
+			{
 				$pairs{$left_index} = scalar(@right) - 1;
 			}
 		}
 	}
 
-	foreach $left_index (sort { $a <=> $b } keys %pairs) {
-		if ($last_right_index == -1) {
+	foreach $left_index (sort { $a <=> $b } keys %pairs)
+	{
+		if ($last_right_index == -1)
+		{
 			$start_left_index = $left_index;
 			$end_right_index = $pairs{$left_index};						
 		}
-		elsif ($pairs{$left_index} != ($last_right_index - 1)) {
+		elsif ($pairs{$left_index} != ($last_right_index - 1))
+		{
 			$end_left_index = $left_index - 1;
 			$start_right_index = $last_right_index;
 			push(@stems, {start_left=>$left[$start_left_index], end_left=>$left[$end_left_index],
@@ -144,7 +162,8 @@ sub get_stems {
 		}
 		$last_right_index = $pairs{$left_index};
 	}
-	if ($last_right_index > -1) {
+	if ($last_right_index > -1)
+	{
 		$end_left_index = $left_index - 1;
 		$start_right_index = $last_right_index;
 		push(@stems, {start_left=>$left[$start_left_index], end_left=>$left[$end_left_index],
@@ -152,22 +171,28 @@ sub get_stems {
 	}
 		
     # find mismatches in stems
-    for (my $ct = 0; $ct < scalar(@stems); $ct++) {
+    for (my $ct = 0; $ct < scalar(@stems); $ct++)
+	{
 		$mismatches[$ct] = 0;
 		$left_index = $stems[$ct]->{end_left};
 		$right_index = $stems[$ct]->{start_right};
-		while ($left_index >= $stems[$ct]->{start_left} && $right_index <= $stems[$ct]->{end_right}) {
-			if (substr($ss, $left_index, 1) eq ".") {
-				if (substr($ss, $right_index, 1) eq ".") {
+		while ($left_index >= $stems[$ct]->{start_left} && $right_index <= $stems[$ct]->{end_right})
+		{
+			if (substr($ss, $left_index, 1) eq ".")
+			{
+				if (substr($ss, $right_index, 1) eq ".")
+				{
 					$mismatches[$ct] += 1;
 					$right_index++;
 				}
 				$left_index--;
 			}
-			elsif (substr($ss, $right_index, 1) eq ".") {
+			elsif (substr($ss, $right_index, 1) eq ".")
+			{
 				$right_index++;
 			}
-			else {
+			else
+			{
 				$left_index--;
 				$right_index++;
 			}
@@ -177,21 +202,29 @@ sub get_stems {
 	return (\@stems, \@mismatches);
 }
 
-sub get_acceptor_half {
+sub get_acceptor_half
+{
 	my ($seq, $ss, $half) = @_;
 	
-	if ($half eq "5h") {
+	if ($half eq "5h")
+	{
 		return substr($seq, 0, 7);
 	}
-	elsif ($half eq "3h") {
-		if (substr($ss, length($ss) - 12) eq "<...........") {
+	elsif ($half eq "3h")
+	{
+		if (substr($ss, length($ss) - 12) eq "<...........")
+		{
 			return substr($seq, length($seq) - 11, 7);
 		}
-		else {
+		else
+		{
 			return substr($seq, length($seq) - 8, 7);
 		}
 	}
-	else {
+	else
+	{
 		return "";
 	}
 }
+
+1;

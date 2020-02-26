@@ -3,7 +3,7 @@
 #
 # --------------------------------------------------------------
 # This module is part of the tRNAscan-SE program.
-# Copyright (C) 2011 Patricia Chan and Todd Lowe 
+# Copyright (C) 2017 Patricia Chan and Todd Lowe 
 # --------------------------------------------------------------
 #
 # Perl code for reading FASTA-formatted sequence files
@@ -27,11 +27,14 @@ package tRNAscanSE::Sequence;
 
 use strict;
 use tRNAscanSE::Utils;
-use tRNAscanSE::Constants;
+use tRNAscanSE::Configuration;
 use tRNAscanSE::Options;
+use tRNAscanSE::tRNA;
+use tRNAscanSE::ArraytRNA;
+use tRNAscanSE::LogFile;
 
-
-sub new {
+sub new
+{
     my $class = shift;
     my $self = {};
 
@@ -52,7 +55,7 @@ sub initialize
     $self->{file_name} = "";             # name of log file
     $self->{FILE_H} = undef;             # file handle
     
-    $self->{max_seq_buffer} = 1000000;     # Max size of seq buffer read in at once
+    $self->{max_seq_buffer} = 50000000;    # Max size of seq buffer read in at once
     $self->{seq_buf_overlap} = 200;        # Nucleotides of overlap between buffers
     $self->{seq_index_inc} = 100000;
     
@@ -171,7 +174,8 @@ sub seq_buf_overrun
     return $self->{seq_buf_overrun};
 }
 
-sub seekpos {
+sub seekpos
+{
     my $self = shift;
     my $pos = shift;
     
@@ -186,15 +190,18 @@ sub open_file
     
     my $success = 0;
     
-    if ($mode eq "read") {
+    if ($mode eq "read")
+    {
         &open_for_read(\$self->{FILE_H}, $file);
         $self->{seq_id} = 0;
         $self->{saved_line} = "";
     }
-    elsif ($mode eq "write") {
+    elsif ($mode eq "write")
+    {
         &open_for_write(\$self->{FILE_H}, $file);        
     }
-    elsif ($mode eq "append") {
+    elsif ($mode eq "append")
+    {
         &open_for_append(\$self->{FILE_H}, $file);        
     }
     $self->{file_name} = $file;
@@ -207,7 +214,8 @@ sub close_file
 {
     my $self = shift;
     
-    if (defined $self->{FILE_H}) {
+    if (defined $self->{FILE_H})
+    {
         close($self->{FILE_H});
     }
 }
@@ -215,9 +223,8 @@ sub close_file
 # Reads length of sequence first, then pre-extends to total length
 # before reading it in (important optimization for very long sequences)
 # Also, will search for sequence name matching $key
-
-sub read_fasta {
-    
+sub read_fasta
+{    
     my $self = shift;
     my $opts = shift;
     my $target_seq_id = shift;
@@ -237,8 +244,7 @@ sub read_fasta {
 #        $key =~ s/(\W)/\\$1/g;
 #    }        
     
-    while ((!eof($fh)) 
-           && (($self->{saved_line} =~ /^>/) || ($self->{saved_line} = <$fh>))) 
+    while ((!eof($fh)) && (($self->{saved_line} =~ /^>/) || ($self->{saved_line} = <$fh>))) 
     {                                
         if (($self->{saved_line} =~ /^>\s*($key)\s+(.*)$/) ||
             ($opts->start_at_key()) && ($self->{key_found}) &&
@@ -248,7 +254,8 @@ sub read_fasta {
 
             # if searching for a particular SeqID go on to next seq
             #  if target and current seqid's don't match
-            if ($target_seq_id && ($self->{seq_id} != $target_seq_id)) {
+            if ($target_seq_id && ($self->{seq_id} != $target_seq_id))
+            {
                 $self->{saved_line} = <$fh>;
                 next;
             }
@@ -275,13 +282,15 @@ sub read_fasta {
                 $seqlen += length($self->{saved_line});
                 
                 # Save the start position of this chunk of seq for later easy return
-                if ($seqlen > $seq_index_step) {
+                if ($seqlen > $seq_index_step)
+                {
                     push(@seq_index, $seqlen, tell($fh));
                     $seq_index_step += $self->{seq_index_inc};
 #                    print LOGFILE "($Seqlen) ";
                 } 
                 
-                if (($pre_extend_len == 0) && ($seqlen >= $self->{max_seq_buffer})) {
+                if (($pre_extend_len == 0) && ($seqlen >= $self->{max_seq_buffer}))
+                {
                     $pre_extend_len = $seqlen;
                 }
             }
@@ -307,12 +316,14 @@ sub read_fasta {
             # this prevents tRNAs on the border between buffers from being chopped
             # in half (and missed!)
 
-            if ($seqlen >= $self->{max_seq_buffer}) {
+            if ($seqlen >= $self->{max_seq_buffer})
+            {
                 $self->{buffer_overlap_seq} = substr($self->{sequence}, $seqlen - $self->{seq_buf_overlap});
                 $self->{buffer_end_index}   = $seqlen - length($self->{buffer_overlap_seq});
                 $self->{seq_buf_overrun} = 1;
             }
-            else {
+            else
+            {
                 $self->{seq_buf_overrun} = 0;
             }
             
@@ -324,12 +335,17 @@ sub read_fasta {
             ## Remove long runs of N's from consideration by pre-scanners
             ## By doing this, pre-scanner false-pos rate is normal, even
             ## when scanning unfinished genomes with long N insert "placeholders"
-            $self->{sequence} =~ s/NNNNNNNNNN/CCCCCCCCCC/g; 
+            if ($opts->tscan_mode() or $opts->eufind_mode())
+            {
+                $self->{sequence} =~ s/NNNNNNNNNN/CCCCCCCCCC/g;
+            }
 
             return 1;
         }
-        else {
-            if ($self->{saved_line} =~ /^>/) {
+        else
+        {
+            if ($self->{saved_line} =~ /^>/)
+            {
                 $self->{seq_id}++;
             }
             $self->{saved_line} = <$fh>;
@@ -338,8 +354,8 @@ sub read_fasta {
     0;                                
 }
                 
-sub read_fasta_subseq  {
-    
+sub read_fasta_subseq
+{    
     my $self = shift;
     my $target_seq_id = shift;
     my $subseq_start = shift;
@@ -354,12 +370,15 @@ sub read_fasta_subseq  {
     # find closest position in desired sequence from file position index
 
     $ct=0;
-    if (!defined $self->{all_seq_indices}->[$target_seq_id]) {
+    if (!defined $self->{all_seq_indices}->[$target_seq_id])
+    {
         $seqlen = 0;
         $index_pos = 0;
     }
-    else {
-        while ($self->{all_seq_indices}->[$target_seq_id][$ct] < $subseq_start) {
+    else
+    {
+        while ($self->{all_seq_indices}->[$target_seq_id][$ct] < $subseq_start)
+        {
             $ct+=2;
         }
         $seqlen     = $self->{all_seq_indices}->[$target_seq_id][$ct-2]; 
@@ -373,7 +392,8 @@ sub read_fasta_subseq  {
 
     while (($seqlen < $subseq_start) && ($self->{saved_line} = <$fh>))
     {
-        if ($self->{saved_line} =~ /^>/) { 
+        if ($self->{saved_line} =~ /^>/)
+        { 
             return 0; 
         }
         $self->{saved_line} =~ s/[ \n\t\d]//g;     # strip whitespace & numbers
@@ -405,8 +425,8 @@ sub read_fasta_subseq  {
     return 1;
 }
 
-sub read_fasta_subseq_slow {
-    
+sub read_fasta_subseq_slow
+{    
     my $self = shift;
     my $opts = shift;
     my $key = shift;
@@ -428,8 +448,7 @@ sub read_fasta_subseq_slow {
         $key =~ s/(\W)/\\$1/g;
 #    }        
 
-    while ((!eof(FAHANDLE)) 
-           && (($self->{saved_line} =~ /^>/) || ($self->{saved_line} = <FAHANDLE>))) 
+    while ((!eof(FAHANDLE)) && (($self->{saved_line} =~ /^>/) || ($self->{saved_line} = <FAHANDLE>))) 
     {                                
         if (($self->{saved_line} =~ /^>\s*($key)\s+(.*)$/) ||
             ($opts->start_at_key()) && ($self->{key_found}) &&
@@ -439,7 +458,8 @@ sub read_fasta_subseq_slow {
             
             # if searching for a particular SeqID go on to next seq
             #  if target and current seqid's don't match
-            if ($target_seq_id && ($self->{seq_id} != $target_seq_id)) {
+            if ($target_seq_id && ($self->{seq_id} != $target_seq_id))
+            {
                 $self->{saved_line} = <$fh>;
                 next;
             }
@@ -454,7 +474,8 @@ sub read_fasta_subseq_slow {
             $tempseq = "";
 
             $seqlen = 0;
-            while (($seqlen < $subseq_start) && ($self->{saved_line} = <$fh>)) {
+            while (($seqlen < $subseq_start) && ($self->{saved_line} = <$fh>))
+            {
                 if ($self->{saved_line} =~ /^>/) { last; }
                 $self->{saved_line} =~ s/[ \n\t\d]//g;     # strip whitespace & numbers
                 $seqlen += length($self->{saved_line});
@@ -468,7 +489,8 @@ sub read_fasta_subseq_slow {
         
             $seqlen = length($seq_head);
             
-            while (($seqlen < $subseq_len) && ($self->{saved_line} = <$fh>)) {
+            while (($seqlen < $subseq_len) && ($self->{saved_line} = <$fh>))
+            {
                 if ($self->{saved_line} =~ /^>/) { last; }
                 $self->{saved_line} =~ s/[ \n\t\d]//g;      # strip whitespace & numbers
                 substr($tempseq, $seqlen, length($self->{saved_line})) = $self->{saved_line};
@@ -486,8 +508,10 @@ sub read_fasta_subseq_slow {
             $self->{saved_line} = $last_header;             # restore to original seq header line
             return 1;
         }
-        else {
-            if ($self->{saved_line} =~ /^>/) {
+        else
+        {
+            if ($self->{saved_line} =~ /^>/)
+            {
                 $self->{seq_id}++;
             }
             $self->{saved_line} = <$fh>;
@@ -500,9 +524,10 @@ sub read_fasta_subseq_slow {
 ## Reads remaining portion of large fasta file (size>$MaxSeqBuffer)
 ## Only reads in $MaxSeqBuffer amount or less each time
                 
-sub read_more_fasta {
-    
+sub read_more_fasta
+{    
     my $self = shift;
+    my $opts = shift;
     my $fh = $self->{FILE_H};
     
     my ($seqlen, $filepos);
@@ -516,7 +541,8 @@ sub read_more_fasta {
         $seqlen += length($self->{saved_line});
     }                        
 
-    if ($seqlen == 0) {
+    if ($seqlen == 0)
+    {
         return 0;
     }
 
@@ -538,12 +564,14 @@ sub read_more_fasta {
     # this prevents tRNAs on the border between buffers from being chopped
     # in half (and missed!)
     
-    if ($seqlen >= $self->{max_seq_buffer}) {
+    if ($seqlen >= $self->{max_seq_buffer})
+    {
         $self->{buffer_overlap_seq} = substr($self->{sequence}, $seqlen - $self->{seq_buf_overlap});
         $self->{buffer_end_index}   += $seqlen - length($self->{buffer_overlap_seq});
         $self->{seq_buf_overrun} = 1;
     }
-    else {
+    else
+    {
         $self->{seq_buf_overrun} = 0;
     }
     
@@ -555,13 +583,16 @@ sub read_more_fasta {
     ## Remove long runs of N's from consideration by pre-scanners
     ## By doing this, pre-scanner false-pos rate is normal, even
     ## when scanning unfinished genomes with long N insert "placeholders"
-    $self->{sequence} =~ s/NNNNNNNNNN/CCCCCCCCCC/g; 
+    if ($opts->tscan_mode() or $opts->eufind_mode())
+    {
+        $self->{sequence} =~ s/NNNNNNNNNN/CCCCCCCCCC/g;
+    }
     
     return 1;
 }
         
-sub write_fasta {
-    
+sub write_fasta
+{    
     my $self = shift;
     my $fh = $self->{FILE_H};
     
@@ -575,77 +606,103 @@ sub write_fasta {
     }
 }
 
-sub get_tRNA_sequence {
-    
+sub get_tRNA_sequence
+{    
     my $self = shift;
-    my ($src_seq_name, $strand, $start, $end, $log, $opts, $constants) = @_;
+    my ($global_vars, $trna) = @_;
+    my $global_constants = $global_vars->{global_constants};
+    my $opts = $global_vars->{options};
+    my $log = $global_vars->{log_file};
     
-    $self->{seq_name} = $src_seq_name;
+    $self->{seq_name} = $trna->seqname();
     $self->{seq_description} = ""; 
     
-    my ($upstream_len, $downstream_len, $src_seq_len, $fwd_start, $query_len, $upstream, $downstream, $tRNA_seq);
-    my $src_seqid = $self->get_seq_id_from_name($src_seq_name);
+    my ($src_seq_len, $fwd_start, $query_len, $upstream, $downstream, $tRNA_seq);
+    my $src_seqid = $self->get_seq_id_from_name($trna->seqname());
     
-    $upstream_len   = $constants->upstream_len();
-    $downstream_len = $constants->downstream_len();
-    if ($strand) {
-        if ($start - $upstream_len <= 0) {
-            $upstream_len = $start - 1;
+    my $upstream_len   = $global_constants->get("upstream_len");
+    my $downstream_len = $global_constants->get("downstream_len");
+    
+    if ($trna->strand() eq "+")
+    {
+        if ($trna->start() - $upstream_len <= 0)
+        {
+            $upstream_len = $trna->start() - 1;
         }
-        $fwd_start = $start - $upstream_len;
-        $src_seq_len = $end - $start + 1;
+        $fwd_start = $trna->start() - $upstream_len;
+        $src_seq_len = $trna->end() - $trna->start() + 1;
     }
-    else {
-        if ($end - $downstream_len <= 0) {
-            $downstream_len = $end - 1;
+    else
+    {
+        if ($trna->end() < $trna->start())
+        {
+            if ($trna->end() - $downstream_len <= 0)
+            {
+                $downstream_len = $trna->end() - 1;
+            }
+            $fwd_start = $trna->end() - $downstream_len;
+            $src_seq_len = $trna->start() - $trna->end() + 1;
         }
-        $fwd_start = $end - $downstream_len;
-        $src_seq_len = $start - $end + 1;
+        else
+        {
+            if ($trna->start() - $downstream_len <= 0)
+            {
+                $downstream_len = $trna->start() - 1;
+            }
+            $fwd_start = $trna->start() - $downstream_len;
+            $src_seq_len = $trna->end() - $trna->start() + 1;            
+        }
     }
     $query_len = $upstream_len + $src_seq_len + $downstream_len;
 
-    if (!$self->read_fasta_subseq($src_seqid, $fwd_start, $query_len)) {
-        
+    if (!$self->read_fasta_subseq($src_seqid, $fwd_start, $query_len))
+    {        
         # if can't find it on first try, reposition 
-        # to beginning of file & try once more
-            
-        $log->write_line("Missed $src_seq_name using quick index. Rewinding seq file and trying again with slow search...");
+        # to beginning of file & try once more            
+        $log->broadcast("Missed ".$trna->seqname()." using quick index. Rewinding seq file and trying again with slow search...");
         $self->seekpos(0);
-        if (!$self->read_fasta_subseq_slow($opts, $src_seq_name, $src_seqid, $fwd_start, $query_len)) {
-            print STDERR "Could not find $src_seq_name in ".$opts->fastafile()."\n";
-            $log->write_line("Skipping to next tRNA hit...");
+        if (!$self->read_fasta_subseq_slow($opts, $trna->seqname(), $src_seqid, $fwd_start, $query_len))
+        {
+            $log->warning("Could not find ".$trna->seqname()." in ".$opts->fasta_file());
+            $log->broadcast("Skipping to next tRNA hit...");
             return 0;
         }
     }
     
-    if ($strand) {
+    if ($trna->strand() eq "+")
+    {
         $downstream_len = $self->{seq_length} - $upstream_len - $src_seq_len;
         $upstream = substr($self->{sequence}, 0, $upstream_len);
         $downstream = "";
-        if ($downstream_len > 0) {
+        if ($downstream_len > 0)
+        {
             $downstream = substr($self->{sequence}, $upstream_len + $src_seq_len);
         }
         $tRNA_seq = substr($self->{sequence}, $upstream_len, $src_seq_len);
     }
-    else {
+    else
+    {
         $upstream_len = $self->{seq_length} - $downstream_len - $src_seq_len;        
         $self->{sequence} = &rev_comp_seq($self->{sequence});
         $upstream = "";
-        if ($upstream_len > 0) {
+        if ($upstream_len > 0)
+        {
             $upstream = substr($self->{sequence}, 0, $upstream_len);
         }
         $downstream = substr($self->{sequence}, $upstream_len + $src_seq_len);
         $tRNA_seq = substr($self->{sequence}, $upstream_len, $src_seq_len);        
     }
-    return ($tRNA_seq, $upstream, $downstream);
+    
+    $trna->seq($tRNA_seq);
+    $trna->upstream($upstream);
+    $trna->downstream($downstream);
 }
 
-sub mask_out_sequence {
-
+sub mask_out_sequence
+{
     my $self = shift;
-    my ($seq_file, $temp_seq_file, $r_sorted_cms_hits) = @_;
+    my ($seq_file, $temp_seq_file, $tRNA_hits) = @_;
     
-    my $cms_hit = undef;
     my $fh_seq_in = undef;
     my $fh_seq_out = undef;
     my $line = "";
@@ -660,82 +717,100 @@ sub mask_out_sequence {
     my $subseq_len = 0;
     my $N_start = 0;
     
-    foreach $cms_hit (@$r_sorted_cms_hits) {
-        if (defined $cms_hits{$cms_hit->{seqname}}) {
-            push (@{$cms_hits{$cms_hit->{seqname}}}, $cms_hit);
+    for (my $i = 0; $i < $tRNA_hits->get_count(); $i++)
+    {
+        if (defined $cms_hits{$tRNA_hits->get($i)->seqname()})
+        {
+            push (@{$cms_hits{$tRNA_hits->get($i)->seqname()}}, $tRNA_hits->get($i));
         }
-        else {
+        else
+        {
             $hits = [];
-            push (@$hits, $cms_hit);
-            $cms_hits{$cms_hit->{seqname}} = $hits;
+            push (@$hits, $tRNA_hits->get($i));
+            $cms_hits{$tRNA_hits->get($i)->seqname()} = $hits;
         }
     }
     
     &open_for_read(\$fh_seq_in, $seq_file);
     &open_for_write(\$fh_seq_out, $temp_seq_file);
     
-    while ($line = <$fh_seq_in>) {
+    while ($line = <$fh_seq_in>)
+    {
         chomp($line);
-        if ($line =~ /^>([^\t]+)$/) {
+        if ($line =~ /^>([^\t]+)$/)
+        {
             $seqname = $1;
             $seqname = &trim($seqname);
-            if (index($seqname, ' ') > -1) {
+            if (index($seqname, ' ') > -1)
+            {
                 $seqname = substr($seqname, 0, index($seqname, ' '));
             }
             $hits = undef;
             $ct = 0;
-            if (defined $cms_hits{$seqname}) {
+            if (defined $cms_hits{$seqname})
+            {
                 $hits = $cms_hits{$seqname};
-                $subseq_len = $hits->[$ct]->{len};
-                $seq_start = $hits->[$ct]->{start};
-                $seq_start = $hits->[$ct]->{end} if ($hits->[$ct]->{strand} == 0); 
+                $subseq_len = $hits->[$ct]->len();
+                $seq_start = $hits->[$ct]->start();
             }
             $written_len = 0;
             $N_start = 0;
-            if ($last_line ne "") {
+            if ($last_line ne "")
+            {
                 print $fh_seq_out $last_line . "\n";
                 $last_line = "";
             }
             print $fh_seq_out $line . "\n";
         }
-        elsif ($line =~ /^\s*$/) {
-        }
-        else {
-            if ($last_line ne "") {
+        elsif ($line =~ /^\s*$/)
+        {}
+        else
+        {
+            if ($last_line ne "")
+            {
                 $line = $last_line . $line;
                 $last_line = "";
             }
-            if (defined $hits) {
-                if ($ct < scalar(@$hits)) {
-                    if ($written_len + length($line) < $seq_start) {
+            if (defined $hits)
+            {
+                if ($ct < scalar(@$hits))
+                {
+                    if ($written_len + length($line) < $seq_start)
+                    {
                         print $fh_seq_out $line . "\n";
                         $written_len += length($line);
                     }
-                    else {
-                        if ($N_start > 0) {
+                    else
+                    {
+                        if ($N_start > 0)
+                        {
                             $subseq_start = 1;
                         }
-                        else {
+                        else
+                        {
                             $subseq_start = $seq_start - $written_len;
                             print $fh_seq_out substr($line, 0, $subseq_start - 1);
                             $written_len += ($subseq_start - 1);
                         }
-                        if (length($line) >= ($subseq_start + $subseq_len - 1)) {
+                        if (length($line) >= ($subseq_start + $subseq_len - 1))
+                        {
                             print $fh_seq_out 'N' x $subseq_len;
                             print $fh_seq_out "\n";
                             $written_len += $subseq_len;
-                            if (length($line) > ($subseq_start + $subseq_len - 1)) {
+                            if (length($line) > ($subseq_start + $subseq_len - 1))
+                            {
                                 $last_line = substr($line, $subseq_start + $subseq_len - 1);
                             }
                             $N_start = 0;
                             $ct++;
-                            if ($ct < scalar(@$hits)) {
-                                $subseq_len = $hits->[$ct]->{len};
-                                $seq_start = $hits->[$ct]->{start};
-                                $seq_start = $hits->[$ct]->{end} if ($hits->[$ct]->{strand} == 0);
+                            if ($ct < scalar(@$hits))
+                            {
+                                $subseq_len = $hits->[$ct]->len();
+                                $seq_start = $hits->[$ct]->start();
                             }
                         }
-                        else {
+                        else
+                        {
                             print $fh_seq_out 'N' x (length($line) - $subseq_start + 1);
                             print $fh_seq_out "\n";
                             $written_len += (length($line) - $subseq_start + 1);
@@ -744,12 +819,14 @@ sub mask_out_sequence {
                         }
                     }
                 }
-                else {
+                else
+                {
                     print $fh_seq_out $line . "\n";
                     $written_len += length($line);
                 }
             }
-            else {
+            else
+            {
                 print $fh_seq_out $line . "\n";
                 $written_len += length($line);
             }

@@ -3,7 +3,7 @@
 #
 # --------------------------------------------------------------
 # This module is part of the tRNAscan-SE program.
-# Copyright (C) 2011 Patricia Chan and Todd Lowe 
+# Copyright (C) 2017 Patricia Chan and Todd Lowe 
 # --------------------------------------------------------------
 #
 
@@ -11,6 +11,7 @@ package tRNAscanSE::Options;
 
 use strict;
 use tRNAscanSE::Utils;
+use tRNAscanSE::CM;
 
 sub new {
     my $class = shift;
@@ -53,21 +54,33 @@ sub initialize
 
     $self->{tscan_mode} = 1;            # run tRNAscan if non-zero
     $self->{eufind_mode} = 1;           # run eufindtRNA (pavesi) if non-zero
-    $self->{strict_params} = 1;         # use original strict tRNAscan params
-                                        #  if non-zero
+    $self->{strict_params} = 1;         # use original strict tRNAscan params if non-zero
+    $self->{infernal_fp} = 0;           # run infernal hmm as first pass
                                     
-    $self->{CM_mode} = "cove";          # run covariance model search
+    $self->{CM_mode} = "cove";          # run covariance model search in second pass
                                         #  cove - run Cove if non-zero
                                         #  infernal - run Infernal if non-zero
                                         #             run Infernal by default
-                                        
+    
+    $self->{hmm_filter} = 0;            # run infernal with hmm filter in second pass
+    
     $self->{second_pass_label} = "Cove";    # Second scan pass label: Cove by default
 
-    $self->{search_mode} = "";          # tRNA search mode when running Cove or cmsearch
+    $self->{search_mode} = "";          # tRNA search mode
+                                        # euk - run eukaryotic cov model if set
                                         # bacteria - run covariance model for bacteria if set
                                         # archaea - run archaea cov model if set
-                                        # general - run general cov models (combines tRNAs from all 3 domains)
+                                        # organelle - run general cov model 
+                                        # general - run general cov model (combines tRNAs from all 3 domains)
+                                        # mito mammal - run mammalian mito cov models
+                                        # mito vert - run vertebrate mito cov models
+                                        # metagenome
+                                        # numt
                                         
+    $self->{no_isotype} = 0;            # flag for disabling isotype specific cm scan
+    
+    $self->{mito_model} = "";           # mito CM for isotype specific scan
+    
     $self->{org_mode} = 0;              # run in organellar mode
                                         # run eukaryotic model by default
 
@@ -78,25 +91,35 @@ sub initialize
     $self->{save_stats} = 0;            # save statistics for search
     $self->{stats_file} = "";
 
-    $self->{save_odd_struct} = 0;    # save structures for which Cove
-                                     #  was unable to determine anticodon
+    $self->{detail} = 0;                 # display detailed prediction info
+    
+    $self->{save_odd_struct} = 0;        # save structures for which Cove
+                                         #  was unable to determine anticodon
     $self->{odd_struct_file} = "";
 
-    $self->{save_all_struct} = 0;    # save secondary structures if nonzero
-    $self->{all_struct_file} = "";   # sec struct file, set with -f option
+    $self->{save_all_struct} = 0;        # save secondary structures if nonzero
+    
+    $self->{bed_file} = "";              # bed file
+    $self->{output_fasta_file} = "";     # predicted tRNA fasta file
+    $self->{all_struct_file} = "";       # sec struct file, set with -f option
+    $self->{isotype_specific_file} = ""; # isotype specific result file
 
-    $self->{split_fragment_file} = "";   # split fragment file, set with --split option
+    $self->{split_fragment_file} = "";   # split fragment file, set with --frag option
 
-    $self->{save_verbose} = 0;       # save verbose output from tRNAscan
+    $self->{save_verbose} = 0;           # save verbose output from tRNAscan
     $self->{verb_file} = "";
 
     $self->{save_firstpass_res} = 0;   # save tabular tRNAscan results
     $self->{firstpass_result_file} = "";
+    $self->{firstpass_flanking_file} = "";
+    $self->{secondpass_int_result_file} = "";
+    $self->{isotype_int_result_file} = "";
+    $self->{truncated_int_result_file} = "";
 
     $self->{use_prev_ts_run} = 0;   # specify result file from previous
                                     # tRNA search for Cove-confirmation
 
-    $self->{default_Padding} = 8;
+    $self->{default_Padding} = 10;
     $self->{padding} = $self->{default_Padding}; # pad both ends of first-pass hits with this
                                                  # many extra bases before passing to Cove
 
@@ -111,6 +134,8 @@ sub initialize
 
     $self->{output_codon} = 0;      # output tRNA codon instead of anticodon
                                     # (off by default)
+    
+    $self->{infernal_score} = 0;    # flag to output infernal score
  
 #    $self->{use_orig_cm} = 0;       # use original covariance model that
 #                                    # contains tRNAS from all three domains
@@ -243,6 +268,13 @@ sub strict_params
     return $self->{strict_params};
 }
 
+sub infernal_fp
+{
+    my $self = shift;
+    if (@_) { $self->{infernal_fp} = shift; }
+    return $self->{infernal_fp};
+}
+
 sub CM_mode
 {
     my $self = shift;
@@ -262,6 +294,13 @@ sub infernal_mode
     return ($self->{CM_mode} eq 'infernal');
 }
 
+sub hmm_filter
+{
+    my $self = shift;
+    if (@_) { $self->{hmm_filter} = shift; }
+    return $self->{hmm_filter};    
+}
+
 sub second_pass_label
 {
     my $self = shift;
@@ -276,6 +315,12 @@ sub search_mode
     return $self->{search_mode};
 }
 
+sub euk_mode
+{
+    my $self = shift;
+    return ($self->{search_mode} eq 'euk');    
+}
+
 sub bact_mode
 {
     my $self = shift;
@@ -286,6 +331,62 @@ sub arch_mode
 {
     my $self = shift;
     return ($self->{search_mode} eq 'archaea');
+}
+
+sub mito_mammal_mode
+{
+    my $self = shift;
+    return ($self->mito_mode() and $self->{mito_model} eq 'mammal');
+}
+
+sub mito_vert_mode
+{
+    my $self = shift;
+    return ($self->mito_mode() and $self->{mito_model} eq 'vert');
+}
+
+sub mito_mode
+{
+    my $self = shift;
+    return ($self->{search_mode} eq 'mito');
+}
+
+sub metagenome_mode
+{
+    my $self = shift;
+    return ($self->{search_mode} eq 'metagenome');
+}
+
+sub numt_mode
+{
+    my $self = shift;
+    return ($self->{search_mode} eq 'numt');
+}
+
+sub alternate_mode
+{
+    my $self = shift;
+    return ($self->{search_mode} eq 'alt');
+}
+
+sub no_isotype
+{
+    my $self = shift;
+    if (@_) { $self->{no_isotype} = shift; }
+    return $self->{no_isotype};
+}
+
+sub mito_model
+{
+    my $self = shift;
+    if (@_) { $self->{mito_model} = shift; }
+    return $self->{mito_model};
+}
+
+sub organelle_mode
+{
+    my $self = shift;
+    return ($self->{search_mode} eq 'organelle');
 }
 
 sub general_mode
@@ -357,6 +458,27 @@ sub all_struct_file
     return $self->{all_struct_file};
 }
 
+sub bed_file
+{
+    my $self = shift;
+    if (@_) { $self->{bed_file} = shift; }
+    return $self->{bed_file};
+}
+
+sub output_fasta_file
+{
+    my $self = shift;
+    if (@_) { $self->{output_fasta_file} = shift; }
+    return $self->{output_fasta_file};
+}
+
+sub isotype_specific_file
+{
+    my $self = shift;
+    if (@_) { $self->{isotype_specific_file} = shift; }
+    return $self->{isotype_specific_file};
+}
+
 sub split_fragment_file
 {
     my $self = shift;
@@ -390,6 +512,34 @@ sub firstpass_result_file
     my $self = shift;
     if (@_) { $self->{firstpass_result_file} = shift; }
     return $self->{firstpass_result_file};
+}
+
+sub firstpass_flanking_file
+{
+    my $self = shift;
+    if (@_) { $self->{firstpass_flanking_file} = shift; }
+    return $self->{firstpass_flanking_file};
+}
+
+sub secondpass_int_result_file
+{
+    my $self = shift;
+    if (@_) { $self->{secondpass_int_result_file} = shift; }
+    return $self->{secondpass_int_result_file};
+}
+
+sub isotype_int_result_file
+{
+    my $self = shift;
+    if (@_) { $self->{isotype_int_result_file} = shift; }
+    return $self->{isotype_int_result_file};
+}
+
+sub truncated_int_result_file
+{
+    my $self = shift;
+    if (@_) { $self->{truncated_int_result_file} = shift; }
+    return $self->{truncated_int_result_file};
 }
 
 sub use_prev_ts_run
@@ -455,6 +605,20 @@ sub output_codon
     return $self->{output_codon};
 }
 
+sub detail
+{
+    my $self = shift;
+    if (@_) { $self->{detail} = shift; }
+    return $self->{detail};
+}
+
+sub infernal_score
+{
+    my $self = shift;
+    if (@_) { $self->{infernal_score} = shift; }
+    return $self->{infernal_score};
+}
+
 sub def_max_int_len
 {
     my $self = shift;
@@ -476,188 +640,351 @@ sub prompt_for_overwrite
     return $self->{prompt_for_overwrite};
 }
 
-sub temp_dir
+sub display_run_options
 {
     my $self = shift;
-    if (@_) { $self->{temp_dir} = shift; }
-    return $self->{temp_dir};
-}
+    my ($cm, $tscan, $eufind, $global_constants, $FHAND) = @_;
 
-sub display_run_options {
-
-    my $self = shift;
-    my $cm = shift;
-    my $tscan = shift;
-    my $eufind = shift;
-    my ($FHAND) = shift;
-
-    print $FHAND ('-' x 60,"\n",
-        "Sequence file(s) to search:  ",join(', ',@ARGV),"\n");
-    if ($self->{seq_key} ne '\S*') {
-        if ($self->{start_at_key}) {
-            print $FHAND "Starting at sequence name:   $self->{raw_seq_key}\n"  }
-        else {
-            print $FHAND "Search only names matching:  $self->{raw_seq_key}\n"  }
-    }
-
-    print $FHAND "Search Mode:                 ";
-    if ($self->bact_mode()) {
-        print $FHAND "Bacterial\n";
-    }
-    elsif ($self->arch_mode()) {
-        print $FHAND "Archaeal\n";
-    }	
-    elsif ($self->{org_mode}) {
-        print $FHAND "Organellar\n";
-    }	
-    elsif ($self->general_mode()) {
-        print $FHAND "General\n";
-    }	
-    else {
-        print $FHAND "Eukaryotic\n";
-    }	
-
-    print $FHAND "Results written to:          ",
-        &print_filename($self->{out_file}),"\n";
-
-    print $FHAND "Output format:               ";
-    if ($self->{ace_output}) {
-        print $FHAND "ACeDB\n";  }
-    else {
-        print $FHAND "Tabular\n";  }
-
-    print $FHAND "Searching with:              ";
-    if ($self->{eufind_mode}) {
-        if ($self->{tscan_mode}) {
-            if ($self->{CM_mode} =~ /infernal|cove/) {
-                print $FHAND "tRNAscan + EufindtRNA -> $self->{second_pass_label}\n"; }
-            else {
-                print $FHAND "tRNAscan + EufindtRNA (no $self->{second_pass_label})\n"; }
+    print $FHAND ('-' x 60,"\n", "Sequence file(s) to search:        ",join(', ',@ARGV),"\n");
+    if ($self->{seq_key} ne '\S*')
+    {
+        if ($self->{start_at_key})
+        {
+            print $FHAND "Starting at sequence name:         $self->{raw_seq_key}\n";
         }
-        elsif ($self->{CM_mode} =~ /infernal|cove/) {
-            print $FHAND "EufindtRNA->$self->{second_pass_label}\n"; }
-        else {
-            print $FHAND "EufindtRNA only\n";  }
-    }
-    elsif ($self->{tscan_mode}) {
-        if ($self->{CM_mode} =~ /infernal|cove/) {
-            print $FHAND "tRNAscan->$self->{second_pass_label}\n"; }
-        else {
-            print $FHAND "tRNAscan only\n"; }
-    }    
-    else  {
-        print $FHAND "$self->{second_pass_label} only\n";
+        else
+        {
+            print $FHAND "Search only names matching:        $self->{raw_seq_key}\n";
+        }
     }
 
-    if ($cm->CM_check_for_introns()) {
+    print $FHAND "Search Mode:                       ";
+    if ($self->euk_mode())
+    {
+        print $FHAND "Eukaryotic";
+    }
+    elsif ($self->bact_mode())
+    {
+        print $FHAND "Bacterial";
+    }
+    elsif ($self->arch_mode())
+    {
+        print $FHAND "Archaeal";
+    }	
+    elsif ($self->mito_mammal_mode())
+    {
+        print $FHAND "Mitochondrial in mammals";
+    }	
+    elsif ($self->mito_vert_mode())
+    {
+        print $FHAND "Mitochondrial in vertebrates";
+    }	
+    elsif ($self->organelle_mode())
+    {
+        print $FHAND "Organellar";
+    }	
+    elsif ($self->general_mode())
+    {
+        print $FHAND "General";
+    }	
+    elsif ($self->metagenome_mode())
+    {
+        print $FHAND "Metagenome";
+    }	
+    elsif ($self->numt_mode())
+    {
+        print $FHAND "Numt";
+    }	
+    else
+    {
+        print $FHAND "Eukaryotic";
+    }	
+    print $FHAND "\n";
+
+    print $FHAND "Results written to:                ", &print_filename($self->{out_file}),"\n";
+
+    print $FHAND "Output format:                     ";
+    if ($self->{ace_output})
+    {
+        print $FHAND "ACeDB\n";
+    }
+    else
+    {
+        print $FHAND "Tabular\n";
+    }
+
+    print $FHAND "Searching with:                    ";
+    if ($self->{eufind_mode})
+    {
+        if ($self->{tscan_mode})
+        {
+            if ($self->{CM_mode} =~ /infernal|cove/)
+            {
+                print $FHAND "tRNAscan + EufindtRNA -> $self->{second_pass_label}\n";
+            }
+            else
+            {
+                print $FHAND "tRNAscan + EufindtRNA\n";
+            }
+        }
+        elsif ($self->{CM_mode} =~ /infernal|cove/)
+        {
+            print $FHAND "EufindtRNA->$self->{second_pass_label}\n";
+        }
+        else
+        {
+            print $FHAND "EufindtRNA only\n";
+        }
+    }
+    elsif ($self->{tscan_mode})
+    {
+        if ($self->{CM_mode} =~ /infernal|cove/)
+        {
+            print $FHAND "tRNAscan->$self->{second_pass_label}\n";
+        }
+        else
+        {
+            print $FHAND "tRNAscan only\n";
+        }
+    }
+    elsif ($self->{infernal_fp})
+    {
+        if ($self->{CM_mode} =~ /infernal|cove/)
+        {
+            print $FHAND "Infernal First Pass->$self->{second_pass_label}\n";
+        }
+        else
+        {
+            print $FHAND "Infernal First Pass only\n";
+        }        
+    }
+    else
+    {
+        print $FHAND "$self->{second_pass_label} single-pass scan\n";
+    }
+
+    if ($self->{CM_mode} eq "infernal" and !$self->{infernal_fp})
+    {
+        if ($self->{hmm_filter})
+        {
+            print $FHAND "                                   Fast mode\n";
+        }
+        else
+        {
+            print $FHAND "                                   Maximum sensitivity mode\n";
+        }
+    }
+    
+    if (!$self->{no_isotype} and ($self->euk_mode() or $self->bact_mode() or $self->arch_mode()))
+    {
+        print $FHAND "Isotype-specific model scan:       Yes\n";        
+    }
+    elsif ($self->{no_isotype} and ($self->euk_mode() or $self->bact_mode() or $self->arch_mode()))
+    {
+        print $FHAND "Isotype-specific model scan:       No\n";      
+    }
+    
+    if ($self->euk_mode() and $self->mito_model() ne "")
+    {
+        print $FHAND "Mito isotype model scan:           ".$self->mito_model()."\n";        
+    }
+    
+    if ($cm->CM_check_for_introns())
+    {
         print $FHAND "Scan for noncanonical introns\n";        
     }
-    if ($cm->CM_check_for_split_halves()) {
+    if ($cm->CM_check_for_split_halves())
+    {
         print $FHAND "Scan for fragments of split tRNAs\n";        
     }
 
-    if ($cm->alt_cm_file() eq '') {
-        print $FHAND "Covariance model:            ".$cm->main_cm_file()."\n";
-    }
-    else {
-        print $FHAND "Use alt. covariance model:   ".$cm->alt_cm_file()."\n";
+    my $ct = 0;
+    my %cms = $cm->main_cm_file_path();
+    foreach my $cur_cm (sort keys %cms)
+    {
+        $ct++;
+        if ($ct == 1)
+        {
+            print $FHAND "Covariance model:                  ".$cms{$cur_cm}."\n";
+        }
+        else
+        {
+            print $FHAND "                                   ".$cms{$cur_cm}."\n";
+        }
     }
 
-    if ($cm->cm_cutoff() != 20.0) {
-        print $FHAND "tRNA Cove cutoff score:      ".$cm->cm_cutoff()."\n";
-    }
+#    if ($self->mito_mode())
+#    {
+#        if ($cm->organelle_cm_cutoff() != $global_constants->get("organelle_cm_cutoff"))
+#        {
+#            print $FHAND "tRNA covariance model search       \n"."    cutoff score:                  ".$cm->organelle_cm_cutoff()."\n";
+#        }        
+#    }
+#    else
+#    {
+        if ($cm->cm_cutoff() != $global_constants->get("cm_cutoff"))
+        {
+            print $FHAND "tRNA covariance model search       \n"."    cutoff score:                  ".$cm->cm_cutoff()."\n";
+        }
+#    }
 
-    if ($self->{use_prev_ts_run}) {
+    if ($self->{use_prev_ts_run})
+    {
         print $FHAND "Using previous\n",
-            "tabular output file:         $self->{firstpass_result_file}\n";
+            "tabular output file:               $self->{firstpass_result_file}\n";
     }
 
-    if ($tscan->tscan_version() != 1.4) {
-        print $FHAND "Alternate tRNAscan version:  ".$tscan->tscan_version()."\n";
+    if ($self->{tscan_mode})
+    {
+        print $FHAND "tRNAscan parameters:               ";
+        if ($self->{strict_params})
+        {
+            print $FHAND "Strict\n";
+        }
+        else
+        {
+            print $FHAND "Relaxed\n";
+        }
     }
 
-    if ($self->{tscan_mode}) {
-        print $FHAND "tRNAscan parameters:         ";
-        if ($self->{strict_params}) {
-            print $FHAND "Strict\n";  }
-        else {
-            print $FHAND "Relaxed\n"; }
+    if ($self->{eufind_mode})
+    {
+        print $FHAND "EufindtRNA parameters:             ";
+        if ($eufind->eufind_params() eq $global_constants->get_subvalue("eufind", "relaxed_param"))
+        {
+            print $FHAND "Relaxed (Int Cutoff= ".$eufind->eufind_intscore().")\n";
+        }
+        elsif ($eufind->eufind_params() eq "")
+        {
+            print $FHAND "Normal\n";
+        }
+        elsif  ($eufind->eufind_params() eq $global_constants->get_subvalue("eufind", "strict_param"))
+        {
+            print $FHAND "Strict\n";
+        }
+        else
+        { 
+            print $FHAND "?\n";
+        }  
     }
 
-    if ($self->{eufind_mode}) {
-        print $FHAND "EufindtRNA parameters:       ";
-        if ($eufind->eufind_params() eq "-r") {
-            print $FHAND "Relaxed (Int Cutoff= ".$eufind->eufind_intscore().")\n";  }
-        elsif ($eufind->eufind_params() eq "") {
-            print $FHAND "Normal\n";  }
-        elsif  ($eufind->eufind_params() eq "-s") {
-            print $FHAND "Strict\n"; }
-        else { 
-            print $FHAND "?\n"; }  
+    if ($self->{infernal_fp})
+    {
+        print $FHAND "Infernal first pass cutoff score:  ".$cm->infernal_fp_cutoff()."\n";
+    }
+    
+    if ($self->{padding} != $self->{default_Padding})
+    {
+        print $FHAND "First-pass tRNA hit padding:       $self->{padding} bp\n";
     }
 
-    if ($self->{padding} != $self->{default_Padding}) {
-        print $FHAND "First-pass tRNA hit padding: $self->{padding} bp\n";
+    if ($self->{alt_gcode})
+    {
+        print $FHAND "Alternate transl code used:        ", "from file $self->{gc_file}\n";  
     }
-
-    if ($self->{alt_gcode}) {
-        print $FHAND "Alternate transl code used:  ",
-            "from file $self->{gc_file}\n";  
-    }
-
-    if ($self->{save_all_struct}) {
-        print $FHAND "tRNA secondary structure\n",
-            "    predictions saved to:    ";
-        if ($self->{all_struct_file} eq "-") {
+    print $FHAND "\nTemporary directory:               ".$global_constants->get("temp_dir")."\n";
+    if ($self->{save_all_struct})
+    {
+        print $FHAND "tRNA secondary structure\n", "    predictions saved to:          ";
+        if ($self->{all_struct_file} eq "-")
+        {
             print $FHAND "Standard output\n";
         }
-        else {
+        else
+        {
             print $FHAND "$self->{all_struct_file}\n";
         }
     }
-    if ($self->{split_fragment_file} ne "") {
-        print $FHAND "split tRNA fragment\n",
-            "    predictions saved to:    ";
-        if ($self->{split_fragment_file} eq "-") {
+    if ($self->{bed_file} ne "")
+    {
+        print $FHAND "tRNA predictions saved to:         ";
+        if ($self->{bed_file} eq "-")
+        {
             print $FHAND "Standard output\n";
         }
-        else {
+        else
+        {
+            print $FHAND "$self->{bed_file}\n";
+        }
+    }
+    if ($self->{output_fasta_file} ne "")
+    {
+        print $FHAND "Predicted tRNA sequences\n", "    saved to:                      ";
+        if ($self->{output_fasta_file} eq "-")
+        {
+            print $FHAND "Standard output\n";
+        }
+        else
+        {
+            print $FHAND "$self->{output_fasta_file}\n";
+        }
+    }
+    if ($self->{isotype_specific_file} ne "")
+    {
+        print $FHAND "Isotype specific\n", "    predictions saved to:          ";
+        if ($self->{isotype_specific_file} eq "-")
+        {
+            print $FHAND "Standard output\n";
+        }
+        else
+        {
+            print $FHAND "$self->{isotype_specific_file}\n";
+        }
+    }
+    if ($self->{split_fragment_file} ne "")
+    {
+        print $FHAND "Split tRNA fragment\n", "    predictions saved to:          ";
+        if ($self->{split_fragment_file} eq "-")
+        {
+            print $FHAND "Standard output\n";
+        }
+        else
+        {
             print $FHAND "$self->{split_fragment_file}\n";
         }
     }
-    if ($self->{save_odd_struct}) {
-        print $FHAND "Sec structures for tRNAs\n",
-            " with no anticodon predictn: $self->{odd_struct_file}\n";
+    if ($self->{save_odd_struct})
+    {
+        print $FHAND "Sec structures for tRNAs\n", " with no anticodon predictn: $self->{odd_struct_file}\n";
     }
-    if ($self->{save_firstpass_res}) {
-        print $FHAND "First-pass results saved i: ",
-        "$self->{firstpass_result_file}\n";
+    if ($self->{save_firstpass_res})
+    {
+        print $FHAND "First-pass results saved in:      ", "$self->{firstpass_result_file}\n";
     }
-    if ($self-{save_progress}) {
-        print $FHAND "Search log saved in:         $self->{log_file}\n";
+    if ($self->{log_file} ne "")
+    {
+        print $FHAND "Search log saved in:               $self->{log_file}\n";
     }
-    if ($self->{save_stats}) {
-        print $FHAND "Search statistics saved in:  $self->{stats_file}\n";
+    if ($self->{save_stats})
+    {
+        print $FHAND "Search statistics saved in:        $self->{stats_file}\n";
     }
-    if ($self->{save_falsepos}) {
-        print $FHAND "False positives saved in:    $self->{falsepos_file}\n";
+    if ($self->{save_falsepos})
+    {
+        print $FHAND "False positives saved in:          $self->{falsepos_file}\n";
     }
-    if ($self->{save_missed}) {
-        print $FHAND "Seqs with 0 hits saved in:   $self->{missed_seq_file}\n";
+    if ($self->{save_missed})
+    {
+        print $FHAND "Seqs with 0 hits saved in:         $self->{missed_seq_file}\n";
     }
-    if ($cm->skip_pseudo_filter() | $cm->get_hmm_score() | $tscan->keep_tscan_repeats()) {
+    if ($cm->skip_pseudo_filter() | $cm->get_hmm_score() | $tscan->keep_tscan_repeats())
+    {
         print $FHAND "\n";
     }
-    if ($self->{max_int_len} != $self->{def_max_int_len}) {
-        print $FHAND "Max intron + var. length:    $self->{max_int_len}\n";
+    if ($self->{max_int_len} != $self->{def_max_int_len})
+    {
+        print $FHAND "Max intron + var. length:          $self->{max_int_len}\n";
     }
-    if ($cm->skip_pseudo_filter()) {
+    if ($cm->skip_pseudo_filter())
+    {
         print $FHAND "Pseudogene checking disabled\n";
     }
-    if ($cm->get_hmm_score()) {
+    if ($cm->get_hmm_score())
+    {
         print $FHAND "Reporting HMM/2' structure score breakdown\n";
     }
-    if ($tscan->keep_tscan_repeats()) {
+    if ($tscan->keep_tscan_repeats())
+    {
         print $FHAND "Redundant tRNAscan hits not merged\n";
     } 
 

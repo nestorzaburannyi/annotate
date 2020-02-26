@@ -3,7 +3,7 @@
 #
 # --------------------------------------------------------------
 # This module is part of the tRNAscan-SE program.
-# Copyright (C) 2011 Patricia Chan and Todd Lowe 
+# Copyright (C) 2017 Patricia Chan and Todd Lowe 
 # --------------------------------------------------------------
 #
 
@@ -13,7 +13,7 @@ use strict;
 require Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(check_output_file open_for_read open_for_write open_for_append tempname
-                 print_filename rev_comp_seq max min seg_overlap error_exit_status trim);
+                 print_filename rev_comp_seq max min seg_overlap error_exit_status trim pad pad_num);
 
 our %comp_map = (                     # Complement map
                 'A' => 'T', 'T' => 'A', 'U' => 'A',
@@ -24,7 +24,7 @@ our %comp_map = (                     # Complement map
                 'B' => 'V', 'V' => 'B', 
                 'H' => 'D', 'D' => 'H', 
                 'N' => 'N', 'X' => 'X',
-                '?' => '?');
+                '?' => '?', '-' => '-');
 
 sub check_output_file {
     my ($fname, $prompt_for_overwrite) = @_;
@@ -90,7 +90,8 @@ sub open_for_append {
 # be overridden by an environment variable TMPDIR.
 #
 
-sub tempname {
+sub tempname
+{
     my ($temp_dir, $exten) = @_;
     my ($name);        
     
@@ -98,7 +99,8 @@ sub tempname {
     return $name;                               
 }
 
-sub print_filename {
+sub print_filename
+{
     my ($fname) = @_;
     if ($fname eq "-") {
         $fname = "Standard output";
@@ -118,7 +120,20 @@ sub rev_comp_seq {
     return $rcseq;
 }
 
-sub min {
+sub complement_seq
+{
+	my ($seq) = @_;
+	my $comp_seq = "";
+
+    for (my $i = 0; $i < length($seq); $i++)
+	{
+        $comp_seq .= $comp_map{(substr($seq, $i, 1))};
+    }
+    return $comp_seq;
+}
+
+sub min
+{
     my ($a, $b) = @_;
     if ($a < $b) {
         return ($a); }
@@ -127,7 +142,8 @@ sub min {
     }
 }
 
-sub max {
+sub max
+{
     my ($a, $b) = @_;
     if ($a > $b) {
         return ($a);
@@ -137,21 +153,42 @@ sub max {
     }
 }
 
-sub seg_overlap {
-    my ($seg1_a, $seg1_b, $seg2_a, $seg2_b) = @_;
+sub seg_overlap
+{
+    my ($seg1_a, $seg1_b, $seg2_a, $seg2_b, $range) = @_;
 
-    if ((($seg1_a >= $seg2_a) && ($seg1_a <= $seg2_b)) ||
-        (($seg1_b >= $seg2_a) && ($seg1_b <= $seg2_b)) ||
-        (($seg2_a >= $seg1_a) && ($seg2_a <= $seg1_b)) ||
-        (($seg2_b >= $seg1_a) && ($seg2_b <= $seg1_b)))  {
-        return 1;
-    }
-    else {
-        return 0;
-    }
+	if ($range == 0)
+	{
+		if ((($seg1_a >= $seg2_a) && ($seg1_a <= $seg2_b)) ||
+			(($seg1_b >= $seg2_a) && ($seg1_b <= $seg2_b)) ||
+			(($seg2_a >= $seg1_a) && ($seg2_a <= $seg1_b)) ||
+			(($seg2_b >= $seg1_a) && ($seg2_b <= $seg1_b)))
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		if ((($seg1_a >= ($seg2_a - $range)) && ($seg1_a <= ($seg2_a + $range))) ||
+			(($seg1_b >= ($seg2_b - $range)) && ($seg1_b <= ($seg2_b + $range))) ||
+			(($seg2_a >= ($seg1_a - $range)) && ($seg2_a <= ($seg1_a + $range))) ||
+			(($seg2_b >= ($seg1_b - $range)) && ($seg2_b <= ($seg1_b + $range))))
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
 }
 
-sub error_exit_status {
+sub error_exit_status
+{
     my ($prog_name, $seq_name) = @_;
 
     if ($? != 0) {
@@ -170,6 +207,33 @@ sub trim
 	$string =~ s/^\s+//;
 	$string =~ s/\s+$//;
 	return $string;
+}
+
+sub pad
+{
+	my ($string, $len) = @_;
+	my $remain = $len - length($string);
+	my $value = "";
+	if ($remain > 0)
+	{
+		$value = ' ' x $remain;
+	}
+	$value .= $string;
+	return $value;
+}
+
+sub pad_num
+{
+	my ($num, $len) = @_;
+	my $string = sprintf("%d", $num);
+	my $remain = $len - length($string);
+	my $value = "";
+	if ($remain > 0)
+	{
+		$value = '0' x $remain;
+	}
+	$value .= $string;
+	return $value;
 }
 
 1;
