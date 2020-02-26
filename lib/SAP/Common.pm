@@ -472,8 +472,8 @@ sub add_leading_zeros {
 
 ################################################### SEQUENCE AND FEATURE ##################################################
 sub create_feature {
-    my ( $primary_tag, $seq_id, $start, $start_pos_type, $end, $end_pos_type, $strand, $score, $tags ) = @_;
-    return Bio::SeqFeature::Generic->new(-location => Bio::Location::Fuzzy->new(-start => $start, -end => $end, -strand => $strand, -start_fuz => $start_pos_type, -end_fuz => $end_pos_type ), -primary => $primary_tag, -seq_id => $seq_id, -score => $score, -tag => $tags);
+    my ( $l ) = @_;
+    return Bio::SeqFeature::Generic->new(-location => Bio::Location::Fuzzy->new(-start => $l->{"start"}, -end => $l->{"end"}, -strand => $l->{"strand"}, -start_fuz => $l->{"start_type"}, -end_fuz => $l->{"end_type"} ), -primary => $l->{"primary_tag"}, -seq_id => $l->{"seq_id"}, -score => $l->{"score"}, -tag => $l->{"tags"} );
 }
 
 sub store_feature {
