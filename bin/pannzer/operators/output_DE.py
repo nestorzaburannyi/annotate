@@ -37,7 +37,7 @@ class output_DE(BlockOperator):
                 maxgn=""
                 for row in block:
                         if row[self.status_col]=="False": continue
-                        gn=row[self.genename_col1].upper()
+                        gn=row[self.genename_col1]
                         if gn=="": continue
                         # exclude gene symbols with underscore
                         if re.search(r'\w+_\w+',gn): continue
