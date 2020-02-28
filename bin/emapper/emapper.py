@@ -176,7 +176,7 @@ def main(args):
     # Output and intermediate files
     hmm_hits_file = "%s.emapper.hmm_hits" % args.output
     seed_orthologs_file = "%s.emapper.seed_orthologs" % args.output
-    annot_file = "%s.emapper.annotations" % args.output
+    annot_file = "%s" % args.output
 
     if args.no_search:
         output_files = [annot_file]
