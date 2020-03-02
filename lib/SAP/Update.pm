@@ -240,29 +240,11 @@ sub decompress_file {
 }
 
 sub download_and_uncompress_file {
-    my ( $o, $protocol, $host, $file, $target) = @_;
-    download_file ( $o, $protocol, $host, $file, $target.".gz" );
-    decompress_file ( $o, $target.".gz", $target);
-}
-
-{
-    my %memoized_taxa;
-    sub taxon_id_belongs_to {
-        my ( $o, $taxon_id, $limit_id ) = @_;
-        return 1 if $taxon_id eq $limit_id;
-        return 1 if ( exists $memoized_taxa{$taxon_id} and $memoized_taxa{$taxon_id} eq $limit_id );
-        my $current_taxon = $o->{"dbh_taxonomy"}->get_taxon( -taxonid => $taxon_id );
-        return 0 if not $current_taxon;
-        while ( $current_taxon = $o->{"dbh_taxonomy"}->ancestor( $current_taxon ) ) {
-            return 0 if not $current_taxon;
-            if ( $current_taxon->id eq $limit_id ) {
-                # make a note for the future, to spare computational resources
-                $memoized_taxa{$taxon_id} = $limit_id;
-                return 1;
-            }
-        }
-        return 0;
-    }
+  # a wrapper to combine download_file() and decompress_file() in one call
+  my ( $o, $protocol, $host, $file, $target) = @_;
+  download_file ( $o, $protocol, $host, $file, $target.".gz" );
+  decompress_file ( $o, $target.".gz", $target);
+  return;
 }
 
 1;
