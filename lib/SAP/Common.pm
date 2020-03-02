@@ -191,7 +191,16 @@ sub initialize_options {
     #print some starting info about the run
     print_log($o, "Starting ".$o->{"program-name"}.", build ".$o->{"program-version"} );
     print_log($o, "Job ID is ".$o->{"job_uuid"} );
-    print_log($o, "Prefix is ".$o->{"prefix"} ) if $o->{"prefix"};
+
+    # auto-generate prefix if not specified
+    if ( not $o->{"prefix"} ) {
+      $o->{"prefix"} = "BOGUS";
+      print_log($o, "No locus tag prefix specified, using ".$o->{"prefix"} );
+    }
+    else {
+      print_log($o, "Locus tag prefix is ".$o->{"prefix"} );
+    }
+
     print_log($o, "Strain name is ".$o->{"strain"} ) if $o->{"strain"};
     print_log($o, "BioProject is ".$o->{"bioproject"} ) if $o->{"bioproject"};
 
