@@ -16,7 +16,6 @@ sub update {
     my ( $o ) = @_;
     print_log( $o, "Initializing / updating databases..." );
     mkdir( $o->{"cwd"}."/databases" );
-    sqlite ( $o );
     taxonomy ( $o );
     rfam ( $o );
     sprot ( $o );
@@ -24,14 +23,6 @@ sub update {
     emapper ( $o );
     print_log( $o, "Updating databases complete." );
     exit 0;
-}
-
-sub sqlite {
-    # empty database, just in case we decide to store something, someday in it
-    my ( $o ) = @_;
-    print_log( $o, "Initializing SQL database..." );
-    mkdir( $o->{"cwd"}."/databases/sqlite" );
-    my $database = DBI->connect("dbi:SQLite:".$o->{"cwd"}."/databases/sqlite/database");
 }
 
 sub taxonomy {
