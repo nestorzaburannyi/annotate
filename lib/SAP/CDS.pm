@@ -170,62 +170,21 @@ sub parse_homology {
 }
 
 sub parse_annotation {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Parsing annotation results..." );
-    my $feature;
-    # program-specific part
-    if ( $o->{"cds-a-program"} eq "pannzer" ) {
-        while ( my $l = parse_file( $o, $o->{"job"}."/output.desc", "line", "\t", $o->{"cds-a-program"} ) ) {
-            # qpid    cluster_GSZ     cluster_RM1sum  cluster_size    cluster_desccount       RM2     val_avg jac_avg desc    genename
-            my ( $query_id, $description, $symbol ) = ( $l->[0], clean_up_description($l->[8]), $l->[9] );
-            if ( ! $feature or $feature->primary_id ne $query_id ) {
-              store_feature ( $o, $feature ) if $feature;
-              $feature = $o->{"dbh_uuid"}->fetch( $query_id );
-              # remove all previous product tags, add the best hit from PANNZER
-              $feature->remove_tag( "product" ) if $feature->has_tag("product");
-              $feature->add_tag_value ( "product", $description );
-            }
-            print_verbose( $o, "Found 'product: $description' for query '$query_id'." );
-        }
-
-        while ( my $l = parse_file( $o, $o->{"job"}."/output.go", "line", "\t", $o->{"cds-a-program"} ) ) {
-            # program-specific part
-            if ( $o->{"cds-a-program"} eq "pannzer" ) {
-                # qpid    ontology        goid    desc    ARGOT_score     ARGOT_PPV       ARGOT_rank
-                my ( $query_id, $type, $id, $description ) = ( $l->[0], $l->[1], $l->[2], clean_up_description($l->[3]) );
-                if ( ! $feature or $feature->primary_id ne $query_id ) {
-                  store_feature ( $o, $feature ) if $feature;
-                  $feature = $o->{"dbh_uuid"}->fetch( $query_id );
-                }
-                if ( $type eq "MF" ) {
-                  $feature->add_tag_value ( "db_xref", "GO:$id" );
-                  print_verbose( $o, "Found 'GO:$id, $description' for query '$query_id'." );
-                }
-                elsif ( $type eq "CC" ) {
-                  $feature->add_tag_value ( "db_xref", "GO:$id" );
-                  print_verbose( $o, "Found 'GO:$id, $description' for query '$query_id'." );
-
-                }
-                elsif ( $type eq "BP" ) {
-                  $feature->add_tag_value ( "db_xref", "GO:$id" );
-                  print_verbose( $o, "Found 'GO:$id, $description' for query '$query_id'." );
-                }
-            }
-        }
-    }
-
-    elsif ( $o->{"cds-a-program"} eq "emapper" ) {
-      while ( my $l = parse_file( $o, $o->{"job"}."/output.emapper.annotations", "line", "\t", $o->{"cds-a-program"} ) ) {
-          my ( $query_id, $description ) = ( $l->[0], clean_up_description($l->[12]) );
-          if ( ! $feature or $feature->primary_id ne $query_id ) {
-            store_feature ( $o, $feature ) if $feature;
-            $feature = $o->{"dbh_uuid"}->fetch( $query_id );
-            # remove all previous product tags, add the best hit from emapper
-            $feature->remove_tag( "product" ) if $feature->has_tag("product");
-            $feature->add_tag_value ( "product", $description );
-          }
-          print_verbose( $o, "Found 'product: $description' for query '$query_id'." );
-      }
+    my ( $o ) = @_;
+    print_log( $o, "Annotating annotation results..." );
+    foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"cds-a-program"}, "\\t", $o->{"cds-a-program"} ) ) {
+      # program-independent block
+      # skip low scores if set by the user
+      next if ( $l->{"score"} < $o->{"cds-a-score"} );
+      # get the CDS feature
+      my $feature = $o->{"feature_by_id"}->{ $l->{"seq_id"} };
+      # remove all previous product tags
+      $feature->remove_tag( "product" ) if $feature->has_tag("product");
+      # product tag
+      $feature->add_tag_value ( "product", clean_up_description( $l->{"product"} ) );
+      # gene tag
+      $feature->add_tag_value ( "gene", $l->{"gene_name"} );
+      print_verbose( $o, "Found product ".$l->{"product"}." for query".$l->{"seq_id"} );
     }
 }
 
