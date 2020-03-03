@@ -18,7 +18,7 @@ sub output_and_validate {
     move_features_to_sequence_hash ( $o, $s );
     count_features ( $o, $s );
     # no more modification of features after this point, only writing sequences
-    write_cmt_output ( $o, $s );
+    comment_output ( $o );
     write_fasta_output ( $o, $s );
     write_table_output ( $o, $s );
     write_gbf_and_sqn_output ( $o, $s );
@@ -176,26 +176,35 @@ sub count_features {
     }
 }
 
-sub write_cmt_output {
-    my ( $o, $s ) = @_;
-    print_log ( $o, "Writing statistics .cmt output file..." );
-    my $all_feature_types = join "; ", keys %{ $o->{"feature_count"} };
-    my $current_date_and_time = current_date_and_time;
-    open my $output_filehandle, ">", $o->{"job"}."/output.cmt" or die "Could not open ".$o->{"job"}."/output.cmt for writing - $!";
-    print {$output_filehandle} "##Genome-Annotation-Data-START##
-Annotation Provider          :: HZI/HIPS
-Annotation Date              :: ".$current_date_and_time."
-Annotation Pipeline          :: ".$o->{"program-name"}."
-Annotation Software revision :: ".$o->{"program-version"}."
-Feature Types Annotated      :: ".$all_feature_types."
-rRNA                         :: ".($o->{"feature_count"}->{"rRNA"} // 0)."
-tRNA                         :: ".($o->{"feature_count"}->{"tRNA"} // 0)."
-tmRNA                        :: ".($o->{"feature_count"}->{"tmRNA"} // 0)."
-ncRNA                        :: ".($o->{"feature_count"}->{"ncRNA"} // 0)."
-CDS                          :: ".($o->{"feature_count"}->{"CDS"} // 0)."
-Total gene                   :: ".($o->{"feature_count"}->{"gene"} // 0)."
-##Genome-Annotation-Data-END##";
-    close( $output_filehandle);
+sub comment_output {
+  my ( $o ) = @_;
+  print_log ( $o, "Writing comments..." );
+  # structured comment file
+  open my $output_filehandle, ">", $o->{"job"}."/output.cmt" or die "Could not open ".$o->{"job"}."/output.cmt for writing - $!";
+
+  my $comment = "StructuredCommentPrefix    \t         Genome-Annotation-Data".
+              "\nAnnotation Provider        \t         HZI/HIPS".
+              "\nWebsite                    \t         https://annotate.helmholtz-hzi.de".
+              "\nAnnotation Date            \t       ".current_date_and_time().
+              "\nAnnotation Pipeline        \t       ".$o->{"program-name"}.
+              "\nSoftware Version           \t       ".$o->{"program-version"}.
+              "\nCDS                        \t       ".( $o->{"cds"} ? "yes" : "no" ).
+              "\nCDS ab initio              \t       ".( $o->{"cds-i"} ? $o->{"cds-i-program"} : "no" ).
+              "\nCDS by reference           \t       ".( $o->{"cds-h"} ? $o->{"cds-h-program"} : "no" ).
+              "\nCDS annotation             \t       ".( $o->{"cds-a"} ? $o->{"cds-a-program"} : "no" ).
+              "\nRNA                        \t       ".( $o->{"rna"} ? "yes" : "no" ).
+              "\nAnnotation UUID            \t       ".$o->{"job_uuid"}.
+              "\nAnnotated Features         \t       ".( join "; ", keys %{ $o->{"feature_count"} } ).
+              "\nrRNA                       \t       ".($o->{"feature_count"}->{"rRNA"} // 0).
+              "\ntRNA                       \t       ".($o->{"feature_count"}->{"tRNA"} // 0).
+              "\ntmRNA                      \t       ".($o->{"feature_count"}->{"tmRNA"} // 0).
+              "\nncRNA                      \t       ".($o->{"feature_count"}->{"ncRNA"} // 0).
+              "\nCDS                        \t       ".($o->{"feature_count"}->{"CDS"} // 0).
+              "\nTotal genes                \t       ".($o->{"feature_count"}->{"gene"} // 0).
+              "\nregulatory                 \t       ".($o->{"feature_count"}->{"regulatory"} // 0).
+              "\nmisc_feature               \t       ".($o->{"feature_count"}->{"misc_feature"} // 0).
+              "\nStructuredCommentSuffix    \t         Genome-Annotation-Data";
+  print {$output_filehandle} $comment;
 }
 
 sub write_fasta_output {
