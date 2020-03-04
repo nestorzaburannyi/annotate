@@ -9,17 +9,17 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(rna_prediction);
 
 sub rna_prediction {
-    my ( $o, $s ) = @_;
+    my ( $o ) = @_;
     print_log( $o, "Starting RNA gene predictions..." );
     if ( $o->{"rna-r"} and $o->{"rna-r-program"} eq "rnammer" ) {
-        run_rnammer ( $o, $s );
+        run_rnammer ( $o );
     }
     if ( $o->{"rna-t"} and $o->{"rna-t-program"} eq "trnascanse" ) {
-        run_trnascanse ( $o, $s ) ;
+        run_trnascanse ( $o ) ;
     }
     if ( $o->{"rna-t"} and $o->{"rna-t-program"} eq "aragorn"
     or $o->{"rna-tm"} and $o->{"rna-tm-program"} eq "aragorn" ) {
-        run_aragorn ( $o, $s );
+        run_aragorn ( $o );
     }
     if ( $o->{"rna-r"} and $o->{"rna-r-program"} eq "infernal"
     or $o->{"rna-t"} and $o->{"rna-t-program"} eq "infernal"
