@@ -70,40 +70,38 @@ sub run_infernal {
 }
 
 sub parse_rrna_prediction {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Parsing rRNA predictions..." );
-    while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"rna-r-program"}, "line", "\\s+", $o->{"rna-r-program"} ) ) {
-        my ( $seq_id, $start, $end, $strand, $product, $score );
-        #program-specific part
-        if ( $o->{"rna-r-program"} eq "rnammer" ) {
-            ( $seq_id, $start, $end, $strand, $product, $score ) = ( $l->[0], $l->[3], $l->[4], $l->[6] eq "+" ? 1 : -1, $l->[8], $l->[5] );
-            # skip low scores if set by the user
-            next if ( $score < $o->{"rna-r-score"} );
-            # skip non-rRNA predictons
-            next if not ( $product =~ m/s_rRNA$/ );
-            $product =~ s/s_r/S ribosomal /i;
-        }
-        elsif ( $o->{"rna-r-program"} eq "infernal" ) {
-            ( $seq_id, $start, $end, $strand, $product, $score ) = ( $l->[2], $l->[9] eq "+" ? $l->[7] : $l->[8], $l->[9] eq "+" ? $l->[8] : $l->[7], $l->[9] eq "+" ? 1 : -1, $l->[0], $l->[14] );
-            # skip low scores if set by the user
-            next if ( $score < $o->{"rna-r-score"} );
-            # skip non-rRNA predictons
-            next if not ( $product =~ m/SU_rRNA_bacteria|SU_rRNA_archaea|5S_rRNA/ );
-            $product =~ s/LSU_rRNA_bacteria/23S ribosomal RNA/;
-            $product =~ s/LSU_rRNA_archaea/23S ribosomal RNA/;
-            $product =~ s/SSU_rRNA_bacteria/16S ribosomal RNA/;
-            $product =~ s/SSU_rRNA_archaea/16S ribosomal RNA/;
-            $product =~ s/5S_rRNA/5S ribosomal RNA/;
-        }
-        #create rRNA sequence feature
-        my $feature = create_feature ( "rRNA", $seq_id, $start, "EXACT", $end, "EXACT", $strand, $score );
-        $feature->add_tag_value ( "product", $product );
-        # generate the inference tag
-        my $inference = "profile:".$o->{"rna-r-program"}.":".$o->{$o->{"rna-r-program"}."-version"};
-        $feature->add_tag_value ( "inference", $inference );
-        #store rRNA sequence feature
-        store_feature ( $o, $feature );
+  my ( $o ) = @_;
+  print_log( $o, "Annotating rRNA predictions..." );
+  foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"rna-r-program"}, "\\s+", $o->{"rna-r-program"} ) ) {
+    # program-independent block
+    # skip low scores if set by the user
+    next if ( $l->{"score"} < $o->{"rna-r-score"} );
+    # set the primary tag
+    $l->{"primary_tag"} = "rRNA";
+    # create rRNA sequence feature candidate
+    my $feature = create_feature ( $o, $l );
+
+    # program-specific block
+    if ( $o->{"rna-r-program"} eq "rnammer" ) {
+      # skip non-rRNA rnammer predictons
+      next if not ( $l->{"product"} =~ m/S subunit ribosomal rRNA$/ );
+      # product tag
+      $feature->add_tag_value ( "product", $l->{"product"} );
+      # inference tag
+      $feature->add_tag_value ( "inference", "profile:".$o->{"rna-r-program"}.":".$o->{$o->{"rna-r-program"}."-version"} );
     }
+    elsif ( $o->{"rna-r-program"} eq "infernal" ) {
+      # skip non-rRNA infernal predictons
+      next if not ( $l->{"type"} =~ m/^Gene; rRNA;$/ );
+      # product tag
+      $feature->add_tag_value ( "product", $l->{"product"} );
+      # inference tag
+      $feature->add_tag_value ( "inference", "profile:".$o->{"rna-r-program"}.":".$o->{$o->{"rna-r-program"}."-version"}.":rfam:".$l->{"accession"} );
+    }
+
+    # check and store rRNA sequence feature
+    check_and_store_feature ( $o, $feature );
+  }
 }
 
 sub parse_trna_prediction {
