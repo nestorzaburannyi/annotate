@@ -1,4 +1,4 @@
-## Sequence Annotation Pipeline
+## ProSnap: Prokaryotic Sequence Annotation Pipeline
 
 ### Description
 
@@ -10,28 +10,28 @@ You can run it as a docker container, providing you have [installed](https://doc
 
 Pull the latest version of the image:
 
-```docker pull nestorzaburannyi/annotate```
+```docker pull nestorzaburannyi/prosnap```
 
 Then run the image as a container in an interactive mode:
 
-```docker run -it nestorzaburannyi/annotate```
+```docker run -it nestorzaburannyi/prosnap```
 
 Or, also mount your working directory as /pwd within the container.
 
-```docker run -it -v "$(pwd)":/pwd nestorzaburannyi/annotate```
+```docker run -it -v "$(pwd)":/pwd nestorzaburannyi/prosnap```
 
 ### Usage
 
 Update the databases before the first use:
 
-```annotate -update```
+```prosnap -update```
 
 Note: In order to accommodate the required databases, this process requires at least 4 TB of hard disk space and at least 512 GB of available RAM on your server
 
 Start the annotation
 
-```Usage: annotate -input <input_file> [OPTIONS]
-Example: annotate -input my_genome.fasta -taxid 13
+```Usage: prosnap -input <input_file> [OPTIONS]
+Example: prosnap -input my_genome.fasta -taxid 13
 
         Parameters              Type            Default                                 Description
 
@@ -39,6 +39,9 @@ Mandatory parameters:
         -input                  string          -                                       input file name (FASTA or GenBank format)
 
 Optional parameters:
+        -dna                    boolean         true                                    prediction of DNA sequence features
+        -dna-t                  boolean         true                                    prediction of tandem repeats
+        -dna-c                  boolean         true                                    prediction of CRISPR arrays
         -rna                    boolean         true                                    prediction of RNA genes
         -rna-r                  boolean         true                                    prediction of ribosomal RNA genes
         -rna-t                  boolean         true                                    prediction of transport RNA genes
@@ -61,13 +64,13 @@ Optional parameters:
         -output                 string          current working directory               write output files to: output/UUID
 
 Advanced parameters:
+        -dna-t-program          string          trf                                     trf
+        -dna-c-program          string          minced                                  minced, pilercr
         -rna-r-program          string          rnammer                                 rnammer, infernal
         -rna-t-program          string          trnascanse                              trnascanse, aragorn, infernal
         -rna-tm-program         string          aragorn                                 aragorn, infernal
         -rna-nc-program         string          infernal                                infernal
         -cds-i-program          string          prodigal                                prodigal, glimmer, genemarks
-        -cds-i-score            string          5                                       score threshold for ab initio predictions
         -cds-h-program          string          blast                                   blast, diamond
-        -cds-h-evalue           string          1e-5                                    e-value threshold for homology searches
         -cds-a-program          string          pannzer                                 pannzer, emapper
 ```
