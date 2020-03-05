@@ -152,44 +152,44 @@ sub pannzer {
     # update instructions taken from http://ekhidna2.biocenter.helsinki.fi/sanspanz/
     mkdir ( $o->{"cwd"}."/databases/pannzer" );
     print_log( $o, "Downloading GO..." );
-    system( "wget 'https://www.uniprot.org:443/taxonomy/?query=*&compress=yes&format=tab' -O - | gzip -d > ".$o->{"cwd"}."/databases/pannzer/taxonomy-all.tab" );
+    run_program( $o, "wget 'https://www.uniprot.org:443/taxonomy/?query=*&compress=yes&format=tab' -O - | gzip -d > ".$o->{"cwd"}."/databases/pannzer/taxonomy-all.tab" );
     # EC and KEGG mappings to GO
     print_log( $o, "EC and KEGG mappings to GO..." );
-    system( "wget http://geneontology.org/external2go/ec2go -O - | perl ".$o->{"cwd"}."/bin/pannzer/uniprot/external2go.pl > ".$o->{"cwd"}."/databases/pannzer/ec2go.tab" );
-    system( "wget http://geneontology.org/external2go/kegg2go -O - | perl ".$o->{"cwd"}."/bin/pannzer/uniprot/external2go.pl > ".$o->{"cwd"}."/databases/pannzer/kegg2go.tab" );
+    run_program( $o, "wget http://geneontology.org/external2go/ec2go -O - | perl ".$o->{"cwd"}."/bin/pannzer/uniprot/external2go.pl > ".$o->{"cwd"}."/databases/pannzer/ec2go.tab" );
+    run_program( $o, "wget http://geneontology.org/external2go/kegg2go -O - | perl ".$o->{"cwd"}."/bin/pannzer/uniprot/external2go.pl > ".$o->{"cwd"}."/databases/pannzer/kegg2go.tab" );
     # get, format and index uniprot
     print_log( $o, "Downloading uniprot..." );
-    system( "wget ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz -O ".$o->{"cwd"}."/databases/pannzer/uniprot_sprot.fasta.gz" );
-    system( "wget ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.fasta.gz -O ".$o->{"cwd"}."/databases/pannzer/uniprot_trembl.fasta.gz" );
+    run_program( $o, "wget ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz -O ".$o->{"cwd"}."/databases/pannzer/uniprot_sprot.fasta.gz" );
+    run_program( $o, "wget ftp://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_trembl.fasta.gz -O ".$o->{"cwd"}."/databases/pannzer/uniprot_trembl.fasta.gz" );
     print_log( $o, "Indexing uniprot..." );
-    system( "perl ".$o->{"cwd"}."/bin/pannzer/saisformatdb.pl ".$o->{"cwd"}."/databases/pannzer/uniprot ".$o->{"cwd"}."/databases/pannzer/uniprot_sprot.fasta.gz ".$o->{"cwd"}."/databases/pannzer/uniprot_trembl.fasta.gz" );
+    run_program( $o, "perl ".$o->{"cwd"}."/bin/pannzer/saisformatdb.pl ".$o->{"cwd"}."/databases/pannzer/uniprot ".$o->{"cwd"}."/databases/pannzer/uniprot_sprot.fasta.gz ".$o->{"cwd"}."/databases/pannzer/uniprot_trembl.fasta.gz" );
     # update counts: uniprot.phr is indexed by SANSparallel and contains the description lines of the SANSparallel sequence database
     print_log( $o, "Getting counts..." );
-    system( "perl -pe 's/^\\S+\\s+//' ".$o->{"cwd"}."/databases/pannzer/uniprot.phr| perl -pe 's/ \\w+\\=.*//' | python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -m Cleandesc -f tab -c desc -b desc | cut -f 2 > ".$o->{"cwd"}."/databases/pannzer/x" );
-    system( "sort ".$o->{"cwd"}."/databases/pannzer/x | uniq -c > ".$o->{"cwd"}."/databases/pannzer/uniprot.desc.uc.counts" );
-    system( "perl -pe 's/ +/\n/g' ".$o->{"cwd"}."/databases/pannzer/x | sort | uniq -c > ".$o->{"cwd"}."/databases/pannzer/uniprot.word.uc.counts" );
-    system( "sort ".$o->{"cwd"}."/databases/pannzer/x | uniq -c > ".$o->{"cwd"}."/databases/pannzer/uniprot.desc.uc.counts" );
-    system( "sort ".$o->{"cwd"}."/databases/pannzer/x | uniq -c > ".$o->{"cwd"}."/databases/pannzer/uniprot.desc.uc.counts" );
-    system( "perl ".$o->{"cwd"}."/bin/pannzer/uniprot/sumcol.pl 1 < ".$o->{"cwd"}."/databases/pannzer/uniprot.desc.uc.counts > ".$o->{"cwd"}."/databases/pannzer/nprot" );
-    system( "perl ".$o->{"cwd"}."/bin/pannzer/uniprot/sumcol.pl 1 < ".$o->{"cwd"}."/databases/pannzer/uniprot.word.uc.counts > ".$o->{"cwd"}."/databases/pannzer/nwordtotal" );
+    run_program( $o, "perl -pe 's/^\\S+\\s+//' ".$o->{"cwd"}."/databases/pannzer/uniprot.phr| perl -pe 's/ \\w+\\=.*//' | python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -m Cleandesc -f tab -c desc -b desc | cut -f 2 > ".$o->{"cwd"}."/databases/pannzer/x" );
+    run_program( $o, "sort ".$o->{"cwd"}."/databases/pannzer/x | uniq -c > ".$o->{"cwd"}."/databases/pannzer/uniprot.desc.uc.counts" );
+    run_program( $o, "perl -pe 's/ +/\n/g' ".$o->{"cwd"}."/databases/pannzer/x | sort | uniq -c > ".$o->{"cwd"}."/databases/pannzer/uniprot.word.uc.counts" );
+    run_program( $o, "sort ".$o->{"cwd"}."/databases/pannzer/x | uniq -c > ".$o->{"cwd"}."/databases/pannzer/uniprot.desc.uc.counts" );
+    run_program( $o, "sort ".$o->{"cwd"}."/databases/pannzer/x | uniq -c > ".$o->{"cwd"}."/databases/pannzer/uniprot.desc.uc.counts" );
+    run_program( $o, "perl ".$o->{"cwd"}."/bin/pannzer/uniprot/sumcol.pl 1 < ".$o->{"cwd"}."/databases/pannzer/uniprot.desc.uc.counts > ".$o->{"cwd"}."/databases/pannzer/nprot" );
+    run_program( $o, "perl ".$o->{"cwd"}."/bin/pannzer/uniprot/sumcol.pl 1 < ".$o->{"cwd"}."/databases/pannzer/uniprot.word.uc.counts > ".$o->{"cwd"}."/databases/pannzer/nwordtotal" );
     # GO dictionaries
-    system( "wget ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_all.gaf.gz -O - | gzip -d > ".$o->{"cwd"}."/databases/pannzer/goa_uniprot_all.gaf" );
-    system( "wget http://geneontology.org/ontology/go-basic.obo -O ".$o->{"cwd"}."/databases/pannzer/go-basic.obo" );
+    run_program( $o, "wget ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/goa_uniprot_all.gaf.gz -O - | gzip -d > ".$o->{"cwd"}."/databases/pannzer/goa_uniprot_all.gaf" );
+    run_program( $o, "wget http://geneontology.org/ontology/go-basic.obo -O ".$o->{"cwd"}."/databases/pannzer/go-basic.obo" );
     # GO dictionaries using gorelatives
     # GO hierarchy and information content of GO terms
-    system( "python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -m obo -i ".$o->{"cwd"}."/databases/pannzer/go-basic.obo -o '".$o->{"cwd"}."/obo.tab,'" );
-    system( "cut -f 2,5,7 ".$o->{"cwd"}."/databases/pannzer/goa_uniprot_all.gaf | python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -m gaf2propagated_with_evidencecode -f tab -c 'qpid goid evidence_code' -o ',".$o->{"cwd"}."/databases/pannzer/godict.txt' 2> ".$o->{"cwd"}."/databases/pannzer/err" );
+    run_program( $o, "python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -m obo -i ".$o->{"cwd"}."/databases/pannzer/go-basic.obo -o '".$o->{"cwd"}."/obo.tab,'" );
+    run_program( $o, "cut -f 2,5,7 ".$o->{"cwd"}."/databases/pannzer/goa_uniprot_all.gaf | python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -m gaf2propagated_with_evidencecode -f tab -c 'qpid goid evidence_code' -o ',".$o->{"cwd"}."/databases/pannzer/godict.txt' 2> ".$o->{"cwd"}."/databases/pannzer/err" );
     # workaround because of hard-coded obo.tab path in gaf2propagated_with_evidencecode
-    system( "mv ".$o->{"cwd"}."/obo.tab"." ".$o->{"cwd"}."/databases/pannzer/obo.tab" );
-    system( "cut -f 2 ".$o->{"cwd"}."/databases/pannzer/godict.txt | sort -T ".$o->{"cwd"}."/databases/pannzer | uniq -c | perl -pe 's/^\\s+//' | perl -pe 's/ /\\t/' > ".$o->{"cwd"}."/databases/pannzer/godict_counts" );
-    system( "python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -m BayesIC -i ".$o->{"cwd"}."/databases/pannzer/godict_counts -f tab -c 'qpid propagated' --eval_OBOTAB ".$o->{"cwd"}."/databases/pannzer/obo.tab -o ',".$o->{"cwd"}."/databases/pannzer/obo_with_ic.tab'" );
+    run_program( $o, "mv ".$o->{"cwd"}."/obo.tab"." ".$o->{"cwd"}."/databases/pannzer/obo.tab" );
+    run_program( $o, "cut -f 2 ".$o->{"cwd"}."/databases/pannzer/godict.txt | sort -T ".$o->{"cwd"}."/databases/pannzer | uniq -c | perl -pe 's/^\\s+//' | perl -pe 's/ /\\t/' > ".$o->{"cwd"}."/databases/pannzer/godict_counts" );
+    run_program( $o, "python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -m BayesIC -i ".$o->{"cwd"}."/databases/pannzer/godict_counts -f tab -c 'qpid propagated' --eval_OBOTAB ".$o->{"cwd"}."/databases/pannzer/obo.tab -o ',".$o->{"cwd"}."/databases/pannzer/obo_with_ic.tab'" );
     # GO propagated parent list using gorelatives
-    system( "grep 'id: GO:' ".$o->{"cwd"}."/databases/pannzer/go-basic.obo | perl -pe 's/\\S*id: GO://' > ".$o->{"cwd"}."/databases/pannzer/go.list" );
-    system( $o->{"cwd"}."/bin/pannzer/uniprot/gorelatives -b ".$o->{"cwd"}."/databases/pannzer/go-basic.obo -q ".$o->{"cwd"}."/databases/pannzer/go.list -r isa,partof,altid -d parents -l > ".$o->{"cwd"}."/databases/pannzer/go_data" );
-    system( "perl ".$o->{"cwd"}."/bin/pannzer/uniprot/generate_godict.pl ".$o->{"cwd"}."/databases/pannzer/go_data ".$o->{"cwd"}."/databases/pannzer/obo_with_ic.tab ".$o->{"cwd"}."/databases/pannzer/ec2go.tab ".$o->{"cwd"}."/databases/pannzer/kegg2go.tab > ".$o->{"cwd"}."/databases/pannzer/mergeGO.out" );
+    run_program( $o, "grep 'id: GO:' ".$o->{"cwd"}."/databases/pannzer/go-basic.obo | perl -pe 's/\\S*id: GO://' > ".$o->{"cwd"}."/databases/pannzer/go.list" );
+    run_program( $o, $o->{"cwd"}."/bin/pannzer/uniprot/gorelatives -b ".$o->{"cwd"}."/databases/pannzer/go-basic.obo -q ".$o->{"cwd"}."/databases/pannzer/go.list -r isa,partof,altid -d parents -l > ".$o->{"cwd"}."/databases/pannzer/go_data" );
+    run_program( $o, "perl ".$o->{"cwd"}."/bin/pannzer/uniprot/generate_godict.pl ".$o->{"cwd"}."/databases/pannzer/go_data ".$o->{"cwd"}."/databases/pannzer/obo_with_ic.tab ".$o->{"cwd"}."/databases/pannzer/ec2go.tab ".$o->{"cwd"}."/databases/pannzer/kegg2go.tab > ".$o->{"cwd"}."/databases/pannzer/mergeGO.out" );
     # all done, start the servers
-    system( "nohup python ".$o->{"cwd"}."/bin/pannzer/DictServer.py -H localhost -d ".$o->{"cwd"}."/databases/pannzer&" );
-    system( "nohup mpirun --allow-run-as-root -np \$(nproc --all) -output-filename ".$o->{"cwd"}."/bin/pannzer/log ".$o->{"cwd"}."/bin/pannzer/server ".$o->{"cwd"}."/databases/pannzer/uniprot 54321 uniprot&" );
+    run_program( $o, "nohup python ".$o->{"cwd"}."/bin/pannzer/DictServer.py -H localhost -d ".$o->{"cwd"}."/databases/pannzer&" );
+    run_program( $o, "nohup mpirun --allow-run-as-root -np \$(nproc --all) -output-filename ".$o->{"cwd"}."/bin/pannzer/log ".$o->{"cwd"}."/bin/pannzer/server ".$o->{"cwd"}."/databases/pannzer/uniprot 54321 uniprot&" );
 }
 
 sub emapper {
