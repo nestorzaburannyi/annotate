@@ -207,21 +207,14 @@ sub initialize_options {
     # set the circular molecules
     $o->{"circular"} = { map { $_ => 1 } split ",", $o->{"circular"} } if $o->{"circular"};
     # generating codon_table object for reuse later
-    $o->{"codon_table"} = Bio::Tools::CodonTable->new;
+    $o->{"codon_table"} = Bio::Tools::CodonTable->new( -id => $o->{"gcode"} );
     $o->{"default_codon_table_id"} = $o->{"codon_table"}->add_table("prokaryotic",
                                                                                 "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
                                                                                 "---M-------------------------------M---------------M------------");
-    print_log($o, "Using the Bacterial, Archaeal and Plastid Genetic Code (transl_table=11):" );
-    print_log($o, "\tAAs     = FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIMMTTTTNNKKSSSSVVVVAAAADDEEGGGG" );
-    print_log($o, "\tStarts  = ---M-------------------------------M---------------M------------" );
-    print_log($o, "\tBase1   = TTTTTTTTTTTTTTTTCCCCCCCCCCCCCCCCAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGG" );
-    print_log($o, "\tBase2   = TTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGGTTTTCCCCAAAAGGGG" );
-    print_log($o, "\tBase3   = TCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAGTCAG" );
-    $o->{"dbh_uuid"} = Bio::DB::SeqFeature::Store->new( -adaptor => "DBI::SQLite", -dsn => $o->{"job"}."/sqlite", -create  => 1 );
+    print_log($o, "Using the ".$o->{"codon_table"}->name." genetic code (transl_table=".$o->{"codon_table"}->id."):" );
     $o->{"dbh_taxonomy"} = Bio::DB::Taxonomy->new( -source => "flatfile", -directory => $o->{"cwd"}."/databases/taxonomy", -nodesfile => $o->{"cwd"}."/databases/taxonomy/nodes.dmp", -namesfile => $o->{"cwd"}."/databases/taxonomy/names.dmp" );
     $o->{"forbidden_locus_tags"} = ();
     return $o;
-}
 
 sub get_sequence {
   my ( $o, $s, $seq_id, $start, $end, $strand ) = @_;
