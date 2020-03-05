@@ -53,15 +53,21 @@ sub add_general_information {
 }
 
 sub add_source_features {
-    my ( $o, $s ) = @_;
-    foreach my $seq_id (sort keys %$s) {
-        my $feature = create_feature ( "source", $seq_id, 1, "EXACT", $s->{$seq_id}->length, "EXACT", 0, 0 );
-        $feature->add_tag_value ( "organism", $o->{"organism"} // "unidentified" );
-        $feature->add_tag_value ( "strain", $o->{"strain"} ) if ( $o->{"strain"} );
-        # $feature->add_tag_value ( "db_xref", "taxon:".$o->{"taxid"} ) if ( $o->{"taxid"} );
-        #store source feature
-        check_and_store_feature ( $o, $feature );
-    }
+  my ( $o ) = @_;
+  foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
+    my $feature = create_feature ( $o, { primary_tag => "source",
+                                         seq_id => $seq_id,
+                                         start => 1,
+                                         start_type => "EXACT",
+                                         end => $o->{"r"}->{$seq_id}->length,
+                                         end_type => "EXACT",
+                                         strand => 0,
+                                       } );
+    $feature->add_tag_value ( "organism", $o->{"organism"} // "unidentified" );
+    $feature->add_tag_value ( "strain", $o->{"strain"} ) if ( $o->{"strain"} );
+    # check and store source feature candidate
+    check_and_store_feature ( $o, $feature );
+  }
 }
 
 sub add_locus_numbering {
