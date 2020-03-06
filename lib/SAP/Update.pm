@@ -84,66 +84,37 @@ sub rfam {
 }
 
 sub sprot {
-    my ( $o ) = @_;
-    mkdir ( $o->{"cwd"}."/databases/uniprot" );
-    print_log( $o, "Downloading Uniprot/Swissprot..." );
-    download_and_uncompress_file ( $o, "ftp", "ftp.uniprot.org", "pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz", $o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat" );
-    print_log( $o, "Parsing Uniprot/Swissprot..." );
-    # consider double slash as a record division
-    local $/ = "\n//\n";
-    # opening input file
-    open my $input_filehandle, "<", $o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat" or die "Could not open ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat - $!";
-    open my $bacteria_filehandle, ">", $o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta" or die "Could not open ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta - $!";
-    open my $archaea_filehandle, ">", $o->{"cwd"}."/databases/uniprot/sprot_archaea.fasta" or die "Could not open ".$o->{"cwd"}."/databases/uniprot/sprot_archaea.fasta - $!";
-    while ( my $line = <$input_filehandle> ) {
-        my $entry = SWISS::Entry->fromText( $line );
-        # do not consider partial proteins as reliable, unless requested
-        $o->{"update-sprot-complete-only"} = 1;
-        next if ( ( $entry->isFragment or $entry->DEs->hasFragment ) and ( $o->{"update-sprot-complete-only"} ) );
-        # get the protein evidence
-        my $pe = substr( $entry->PE->{"text"}, 0, 1 ) or die "Could not get protein evidence tag from:\n $line\n\nThis should not have happened!";
-        # do not consider proteins with no protein evidence as reliable, unless requested
-        $o->{"update-sprot-protein-evidence"} = 1;
-        next if ( $o->{"update-sprot-protein-evidence"} > $pe );
-        # get the taxid
-        my $taxon_id = ( $entry->OXs->NCBI_TaxID->elements )[0]->text;
-        my $taxon;
-        # limit db to certain taxons
-        if ( taxon_id_belongs_to ( $o, $taxon_id, 2 ) ) {
-            $taxon = "bacteria";
-        }
-        elsif ( taxon_id_belongs_to ( $o, $taxon_id, 2157 ) ) {
-            $taxon = "archaea";
-        }
-        else {
-            next;
-        }
-        # get the ID
-        my $protein_id = $entry->ID or die "Could not get protein ID from:\n $line\n\nThis should not have happened!";
-        # get the sequence
-        my $sequence = $entry->SQ or die "Could not get protein sequence from:\n $line\n\nThis should not have happened!";
-        # set the non-standard tags
-        my $non_std = $line =~ m/ID   IF3_/ ? "_UNUSUAL_START_ATT" : "";
-        $non_std = $line =~ m/ID   PCNB_/ ? "$non_std"."_UNUSUAL_START_ATT" : $non_std;
-        $non_std = $line =~ m/NON_STD\s+\d+\s+\d+\s+Selenocysteine/ ? "$non_std"."_UNUSUAL_NONSTOP_TGA" : $non_std;
-        $non_std = $line =~ m/NON_STD\s+\d+\s+\d+\s+Pyrrolysine/ ? "$non_std"."_UNUSUAL_NONSTOP_TAG" : $non_std;
-        # write the sequence
-        if ( $taxon eq "bacteria" ) {
-            print { $bacteria_filehandle } ">$protein_id$non_std\n$sequence\n";
-        }
-        elsif ( $taxon eq "archaea" ) {
-            print { $archaea_filehandle } ">$protein_id$non_std\n$sequence\n";
-        }
+  my ( $o ) = @_;
+  mkdir ( $o->{"cwd"}."/databases/uniprot" );
+  print_log( $o, "Downloading Uniprot/Swissprot..." );
+  download_and_uncompress_file ( $o, "ftp", "ftp.uniprot.org", "pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz", $o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat" );
+  download_and_uncompress_file ( $o, "ftp", "ftp.uniprot.org", "pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz", $o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta" );
+  print_log( $o, "Parsing Uniprot/Swissprot..." );
+  # consider double slash as a record division
+  local $/ = "\n//\n";
+  # opening input file
+  open my $input_filehandle, "<", $o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat" or die "Could not open ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat - $!";
+  open my $output_filehandle, ">", $o->{"cwd"}."/databases/uniprot/exceptions.txt" or die "Could not open ".$o->{"cwd"}."/databases/uniprot/exceptions.txt - $!";
+  while ( my $record = <$input_filehandle> ) {
+    my $entry = SWISS::Entry->fromText( $record );
+    # get the id
+    my $id = $entry->ID or die "Could not get ID from:\n $record\n\nThis should not have happened!";
+    # get the accession
+    my $ac = $entry->AC or die "Could not get AC from:\n $record\n\nThis should not have happened!";
+    # find the non-standard tags
+    while ( $record =~ m/NON_STD\s+(\d+)\s+(\d+)\s+(Se)leno(c)ysteine/g ) {
+      # id from to type
+      print $output_filehandle "sp|$ac|$id\t$1\t$2\taa:$3$4\n";
     }
-    close ( $input_filehandle );
-    close ( $bacteria_filehandle );
-    close ( $archaea_filehandle );
-    # build sprot databases
-    system( $o->{"cwd"}."/bin/blast/makeblastdb -dbtype prot -in ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta" );
-    system( $o->{"cwd"}."/bin/blast/makeblastdb -dbtype prot -in ".$o->{"cwd"}."/databases/uniprot/sprot_archaea.fasta" );
-    system( $o->{"cwd"}."/bin/diamond/diamond makedb --in ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta --db ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta" );
-    system( $o->{"cwd"}."/bin/diamond/diamond makedb --in ".$o->{"cwd"}."/databases/uniprot/sprot_archaea.fasta --db ".$o->{"cwd"}."/databases/uniprot/sprot_archaea.fasta" );
-    return;
+    while ( $record =~ m/NON_STD\s+(\d+)\s+(\d+)\s+(Py)rro(l)ysine/g ) {
+      # id from to type
+      print $output_filehandle "sp|$ac|$id\t$1\t$2\taa:$3$4\n";
+    }
+  }
+  # build sprot databases
+  run_program( $o, $o->{"cwd"}."/bin/blast/makeblastdb -dbtype prot -in ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta" );
+  run_program( $o, $o->{"cwd"}."/bin/diamond/diamond makedb --in ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta --db ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta" );
+  return;
 }
 
 sub pannzer {
