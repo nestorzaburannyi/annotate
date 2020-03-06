@@ -30,11 +30,11 @@ sub rna_prediction {
     if ( $o->{"rna-r"} ) {
         parse_rrna_prediction ( $o, $s );
     }
-    if ( $o->{"rna-t"} ) {
-        parse_trna_prediction ( $o, $s )
-    }
     if ( $o->{"rna-tm"} ) {
         parse_tmrna_prediction ( $o, $s )
+    }
+    if ( $o->{"rna-t"} ) {
+        parse_trna_prediction ( $o )
     }
     if ( $o->{"rna-nc"} ) {
         parse_ncrna_prediction ( $o, $s )
@@ -105,42 +105,46 @@ sub parse_rrna_prediction {
 }
 
 sub parse_trna_prediction {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Parsing tRNA predictions..." );
-    while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"rna-t-program"}, "line", "\\s+", $o->{"rna-t-program"} ) ) {
-        my ( $seq_id, $start, $end, $strand, $product, $score );
-        # program-specific part
-        if ( $o->{"rna-t-program"} eq "trnascanse" ) {
-            ( $seq_id, $start, $end, $strand, $product, $score ) = ( $l->[0], $l->[2] < $l->[3] ? $l->[2] : $l->[3], $l->[2] < $l->[3] ? $l->[3] : $l->[2], $l->[2] < $l->[3] ? 1 : -1, $l->[4] eq "Pseudo" ? "tRNA-Xxx" : "tRNA-$l->[4]", $l->[8] );
-            # skip low scores if set by the user
-            next if ( $score < $o->{"rna-t-score"} );
-            # skip non-tRNA predictons
-            next if not ( $product =~ m/^tRNA/ );
-        }
-        elsif ( $o->{"rna-t-program"} eq "aragorn" ) {
-            ( $seq_id, $start, $end, $strand, $product, $score ) = ( $l->[-1], ( $l->[2] =~ m/^(c?)\[(\d+),(\d+)\]$/ )[1], ( $l->[2] =~ m/^(c?)(\[\d+),(\d+)\]$/ )[2], ( $l->[2] =~ m/^(c?)(\[\d+),(\d+)\]$/ )[0] ne "c" ? 1 : -1, $l->[1], 'inf' );
-            # skip low scores if set by the user
-            next if ( $score < $o->{"rna-t-score"} );
-            # skip non-tRNA predictons
-            next if not ( $product =~ m/^tRNA/ );
-        }
-        elsif ( $o->{"rna-t-program"} eq "infernal" ) {
-            ( $seq_id, $start, $end, $strand, $product, $score ) = ( $l->[2], $l->[9] eq "+" ? $l->[7] : $l->[8], $l->[9] eq "+" ? $l->[8] : $l->[7], $l->[9] eq "+" ? 1 : -1, $l->[0], $l->[14] );
-            # skip low scores if set by the user
-            next if ( $score < $o->{"rna-t-score"} );
-            # skip non-tRNA predictons
-            next if not ( $product =~ m/^tRNA/ );
-        }
-        # create tRNA sequence feature
-        my $feature = create_feature ( "tRNA", $seq_id, $start, "EXACT", $end, "EXACT", $strand, $score );
-        $feature->add_tag_value( "product", $product );
-        $feature->add_tag_value( "pseudo", "_no_value" ) if ( $product =~ m/^tRNA-Xxx$/ );
-        # generate the inference tag
-        my $inference = "profile:".$o->{"rna-t-program"}.":".$o->{$o->{"rna-t-program"}."-version"};
-        $feature->add_tag_value ( "inference", $inference );
-        # store tRNA sequence feature
-        store_feature ( $o, $feature );
+  my ( $o ) = @_;
+  print_log( $o, "Annotating tRNA predictions..." );
+  foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"rna-t-program"}, "\\s+", $o->{"rna-t-program"} ) ) {
+    ## program-independent block
+    # skip low scores if set by the user
+    next if ( $l->{"score"} < $o->{"rna-t-score"} );
+    # set the primary tag
+    $l->{"primary_tag"} = "tRNA";
+    # create tRNA sequence feature candidate
+    my $feature = create_feature ( $o, $l );
+
+    # program-specific block
+    if ( $o->{"rna-t-program"} eq "trnascanse" ) {
+      # skip non-tRNA trnascanse predictons
+      next if not ( $l->{"product"} =~ m/^tRNA/ );
+      # product tag
+      $feature->add_tag_value ( "product", $l->{"product"} );
+      # inference tag
+      $feature->add_tag_value ( "inference", "profile:".$o->{"rna-t-program"}.":".$o->{$o->{"rna-t-program"}."-version"} );
     }
+    elsif ( $o->{"rna-t-program"} eq "aragorn" ) {
+      # skip non-tRNA aragorn predictons
+      next if not ( $l->{"product"} =~ m/^tRNA/ );
+      # product tag
+      $feature->add_tag_value ( "product", $l->{"product"} );
+      # inference tag
+      $feature->add_tag_value ( "inference", "profile:".$o->{"rna-t-program"}.":".$o->{$o->{"rna-t-program"}."-version"} );
+    }
+    elsif ( $o->{"rna-t-program"} eq "infernal" ) {
+      # skip non-tRNA infernal predictons
+      next if not ( $l->{"type"} =~ m/^Gene; tRNA;$/ );
+      # product tag
+      $feature->add_tag_value ( "product", $l->{"product"} );
+      # inference tag
+      $feature->add_tag_value ( "inference", "profile:".$o->{"rna-t-program"}.":".$o->{$o->{"rna-t-program"}."-version"}.":rfam:".$l->{"accession"} );
+    }
+
+    # check and store tRNA sequence feature
+    check_and_store_feature ( $o, $feature );
+  }
 }
 
 sub parse_tmrna_prediction {
