@@ -10,10 +10,12 @@ use Bio::SeqFeature::Generic;
 use Bio::SeqIO;
 use Data::UUID;
 use File::Path qw(make_path);
+use List::Util qw(min max);
 use DBI;
 use DBD::SQLite::Constants qw/:file_open/;
 use Getopt::Long;
 use Digest::MD5  qw(md5_hex);
+use Data::Dumper;
 
 # suppress warnings from bioperl
 $SIG{"__WARN__"} = sub { warn $_[0] unless ( caller eq "Bio::Root::RootI" ) };
@@ -25,33 +27,40 @@ our @EXPORT = qw(
                 run_program
                 get_nucleotide_sequence_of_feature
                 get_protein_sequence_of_feature
-                get_intergenic_and_cds_sequences
                 current_date_and_time
                 initialize_options
+                initialize_pipeline
                 print_log
                 print_verbose
                 exit_program
                 create_seq_hash
                 prepare_input
                 parse_file
+                get_line
                 create_feature
-                clone_feature
+                check_feature
                 store_feature
-                check_and_store_feature
                 add_leading_zeros
-                find_appropriate_cds_feature
-                get_overlapped_features
-                clean_up_description
+                get_unique_gene_symbol
             );
 
 ######################################################## PARAMETERS PART ########################################################
 sub initialize_options {
-    my ( $cwd ) = @_;
     #setting default values
     my $o = {
-        #steps
-            #substeps
+        #modules
+            #submodules
                 #parameters
+        #DNA feature prediction
+        "dna" => 1,
+            #CRISPR
+            "dna-c" => 1,
+                "dna-c-program" => "minced",
+                "dna-c-score" => -inf,
+            #tandem repeats
+            "dna-t" => 1,
+                "dna-t-program" => "trf",
+                "dna-t-score" => -inf,
         #RNA gene prediction
         "rna" => 1,
             #rRNA
@@ -75,43 +84,58 @@ sub initialize_options {
             #de novo
             "cds-i" => 1,
                 "cds-i-program" => "prodigal",
-                "cds-i-score" => 20,
+                "cds-i-score" => -inf,
             #homology
             "cds-h" => 1,
                 "cds-h-program" => "diamond",
-                "cds-h-score" => 40,
-                "cds-h-identity" => 90,
+                "cds-h-score" => -inf,
             #annotation
             "cds-a" => 1,
                 "cds-a-program" => "pannzer",
+                "cds-a-score" => -inf,
         #additional parameters
-        "program-name" => "Sequence Annotation Pipeline",
-        "program-version" => "20200106",
+        "program-name" => "ProSnap: Prokaryotic Sequence Annotation Pipeline",
+        "program-version" => "20200228",
         "rnammer-version" => "1.2",
-        "trnascanse-version" => "1.3.1",
+        "trnascanse-version" => "2.0.5",
         "aragorn-version" => "1.2.38",
-        "infernal-version" => "1.1.2",
+        "infernal-version" => "1.1.3",
         "glimmer-version" => "3.02",
-        "prodigal-version" => "3.0.0-rc.1",
+        "prodigal-version" => "2.6.3",
         "genemarks-version" => "4.30",
         "blast-version" => "2.6.0+",
         "diamond-version" => "0.8.36",
         "pannzer-version" => "2.0.0",
-        "emapper-version" => "9bb6088",
+        "emapper-version" => "1.0.3",
+        "pilercr-version" => "1.06",
+        "minced-version" => "0.4.2",
+        "antismash-version" => "5.1.0",
+        "trf-version" => "4.09",
         "locus_count" => "0",
         "locus_digit" => "5",
         "step" => "10",
         "complete" => "0",
+        "gcode" => "11",
 	  };
         #getting options
     GetOptions (
-        #steps
-            #substeps
+        #modules
+            #submodules
                 #parameters
         #mandatory
         "input|i=s"                                         => \$o->{"i"},
         #update databases
         "update"                                            => \$o->{"update"},
+        #DNA feature prediction
+        "dna!"                                              => \$o->{"dna"},
+            #CRISPR
+            "dna-c!"                                        => \$o->{"dna-c"},
+                "dna-c-program=s"                           => \$o->{"dna-c-program"},
+                "dna-c-score=s"                             => \$o->{"dna-c-score"},
+            #tandem repeats
+            "dna-t!"                                        => \$o->{"dna-t"},
+                "dna-t-program=s"                           => \$o->{"dna-t-program"},
+                "dna-t-score=s"                             => \$o->{"dna-t-score"},
         #RNA gene prediction
         "rna!"                                              => \$o->{"rna"},
             #rRNA
@@ -140,13 +164,13 @@ sub initialize_options {
             "cds-h!"                                        => \$o->{"cds-h"},
                 "cds-h-program=s"                           => \$o->{"cds-h-program"},
                 "cds-h-score=s"                             => \$o->{"cds-h-score"},
-                "cds-h-identity=s"                          => \$o->{"cds-h-identity"},
             #annotation
             "cds-a!"                                        => \$o->{"cds-a"},
                 "cds-a-program=s"                           => \$o->{"cds-a-program"},
                 "cds-a-score=s"                             => \$o->{"cds-a-score"},
         #meta data
-        "taxid=s"                                           => \$o->{"taxid"},
+        "taxid=i"                                           => \$o->{"taxid"},
+        "gcode=i"                                           => \$o->{"gcode"},
         "strain=s"                                          => \$o->{"strain"},
         "prefix=s"                                          => \$o->{"prefix"},
         "bioproject=s"                                      => \$o->{"bioproject"},
@@ -162,15 +186,19 @@ sub initialize_options {
         "transparent"                                       => \$o->{"transparent"},
         "antismash"                                         => \$o->{"antismash"},
         "output|o=s"                                        => \$o->{"output"},
+        "test"                                              => \$o->{"test"},
     ) or exit;
+    return $o;
+}
+
+sub initialize_pipeline {
+    my ( $o, $cwd ) = @_;
     # set the option to cwd
     $o->{"cwd"} = $cwd;
     # print help and exit
     print_help($o) if $o->{"help"};
     # print version and exit
     print_version($o) if $o->{"version"};
-    # return if update
-    return $o if $o->{"update"};
 
     # generate unique uuid for temp job folder, or reuse the specified one
     $o->{"job_uuid"} = $o->{"uuid"} || Data::UUID->new->create_str;
@@ -211,148 +239,10 @@ sub initialize_options {
     $o->{"default_codon_table_id"} = $o->{"codon_table"}->add_table("prokaryotic",
                                                                                 "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG",
                                                                                 "---M-------------------------------M---------------M------------");
-    print_log($o, "Using the ".$o->{"codon_table"}->name." genetic code (transl_table=".$o->{"codon_table"}->id."):" );
+    print_log($o, "Using the ".$o->{"codon_table"}->name." genetic code (transl_table=".$o->{"codon_table"}->id.")" );
     $o->{"dbh_taxonomy"} = Bio::DB::Taxonomy->new( -source => "flatfile", -directory => $o->{"cwd"}."/databases/taxonomy", -nodesfile => $o->{"cwd"}."/databases/taxonomy/nodes.dmp", -namesfile => $o->{"cwd"}."/databases/taxonomy/names.dmp" );
-    $o->{"forbidden_locus_tags"} = ();
     return $o;
 
-sub get_sequence {
-  my ( $o, $s, $seq_id, $start, $end, $strand ) = @_;
-  if ( $start < 1 ) {
-    # too far left
-    return
-  }
-  if ( $end > length( $s->{$seq_id}->seq ) ) {
-    # too far right
-    return
-  }
-  my $sequence = Bio::Seq->new(-alphabet => "dna", -seq => (substr ( $s->{$seq_id}->seq, $start - 1, $end - $start + 1 )));
-  # skip problematic DNA stretches
-  if ( $sequence->alphabet ne "dna" ) {
-    return
-  }
-  # revcom the DNA sequence if needed
-  return $strand eq 1 ? $sequence : $sequence->revcom;
-}
-
-sub get_translation {
-  no warnings "recursion"; # turn off recursion warnings, as this might easily be thousands
-  # return false on extension stop due to error
-  # return true on extension stop due no need
-  # recurse on extension continue
-  # special case: when direction = start, or direction = end, return one of EXACT, BEFORE, AFTER
-  my ( $o, $s, $seq_id, $start, $end, $strand, $action, $type, $start_extension, $end_extension ) = @_;
-  # set extension to 0 if first cycle
-  $start_extension = $start_extension // 0;
-  $end_extension = $end_extension // 0;
-  # returns sequence extension, if it is possible
-  my $sequence = get_sequence( $o, $s, $seq_id, $$start - $start_extension, $$end + $end_extension, $strand );
-  # no sequence, there could be no translation
-  if ( ! $sequence or ! $sequence->seq ) {
-    return;
-  }
-  # -complete translation converts start codons into M
-  my $translation = $sequence->translate( -codontable_id => $o->{"codon_table_id"}, -complete => 1 )->seq;
-  # internal stop codon(s)
-  if ( $translation =~ m/\*/ ) {
-    return;
-  }
-  # vague sequences
-  if ( $translation =~ m/X/ ) {
-    return;
-  }
-  # checking for start codon part
-  if ( $type eq "start" ) {
-    if ( $translation =~ m/^M/ ) {
-      if ( $action eq "check" ) {
-        return "EXACT";
-      }
-      # stop extension and update start/end (depending on the strand) if start codon found
-      if ( $strand ne -1 ) {
-        return $$start -= $start_extension;
-      }
-      if ( $strand eq -1 ) {
-        return $$end += $end_extension;
-      }
-    }
-    elsif ( $action eq "check" ) {
-      return $strand eq -1 ? "AFTER" : "BEFORE";
-    }
-  }
-
-  # lack of -complete passed to ->translate allows to expose stop codons as asterisks *
-  $translation = $sequence->translate( -codontable_id => $o->{"codon_table_id"} )->seq;
-  # checking for stop codon part
-  if ( $type eq "stop" ) {
-    if ( $translation =~ m/\*$/ ) {
-      if ( $action eq "check" ) {
-        return "EXACT";
-      }
-      # stop extension and update start/end (depending on the strand) if stop codon found
-      if ( $strand ne -1 ) {
-        return $$end += $end_extension;
-      }
-      if ( $strand eq -1 ) {
-        return $$start -= $start_extension;
-      }
-    }
-    elsif ( $action eq "check" ) {
-      return $strand eq -1 ? "BEFORE" : "AFTER";
-    }
-  }
-  # recurse in case there is still chance for success
-  return get_translation( $o,
-                          $s,
-                          $seq_id,
-                          $start,
-                          $end,
-                          $strand,
-                          $action,
-                          $type,
-                          ( $type eq "start" ? $start_extension + ( $action eq "extend" ? 3 : -3 ) : $start_extension ), # pass new start coordinate
-                          ( $type eq "stop" ? $end_extension + ( $action eq "extend" ? 3 : -3 ) : $end_extension ), # pass new end coordinate
-                        );
-}
-
-sub find_appropriate_cds_feature {
-    my ( $o, $s, $seq_id, $start, $end, $strand, $score, $hit_name ) = @_;
-    # got negative start or too far end, have to fix it first
-    # this block allows to annotate partial proteins at contig edges
-    while ( $start <= 0 ) { $start += 3 }
-    while ( $end <= 0 ) { $end += 3 }
-    while ( $start > length( $s->{$seq_id}->seq ) ) { $start -= 3 }
-    while ( $end > length( $s->{$seq_id}->seq ) ) { $end -= 3 }
-    # use this block only if there was something unusual
-    if ( $hit_name =~ m/UNUSUAL/ ) {
-        my $usual_start_code = "---M-------------------------------M---------------M------------";
-        my $usual_stop_code  = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG";
-        # modify to unusual codon tables
-        substr( $usual_start_code,19,1 ) = "M" if ( $hit_name =~ m/UNUSUAL_START_CTG/ );
-        substr( $usual_start_code,32,1 ) = "M" if ( $hit_name =~ m/UNUSUAL_START_ATT/ );
-        substr( $usual_start_code,33,1 ) = "M" if ( $hit_name =~ m/UNUSUAL_START_ATC/ );
-        substr( $usual_start_code,34,1 ) = "M" if ( $hit_name =~ m/UNUSUAL_START_ATA/ );
-        substr( $usual_stop_code,11,1 ) = "O" if ( $hit_name =~ m/UNUSUAL_NONSTOP_TAG/ );
-        substr( $usual_stop_code,14,1 ) = "U" if ( $hit_name =~ m/UNUSUAL_NONSTOP_TGA/ );
-        $o->{"codon_table_id"} = $o->{"codon_table"}->add_table(undef, $usual_stop_code, $usual_start_code);
-    }
-    # else we stick to 11th translation table for this protein
-    else {
-        $o->{"codon_table_id"} = $o->{"default_codon_table_id"};
-    }
-
-    # start sideways extension, if needed
-    # pass $start and $end by reference, so that they can be modified in the recursive sub
-    # first we would try to find the start codon extension / shrinkage
-    get_translation( $o, $s, $seq_id, \$start, \$end, $strand, "extend", "start" ) or # only start shrinking if extension wasn't successful
-    get_translation( $o, $s, $seq_id, \$start, \$end, $strand, "shrink", "start" ) or return; # or skip if unsuccessful
-    print_verbose($o, "Homology not yet accepted: "."CDS, $seq_id, $start, $end, $strand, $score");
-    # then we would try to find the stop codon extension (no point in shrinking)
-    get_translation( $o, $s, $seq_id, \$start, \$end, $strand, "extend", "stop" ) or return; # or skip if unsuccessful
-    # check again the extension to see if it was sucessful
-    my $start_pos_type = get_translation( $o, $s, $seq_id, \$start, \$end, $strand, "check", "start" );
-    my $end_pos_type = get_translation( $o, $s, $seq_id, \$start, \$end, $strand, "check", "stop" );
-    print_verbose($o, "Homology accepted: "."CDS, $seq_id, $start, $start_pos_type, $end, $end_pos_type, $strand, $score");
-    return create_feature( "CDS", $seq_id, $start, $start_pos_type, $end, $end_pos_type, $strand, $score );
 }
 
 sub print_help {
@@ -377,6 +267,7 @@ Optional parameters:
         -cds-h                  boolean         true                                    prediction of CDS genes (homology-based)
         -cds-a                  boolean         true                                    annotation of CDS genes
         -taxid                  integer         -                                       NCBI taxonomy id of the organism (e.g. 52)
+        -gcode                  integer         -                                       NCBI genetic code table (e.g. 11)
         -strain                 string          -                                       strain name
         -prefix                 string          -                                       prefix for locus numbering (NCBI-compatibility)
         -bioproject             string          -                                       a BioProject identifier (NCBI-compatibility)
@@ -395,9 +286,7 @@ Advanced parameters:
         -rna-tm-program         string          aragorn                                 aragorn, infernal
         -rna-nc-program         string          infernal                                infernal
         -cds-i-program          string          prodigal                                prodigal, glimmer, genemarks
-        -cds-i-score            string          5                                       score threshold for ab initio predictions
         -cds-h-program          string          blast                                   blast, diamond
-        -cds-h-evalue           string          1e-5                                    e-value threshold for homology searches
         -cds-a-program          string          pannzer                                 pannzer, emapper
 
 Note: you can disable modules or submodules of the program by prepending "-no" to the respective option: "-no-cds" will cause the pipeline not to predict any CDS
@@ -420,17 +309,14 @@ sub print_log {
     if ( ! $o->{"quiet"} ) {
       print print_message( $o, $message );
     }
-    # do not print to log on updates
-    if ( ! $o->{"update"} ) {
-      # print to log
-      open my $output_filehandle, ">>", $o->{"job"}."/log" or die "Could not open ".$o->{"job"}."/log for writing - $!";
-      print {$output_filehandle} print_message( $o, $message );
-      close $output_filehandle;
-      # print to verbose log
-      open $output_filehandle, ">>", $o->{"job"}."/verbose" or die "Could not open ".$o->{"job"}."/verbose for writing - $!";
-      print {$output_filehandle} print_message( $o, $message );
-      close $output_filehandle;
-    }
+    # print to log
+    open my $output_filehandle, ">>", $o->{"job"}."/log" or die "Could not open ".$o->{"job"}."/log for writing - $!";
+    print {$output_filehandle} print_message( $o, $message );
+    close $output_filehandle;
+    # print to verbose log
+    open $output_filehandle, ">>", $o->{"job"}."/verbose" or die "Could not open ".$o->{"job"}."/verbose for writing - $!";
+    print {$output_filehandle} print_message( $o, $message );
+    close $output_filehandle;
 }
 
 sub print_verbose {
@@ -439,12 +325,9 @@ sub print_verbose {
     if ( $o->{"verbose"} ) {
       print print_message( $o, $message );
     }
-    # do not print to log on updates
-    if ( ! $o->{"update"} ) {
-      open my $output_filehandle, ">>", $o->{"job"}."/verbose" or die "Could not open ".$o->{"job"}."/verbose for writing - $!";
-      print {$output_filehandle} print_message( $o, $message );
-      close $output_filehandle;
-    }
+    open my $output_filehandle, ">>", $o->{"job"}."/verbose" or die "Could not open ".$o->{"job"}."/verbose for writing - $!";
+    print {$output_filehandle} print_message( $o, $message );
+    close $output_filehandle;
 }
 
 sub run_program {
@@ -452,8 +335,8 @@ sub run_program {
     # show full command verbose
     print_verbose( $o, "Command used: $command" );
     # this is the only system call allowed, always wrap calls in run_program()
-    # tee everything to verbose log
-    system ( $command . "| tee -a ".$o->{"job"}."/verbose 1>/dev/null 2>/dev/null" );
+    # forward both stdout and stderr to respective log
+    system ( $command . " 2>>". $o->{"job"}."/stdio 1>&2" );
 }
 
 sub exit_program {
@@ -474,182 +357,159 @@ sub add_leading_zeros {
 
 ################################################### SEQUENCE AND FEATURE ##################################################
 sub create_feature {
-    my ( $l ) = @_;
-    return Bio::SeqFeature::Generic->new(-location => Bio::Location::Fuzzy->new(-start => $l->{"start"}, -end => $l->{"end"}, -strand => $l->{"strand"}, -start_fuz => $l->{"start_type"}, -end_fuz => $l->{"end_type"} ), -primary => $l->{"primary_tag"}, -seq_id => $l->{"seq_id"}, -score => $l->{"score"}, -tag => $l->{"tags"} );
+    my ( $o, $l ) = @_;
+
+    my $feature = Bio::SeqFeature::Generic->new(-location => $l->{"location"} // Bio::Location::Fuzzy->new( -start => $l->{"start"},
+                                                                                                            -end => $l->{"end"},
+                                                                                                            -strand => $l->{"strand"},
+                                                                                                            -start_fuz => $l->{"start_type"},
+                                                                                                            -end_fuz => $l->{"end_type"}
+                                                                                                            ),
+                                                -seq_id => $l->{"seq_id"},
+                                                -primary => $l->{"primary_tag"},
+                                                );
+
+    # attach sequence to a feature
+    $feature->attach_seq( $o->{"r"}->{$l->{"seq_id"}} );
+
+    # add custom annotations
+    $feature->annotation( {
+                          "gene_id" => $l->{"gene_id"}, # to track duplicate hits to the same gene
+                          "hit_id" => $l->{"hit_id"}, # to track special feature exceptions
+                          "exception" => $l->{"exception"} // undef,
+                          "score" => $l->{"score"},
+                          "type" => $l->{"type"} // undef,
+                          "method" => $l->{"method"} // undef,
+                          "unique_id" => ++$o->{"unique_id"}, # just an unique counter
+    } );
+
+    # set initial tags provided by the generator
+    $feature->set_attributes( -tag => $l->{"tags"} );
+
+    return $feature;
+
+}
+
+sub check_feature {
+  # checks and returns true is a feature is allowed to be stored
+  my ( $o, $feature ) = @_;
+  # perform feature checks
+  return 0 if feature_rules ( $o, $feature );
+  # perform overlap checks
+  return 0 if overlap_rules ( $o, $feature );
+
+  return 1;
 }
 
 sub store_feature {
-    my ( $o, $feature) = @_;
-    $o->{"dbh_uuid"}->store( $feature ) or die "Could not store feature.";
+  # checks and returns true is a feature is allowed to be stored
+  my ( $o, $feature ) = @_;
+  print_verbose ( $o, "Storing feature: ".$feature->primary_tag.":".$feature->start."-".$feature->end );
+
+  # store feature on the record
+  $o->{"r"}->{$feature->seq_id()}->add_SeqFeature( $feature );
+  # mark unique feature location
+  $o->{"feature_by_loc"}->{ $feature->seq_id().$feature->primary_tag.$feature->location()->to_FTstring() } = $feature;
+  # store by feature unique id
+  $o->{"feature_by_id"}->{ $feature->annotation()->{"unique_id"} } = $feature;
 }
 
-sub check_and_store_feature {
-    my ( $o, $feature) = @_;
-    # set the score to zero if there is no score
-    $feature->score(0) if not $feature->score;
-    # perform checks before each storage. Checks can remove both the query feature and feature(s) it overlaps
-    return if overlap_rules ( $o, $feature );
-    print_verbose ( $o, "Storing feature: ".$feature->start."-".$feature->end." ".$feature->primary_tag." score: ".$feature->score);
-    store_feature ( $o, $feature );
-    return 1;
-}
+sub feature_rules {
+  my ( $o, $feature ) = @_;
+  if ( $feature->primary_tag =~ m/^CDS/ ) {
 
-sub delete_feature {
-  # removes the feature from the feature pool
-  # accepts: a Bio::SeqFeature::Generic object to be deleted
-  # returns: undef
-  my ( $o, $outgoing_feature ) = @_;
-  if ( ! $outgoing_feature->isa("Bio::SeqFeature::Generic") ) {
-    exit_program( $o, "outgoing feature is not a Bio::SeqFeature::Generic object" );
+    # get the translation with complete = false
+    my $translation = get_protein_sequence_of_feature( $o, $feature, 0 );
+    # checking for proper stop codon
+    if ( $translation !~ m/\*$/ ) {
+      print_verbose ( $o, "Skipping CDS feature with no stop codon at the end: ".$feature->primary_tag.":".$feature->start."-".$feature->end );
+      return 1;
+    }
+    # refresh the translation with complete = true
+    $translation = get_protein_sequence_of_feature( $o, $feature, 1 );
+    # checking for proper start codon
+    if ( $translation !~ m/^M/ ) {
+      print_verbose ( $o, "Skipping CDS feature with no start codon at the beginning: ".$feature->primary_tag.":".$feature->start."-".$feature->end );
+      return 1;
+    }
+
+    # checking for internal stop codon
+    if ( $translation =~ m/\*/ ) {
+      print_verbose ( $o, "Skipping CDS feature with internal stop codons: ".$feature->primary_tag.":".$feature->start."-".$feature->end );
+      return 1;
+    }
+
   }
-  if ( $outgoing_feature->has_tag("locus_tag") ) {
-    foreach my $locus_tag_value ( $outgoing_feature->get_tag_values("locus_tag") ) {
-      if ( exists $o->{"forbidden_locus_tags"}->{$locus_tag_value} ) {
-        delete $o->{"forbidden_locus_tags"}->{$locus_tag_value};
+  # all good
+  return 0;
+}
+
+sub get_adjoined_features {
+  # returns all features that equal/contain/overlap with certain feature
+  # accepts: $feature - a feature to check for equality/containment/overlap
+  #          $rule - rule, according to which the check is being performed (equals, contains, overlaps)
+  #          @types - a list of one or more feature types to include in the check
+  # returns: a list of features of type @types that have a $rule relation (equal, contain, overlap) to the feature in question
+  my ( $o, $feature, $rule, @types ) = @_;
+  my @candidates;
+  foreach my $type ( @types ) {
+    foreach my $candidate ( $o->{"r"}->{ $feature->seq_id() }->get_SeqFeatures($type) ) {
+      if ( $feature->$rule( $candidate ) ) {
+        push @candidates, $candidate;
       }
     }
   }
-  $o->{"dbh_uuid"}->delete( $outgoing_feature ) or die "Could not delete feature";
-}
-
-sub clone_feature {
-  # clones a feature, that is creates an independently mutable copy
-  # accepts: a Bio::SeqFeature::Generic object to be cloned
-  # returns: a cloned Bio::SeqFeature::Generic object
-  my ( $o, $source_feature ) = @_;
-  $source_feature->isa("Bio::SeqFeature::Generic") or die "source feature is not a Bio::SeqFeature::Generic object";
-  # create a feature wuth the same location parameters as the source feature
-  my $new_feature = create_feature ( $source_feature->primary_tag,
-                                     $source_feature->seq_id,
-                                     $source_feature->start,
-                                     $source_feature->location->start_pos_type,
-                                     $source_feature->end,
-                                     $source_feature->location->end_pos_type,
-                                     $source_feature->strand,
-                                     $source_feature->score );
-  # transfer all the tags from the source feature to its clone
-  foreach my $source_tag_type ( $source_feature->get_all_tags ) {
-    foreach my $source_tag_value ( $source_feature->get_tag_values( $source_tag_type ) ) {
-      $new_feature->add_tag_value( $source_tag_type, $source_tag_value );
-    }
-  }
-  $new_feature->isa("Bio::SeqFeature::Generic") or die "new feature is not a Bio::SeqFeature::Generic object";
-  return $new_feature;
-}
-
-sub get_overlapped_features {
-  # checks if a feature overlaps / contains certain feature types
-  # accepts: $new_feature - a feature to check for overlaps
-  #          $rule - rule, according to which the check is being performed
-  #          $source_features - a list of one or more feature types to include in checking
-  # returns: a list of features that overlap the feature in question
-  my ( $o, $new_feature, $rule, $source_features ) = @_;
-  my $source_feature_iterator = $o->{"dbh_uuid"}->get_seq_stream( -seq_id => $new_feature->seq_id,
-                                                                  -start => $new_feature->start,
-                                                                  -end => $new_feature->end,
-                                                                  -type => $source_features );
-  my @return_features;
-  while (my $source_feature = $source_feature_iterator->next_seq) {
-      if ( $new_feature->$rule( $source_feature, "ignore") ) {
-          push @return_features, $source_feature;
-      }
-  }
-  return @return_features;
-}
-
-sub get_intergenic_and_cds_sequences {
-    my ( $o, $s ) = @_;
-    my @return_sequences;
-    # id is a hash of the sequence
-    foreach my $seq_id (sort keys %$s) {
-        # first lets add CDS, as they should be analyzed before any intergenic region kicks in
-        my @sorted_features = sort { $a->start<=>$b->start || $a->end<=>$b->end } $o->{"dbh_uuid"}->features( -seq_id => $seq_id, -type => ["CDS"] );
-        # output CDS
-        for my $i (0 .. $#sorted_features) {
-            my $seq = $s->{$seq_id}->subseq( $sorted_features[$i]->start, $sorted_features[$i]->end );
-            my $id = $seq_id."_offset".( $sorted_features[$i]->start - 1)."_strand".$sorted_features[$i]->strand."_".md5_hex($seq);
-            push @return_sequences, Bio::Seq->new(-seq => $seq, -id => $id );
-        }
-        # intergenic means everything that is not defined as a gene. This way we can fix such locations: CDS1-repeat_region-CDS2
-        @sorted_features = sort { $a->start<=>$b->start || $a->end<=>$b->end } $o->{"dbh_uuid"}->features( -seq_id => $seq_id, -type => ["CDS", "misc_RNA", "rRNA", "tmRNA", "tRNA", "gene"] );
-        # push one fake feature if sequence is linear (in case it has no features, will output whole sequence)
-        if ( ! $s->{$seq_id}->is_circular ) {
-          unshift @sorted_features, Bio::SeqFeature::Generic->new( -start => 0 , -end => 0 );
-          push @sorted_features, Bio::SeqFeature::Generic->new( -start => $s->{$seq_id}->length + 1 , -end => $s->{$seq_id}->length + 1 );
-        }
-        # output intergenic sequences
-        for my $i (1 .. $#sorted_features) {
-          # skip very small sequences (<30bp)
-          next if ( $sorted_features[$i]->start - $sorted_features[$i-1]->end < 30 );
-          my $seq = $s->{$seq_id}->subseq( $sorted_features[$i-1]->end + 1, $sorted_features[$i]->start - 1 );
-          my $id = $seq_id."_offset".$sorted_features[$i-1]->end."_strand0_".md5_hex($seq);
-          push @return_sequences, Bio::Seq->new(-seq => $seq, -id => $id );
-        }
-    }
-    return @return_sequences;
+  return @candidates;
 }
 
 sub create_seq_hash {
     my ( $o ) = @_;
     # to decide on sequence numbering below
     my $tmp_filehandle = Bio::SeqIO->new(-file => $o->{"i"}, -format => $o->{"input_format"} );
-    while ( my $input_record = $tmp_filehandle->next_seq ) {
+    while ( my $record = $tmp_filehandle->next_seq ) {
         $o->{"input_count"}++;
-        $o->{"input_size"} = ( $o->{"input_size"} ? $o->{"input_size"} : 0 ) + $input_record->length;
+        $o->{"input_size"} = ( $o->{"input_size"} ? $o->{"input_size"} : 0 ) + $record->length;
     }
     $o->{"sequence_digit"} = length( $o->{"input_count"} );
     print_log( $o, "Input has ".$o->{"input_count"}." sequences, setting sequence numbering to ".$o->{"sequence_digit"}."-digit" );
     # the real part
     my $input_filehandle = Bio::SeqIO->new(-file => $o->{"i"}, -format => $o->{"input_format"} );
-    my %s;
-    while ( my $input_record = $input_filehandle->next_seq ) {
-      my $counter = ( keys %s ) + 1;
-        # we have to change the name in the very beginning, otherwise transparency won"t work
-        $input_record->id(add_leading_zeros($counter, $o->{"sequence_digit"}));
 
-        # set the sequence to circular if specified
-        $input_record->is_circular( $o->{"circular"}->{$counter} );
+    while ( my $record = $input_filehandle->next_seq ) {
 
-        # transparent
-        if ( $o->{"transparent"} ) {
-            foreach my $feature ( $input_record->get_SeqFeatures ) {
-                # set organism taxonomy based on db_xref tag of source feature
-                if ( $feature->primary_tag eq "source" ) {
-                    if ( not $o->{"taxid"} ) {
-                        foreach my $db_xref ( $feature->get_tagset_values( "db_xref" ) ) {
-                            next if not ( $db_xref =~ m/taxon:(\d+)/ );
-                            $o->{"taxid"} = $1;
-                        }
-                    }
-                    if ( not $o->{"strain"} ) {
-                        $o->{"strain"} = ( $feature->get_tagset_values( "strain" ) )[0];
-                    }
-                }
-                print_verbose ( $o, "Transparent mode, keeping ".$feature->primary_tag." (".$feature->start."..".$feature->end.")" );
-                my $transparent_feature = clone_feature( $o, $feature );
-                $transparent_feature->seq_id( $input_record->id );
-                store_feature ( $o, $transparent_feature );
-            }
-        }
-        # remove features anyway, transparent or not -> they will be stored in the sqlite DB only
-        $input_record->remove_SeqFeatures;
-        # now store naked sequence in the database, to be able to query for id:start..end features
-        $o->{"dbh_uuid"}->insert_sequence( $input_record->id, $input_record->seq );
-        $s{$input_record->id} = $input_record;
+      # we have to change the name in the very beginning
+      $record->id(add_leading_zeros(( keys %{$o->{"r"}} ) + 1, $o->{"sequence_digit"}));
+
+      # put the input record for further reference
+      $o->{"r"}->{$record->id} = $record;
+
+      # set the sequence to circular if specified
+      if ( $o->{"circular"}->{$record->id} ) {
+        $record->is_circular( $o->{"circular"}->{$record->id} );
+      }
+
+      # transparent
+      if ( $o->{"transparent"} ) {
+        # store all features in case of transparent mode
+        @{ $o->{"r"}->{$record->id}->{"transparent"} } = $record->get_all_SeqFeatures();
+      }
+
+      # remove all features, transparent or not
+      $o->{"r"}->{$record->id}->remove_SeqFeatures();
+
     }
 
-    $o->{"dbh_uuid"}->commit;
     $o->{"locus_digit"} = int (log( 100000 )/log(10) - 2);
     print_log( $o, "Input is ".$o->{"input_size"}." bp long, setting locus numbering to ".$o->{"locus_digit"}."-digit" );
-    return wantarray ? %s : \%s;
 }
 
 sub overlap_rules {
-    my ( $o, $check_feature) = @_;
+    my ( $o, $check_feature ) = @_;
 
-    # catch-all rule for duplicates, no need to even mention it in the log
-    foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "equals", [$check_feature->primary_tag] ) ) {
-        return 1;
+    # catch-all rule for unique location/primary tag combination
+    if ( exists $o->{"feature_by_loc"}->{ $check_feature->seq_id().$check_feature->primary_tag.$check_feature->location()->to_FTstring() } ) {
+      print_verbose ( $o, "Skipping exact location duplicate feature ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
+      return 1;
     }
 
     if ( $check_feature->primary_tag eq "source" ) {
@@ -662,15 +522,19 @@ sub overlap_rules {
     }
 
     elsif ( $check_feature->primary_tag eq "rRNA" ) {
-        # rRNA features are not to be skipped
+      # rRNA features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "tRNA" ) {
-        # tRNA features are not to be skipped
+      if ( get_adjoined_features ( $o, $check_feature, "overlaps", "tmRNA" ) ) {
+        # a tRNA gene within the tmRNA gene is the same gene -> skip it
+        print_verbose ( $o, "Skipping same gene annotated at the same place ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
+        return 1;
+      }
     }
 
     elsif ( $check_feature->primary_tag eq "tmRNA" ) {
-        # tmRNA features are not to be skipped
+      # tmRNA features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "ncRNA" ) {
@@ -685,74 +549,46 @@ sub overlap_rules {
         # misc_binding features are not to be skipped
     }
 
-    elsif ( $check_feature->primary_tag eq "ORF" ) {
-        # ORF features are not to be skipped
-    }
-
-    # CDS features are most difficult
     elsif ( $check_feature->primary_tag eq "CDS" ) {
+      # CDS features are most complex
 
-        #########################CONTAINS#########################
-        # CDS features should not contain any important features, we remove the longer
-        #--------------------------------------------------------------------------------------> CDS
-        #                               <--------------- tRNA
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "contains", ["tRNA", "tmRNA"] ) ) {
-            print_verbose ( $o, "Skipping ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.") due to overlap with ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.")" );
+      # CDS-CDS overlaps
+      foreach my $feature ( get_adjoined_features ( $o, $check_feature, "overlaps", "CDS" ) ) {
+        # derived from homology
+        if ( $check_feature->annotation()->{"method"} eq "homology" ) {
+          # doesn't matter whom contans whom -> if this is the same gene -> do not add a second one at the same place
+          if ( ( $feature->contains( $check_feature ) or $check_feature->contains( $feature ) ) and $check_feature->annotation()->{"gene_id"} eq $feature->annotation()->{"gene_id"} ) {
+            print_verbose ( $o, "Skipping same gene annotated at the same place ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
             return 1;
+          }
         }
-        # repeat_region inside a new CDS -> we remove the repeat_region, likely mispredicted
-        #--------------------------------------------------------------------------------------> CDS
-        #        ---------------> repeat_region
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "contains", ["repeat_region"] ) ) {
-            print_verbose ( $o, "Removing previously annotated ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.") fully contained within ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
-            delete_feature ( $o, $overlapped_feature);
-        }
-
-        # old CDS is inside a larger new CDS, different starts/ends # we remove different starts/ends first if the score is greater
-        #--------------------------------------------------------------------------------------> CDS1
-        #        ---------------> CDS2
-        # or
-        #--------------------------------------------------------------------------------------> CDS1
-        #                                                                       ---------------> CDS2
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "contains", ["CDS"] ) ) {
-            print_verbose ( $o, "Removing previously annotated ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.") fully contained within ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
-            delete_feature ( $o, $overlapped_feature);
-        }
-
-        #########################OVERLAPS#########################
-        # a CDS overlaping a rRNA is likely a mistake, we skip it
-        #--------------------------------------------------------------------------------------> CDS
-        #                                                                                   <------------------------------- rRNA
-        #                                                                            ---------------> repeat_reagion
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "overlaps", ["rRNA"] ) ) {
-            print_verbose ( $o, "Skipping ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.") due to overlap with ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.")" );
+        # derived from ab initio
+        if ( $check_feature->annotation()->{"method"} eq "ab initio" ) {
+          # doesn't matter whom contans whom -> do not add a second one at the same place
+          if ( $feature->contains( $check_feature ) or $check_feature->contains( $feature ) ) {
+            print_verbose ( $o, "Skipping a CDS annotated at the same place ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
             return 1;
+          }
         }
-        # among ncRNA, for now only features with ncRNA_class=ribozyme and =RNase_P_RNA are not allowed to overlap with CDS
-        # a CDS overlaping these types of ncRNA is likely a mistake, we skip it
-        #--------------------------------------------------------------------------------------> CDS
-        #                                                                                   <------------------------------- ncRNA, nc_RNA_class=ribozyme
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "overlaps", ["ncRNA"] ) ) {
-            if ( grep { $_ =~ m/^ribozyme$|^RNase_P_RNA$/ } $overlapped_feature->get_tagset_values("ncRNA_class" ) ) {
-                print_verbose ( $o, "Skipping ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.") due to overlap with ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.")" );
-                return 1;
-            }
-        }
+      }
 
-        #########################INVERSE CONTAINMENT#########################
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "overlaps", ["CDS"] ) ) {
-            if ( $overlapped_feature->contains( $check_feature, "ignore" ) ) {
-                # new CDS is inside a larger old CDS
-                #                           <--------------- CDS1
-                #--------------------------------------------------------------------------------------> CDS2
-                # or
-                #                                                                       ---------------> CDS1
-                #--------------------------------------------------------------------------------------> CDS2
-                print_verbose ( $o, "Removing previously annotated ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.") fully contained within ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
-                delete_feature ( $o, $overlapped_feature);
-            }
+      # CDS-RNA overlaps
+      foreach my $feature ( get_adjoined_features ( $o, $check_feature, "overlaps", "rRNA", "tRNA", "tmRNA" ) ) {
+        print_verbose ( $o, "Skipping CDS feature overlapping an RNA gene: ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
+        return 1;
+      }
+
+      # CDS-repeat overlaps
+      foreach my $feature ( get_adjoined_features ( $o, $check_feature, "overlaps", "repeat_region" ) ) {
+        # if overlaps CRISPR, do not annotate
+        if ( $feature->annotation()->{"type"} eq "CRISPR" ) {
+          print_verbose ( $o, "Skipping CDS feature overlapping a CRISPR array: ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
+          return 1;
         }
+      }
+
     }
+
     # all good
     return 0;
 }
@@ -764,71 +600,124 @@ sub overlap_rules {
 ######################################################## DATABASE #########################################################
 
 sub get_nucleotide_sequence_of_feature {
-    my ( $o, $feature) = @_;
-    # get the sequence of the object (unfortunately it is not implemented in Bio:DB::*)
-    my $sequence_object = $o->{"dbh_uuid"}->fetch_sequence( -seq_id=>$feature->seq_id, -start=>$feature->start, -end=>$feature->end, -bioseq=>1 );
-    # set the id of the new sequence to the id of the feature (otherwise it has $seq_id:$start..$end format)
-    $sequence_object->id( $feature->primary_id );
-    # change the strand if needed
-    if ( defined $feature->strand and $feature->strand == -1 ) {
-        $sequence_object = $sequence_object->revcom;
-    }
-    return $sequence_object;
+  # get the sequence of a feature
+  my ( $o, $feature ) = @_;
+  return $feature->spliced_seq()->seq();
 }
 
-# wrapper for get_nucleotide_sequence_of_feature
 sub get_protein_sequence_of_feature {
-    my ( $o, $feature) = @_;
-    my $sequence_object = get_nucleotide_sequence_of_feature( $o, $feature )->translate( -complete => 1, -codontable_id => 11 );
-    return $sequence_object;
+  # get the sequence of a feature
+  my ( $o, $feature, $complete ) = @_;
+  # lack of -complete passed to ->translate allows to expose terminal stop codons as asterisks (*)
+  # -complete translation converts start codons into M
+  my $sequence = $feature->spliced_seq()->translate( -offset => ( $feature->get_tagset_values( "codon_start" ) )[0] || 1,
+                                                     -codontable_id => $o->{"gcode"},
+                                                     -complete => $complete )->seq();
+
+
+  # remove all previous transl_except tags
+  $feature->remove_tag( "transl_except" ) if $feature->has_tag("transl_except");
+  # if this hit has a /transl_except
+  if ( my $exception = $feature->annotation()->{"exception"} ) {
+    if ( $exception->[0] eq $feature->annotation()->{"hit_id"} ) {
+      if ( $exception->[3] eq "aa:Sec" ) {
+        # modify to unusual codon tables
+        substr( $sequence,$exception->[1]-1,1 ) = "U";
+        # add /transl_except tag
+        $feature->add_tag_value( "transl_except", "(pos:".get_nucleotide_location_of_protein_coordinate( $o, $feature, $exception->[1] ).",".$exception->[3].")" );
+      }
+      elsif ( $exception->[3] eq "aa:Pyl" ) {
+        # modify to unusual codon tables
+        substr( $sequence,$exception->[1]-1,1 ) = "O";
+        # add /transl_except tag
+        $feature->add_tag_value( "transl_except", "(pos:".get_nucleotide_location_of_protein_coordinate( $o, $feature, $exception->[1] ).",".$exception->[3].")" );
+      }
+    }
+  }
+
+  return $sequence;
+}
+
+sub get_nucleotide_location_of_protein_coordinate {
+  # converts a protein coordinate into the nucleotide sequence location of that coordinate
+  #
+  my ( $o, $feature, $location ) = @_;
+  foreach my $sublocation ( $feature->location()->each_Location() ) {
+    # if nucleotide sublocation contains amino acid location
+    if ( $location <= $sublocation->length() / 3 ) {
+      if ( $sublocation->strand eq -1 ) {
+        return Bio::Location::Fuzzy->new( -start => $sublocation->end - ( 3 * $location - 1 ),
+                                          -end => $sublocation->end - ( 3 * $location - 1 ) + 2,
+                                          -strand => $sublocation->strand,
+                                          )->to_FTstring();
+      }
+      else {
+        return Bio::Location::Fuzzy->new( -start => $sublocation->start + ( 3 * $location - 1 ) - 2,
+                                          -end => $sublocation->start + ( 3 * $location - 1 ),
+                                          -strand => $sublocation->strand,
+                                          )->to_FTstring();
+      }
+    }
+    else {
+      $location = $location - $sublocation->length() / 3;
+    }
+  }
 }
 
 ##################################################### IO FILE ######################################################
 sub prepare_input {
   # prepares the input
-    my ( $o, $s, $input_type ) = @_;
-    prepare_sequences ( $o, $s ) if ( $input_type eq "sequences" );
-    prepare_homology ( $o, $s ) if ( $input_type eq "homology" );
-    prepare_annotation ( $o, $s ) if ( $input_type eq "annotation" );
+    my ( $o, $input_type ) = @_;
+    prepare_sequences ( $o ) if ( $input_type eq "sequences" );
+    prepare_annotation ( $o ) if ( $input_type eq "annotation" );
     return;
 }
 
 sub prepare_sequences {
-    my ( $o, $s ) = @_;
-    my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_sequences", -format => "fasta");
-    foreach my $seq_id (sort keys %$s) {
-        # suppress the description (breaks some tools, like genemarks)
-        $s->{$seq_id}->description(undef);
-        $output_filehandle->write_seq( $s->{$seq_id} );
-    }
-    exit_program ( $o, "Required file ".$o->{"job"}."/input_sequences does not exist.") if not (-e $o->{"job"}."/input_sequences" );
-}
+  # prepares an input file containing input sequences in FASTA format
+  my ( $o ) = @_;
+  my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_sequences", -format => "fasta");
 
-sub prepare_homology {
-    my ( $o, $s ) = @_;
-    # query file contains blast input if is has NOT been calculated previously
-    my $query_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_homology_".$o->{"cds-h"}, -format => "fasta" );
-    foreach my $intergenic_and_cds_sequence ( get_intergenic_and_cds_sequences ( $o, $s ) ) {
-        $intergenic_and_cds_sequence->id ( $intergenic_and_cds_sequence->id );
-        if ( not exists $o->{"homology"}->{$intergenic_and_cds_sequence->id} ) {
-            # set the "exists" tag
-            $o->{"homology"}->{$intergenic_and_cds_sequence->id} = 1;
-            # store the empty for future runs
-            $query_filehandle->write_seq( $intergenic_and_cds_sequence );
-        }
-    }
+  foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
+    # do not just dump $o->{"r"}; instead re-create to get rid of the description (breaks some tools, e.g. GeneMarkS)
+    $output_filehandle->write_seq( Bio::Seq->new( -seq => $o->{"r"}->{$seq_id}->seq(),
+                                                  -id => $seq_id ) );
+  }
+  exit_program ( $o, "Required file ".$o->{"job"}."/input_sequences does not exist.") if not (-e $o->{"job"}."/input_sequences" );
 }
 
 sub prepare_annotation {
-    my ( $o, $s ) = @_;
-    my $query_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_annotation", -format => "fasta" );
-    foreach my $seq_id (sort keys %$s) {
-        foreach my $feature ( $o->{"dbh_uuid"}->features( -seq_id => $seq_id, -type => ["CDS"] ) ) {
-            my $sequence_object = get_protein_sequence_of_feature( $o, $feature );
-            $sequence_object->id ( $sequence_object->id );
-            $query_filehandle->write_seq( $sequence_object );
-        }
+  # prepares an input file containing protein sequences in FASTA format
+  my ( $o ) = @_;
+  my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_annotation", -format => "fasta" );
+  foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
+    foreach my $feature ( grep { ! $_->has_tag("product") } $o->{"r"}->{$seq_id}->get_SeqFeatures( "CDS" ) ) {
+      my $sequence = get_protein_sequence_of_feature( $o, $feature, 1 );
+      $output_filehandle->write_seq( Bio::Seq->new( -seq => $sequence,
+                                                    -id => $feature->annotation()->{"unique_id"} ) );
     }
+  }
+}
+
+sub get_unique_gene_symbol {
+  my ( $o, $gene ) = @_;
+  my $counter = "";
+  # search for allowed gene symbols
+  while ( exists $o->{"g"}->{$gene.++$counter} ) { }
+  # reserve the future use
+  $o->{"g"}->{$gene.$counter} = $gene;
+  # return an unique gene symbol, with an index in parenthesis if not the first of a kind
+  return $gene.( $counter eq 1 ? "" : "$counter" );
+}
+
+sub clean_up_uniprot {
+  # returns a description that follows the NCBI guidelines
+  my ( $description ) = @_;
+  # WARNING: valid [SEQ_FEAT.ProteinNameEndsInBracket] Protein name ends with bracket and may contain organism name FEATURE: Prot: Nicotinate-nucleotide pyrophosphorylase [carboxylating] [lcl|sequence_1_108:1-297] [lcl|sequence_1_108: raw, aa len= 297]
+  $description =~ s/\[/(/g;
+  $description =~ s/\]/)/g;
+
+  return $description // "Hypothetical protein";
 }
 
 sub clean_up_description {
@@ -897,55 +786,330 @@ sub clean_up_description {
   return $description // "Hypothetical protein";
 }
 
+sub parse_file {
+  my ( $o, $file, $divider, $program ) = @_;
+  # open file if it"s not open.
+  open my $filehandle, "<", $file;
+  my @lines;
+  while ( my $line = readline ( $filehandle) ) {
+    # chomp line first
+    chomp $line;
+    # skip empty lines
+    next if ( $line =~ m/^$/);
+    # skip comments
+    next if ( $line =~ m/^#/);
+    # skip header in tRNAscan-SE
+    next if $program eq "trnascanse" and $line =~ m/^Sequence|^Name|^-/;
+    # skip sequence lines in ARAGORN
+    next if (( $program eq "aragorn") && ( $line !~ m/^>/));
+    # skip the header line from PANNZER
+    next if (( $program eq "pannzer") && ( $line =~ m/^qpid/));
+    # warn on parse error
+    print_log( $o, "Parse error in file $file, line $.") if not (my @line = split (/$divider/, $line));
+    # push the line to the lines
+    push @lines, \@line;
+  }
+  return map { parse_line( $o, $program, $_ ) } @lines;
+}
 
-# memoized sub parse_file
-{
-    my %filehandles;
-    my $aragorn_sequence_name;
-    my $glimmer_sequence_name;
-    sub parse_file {
-        my ( $o, $file, $action, $divider, $program ) = @_;
-        # open file if it"s not open.
-        if (not $filehandles{$file}) {
-            open $filehandles{$file}, "<", $file;
-        }
-        # get-a-record
-        if ( $action eq "record" ) {
-            # consider double slash (or other) as a record division
-            local $/ = $divider;
-            while (my $line = readline ( $filehandles{$file})) {
-                return $line;
-            }
-        }
-        # get-a-line
-        elsif ( $action eq "line" ) {
-            while (my $line = readline ( $filehandles{$file})) {
-                # chomp line first
-                chomp $line;
-                # skip empty lines
-                next if ( $line =~ m/^$/);
-                # skip comments
-                next if ( $line =~ m/^#/);
-                # skip header in tRNAscan-SE
-                next if (( $program eq "trnascanse") && ( $line =~ m/^Sequence\s+tRNA|Name\s+tRNA|\-+\s+\-+/));
-                # skip summary line in ARAGORN
-                next if (( $program eq "aragorn") && ( $line =~ m/^\d+\s+gene/));
-                # skip the line containg sequence name in ARAGORN, but store it for the next cycle
-                next if (( $program eq "aragorn") && ( $line =~ m/^>(\S+)/) && ( $aragorn_sequence_name = $1));
-                # skip the line containg sequence name in Glimmer, but store it for the next cycle
-                next if (( $program eq "glimmer") && ( $line =~ m/^>(\S+)/) && ( $glimmer_sequence_name = $1));
-                # skip the header line from PANNZER
-                next if (( $program eq "pannzer") && ( $line =~ m/^qpid/));
-                # warn on parse error
-                print_log( $o, "Parse error in file $file, line $.") if not (my @line = split (/$divider/, $line));
-                # make use of the previously stored $aragorn_sequence_name
-                push @line, $aragorn_sequence_name if ( ( $aragorn_sequence_name ) && ( $program eq "aragorn" ) );
-                # make use of the previously stored $glimmer_sequence_name
-                push @line, $glimmer_sequence_name if ( ( $glimmer_sequence_name ) && ( $program eq "glimmer" ) );
-                return \@line;
-            }
-        }
+sub parse_line {
+  # returns line elements that are required depending on a type of a program
+  my ( $o, $program, $l ) = @_;
+  if ( $program eq "infernal" ) {
+    #idx target name            accession query name           accession clan name mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc olp anyidx afrct1 afrct2 winidx wfrct1 wfrct2 description of target
+    #--- ---------------------- --------- -------------------- --------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- --- ------ ------ ------ ------ ------ ------ ---------------------
+    #[0] [1]                    [2]       [3]                  [4]       [5]       [6] [7]      [8]      [9]      [10]     [11]   [12]  [13] [14] [15]  [16]   [17]      [18][19][20]   [21]   [22]   [23]   [24]   [25]   [26]
+    # get the RFAM information line
+    my $i = get_line( $o, $o->{"cwd"}."/databases/rfam/family.txt", $l->[2], "\t" );
+    # column names from http://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/database_files/family.sql
+    #rfam_acc rfam_id auto_wiki description author seed_source gathering_cutoff trusted_cutoff noise_cutoff comment previous_id cmbuild cmcalibrate cmsearch num_seed num_full num_genome_seq num_refseq type structure_source number_of_species number_3d_structures num_pseudonokts tax_seed ecmli_lambda ecmli_mu ecmli_cal_db ecmli_cal_hits maxl clen match_pair_node hmm_tau hmm_lambda created updated
+    #[0]      [1]     [2]       [3]         [4]    [5]         [6]              [7]            [8]          [9]     [10]        [11]    [12]        [13]     [14]     [15]     [16]           [17]       [18] [19]             [20]              [21]                 [22]            [23]     [24]         [25]     [26]         [27]           [28] [29] [30]            [31]    [32]       [33]    [34]
+    return { "seq_id" => $l->[3],
+             "accession" => $l->[2],
+             "hit_id" => $l->[1],
+             "start" => $l->[11] eq "+" ? $l->[9] : $l->[10],
+             "start_type" => "EXACT",
+             # "start_type" => ( $l->[12] =~ /5'/ && $l->[11] eq "+" ) || ( $l->[12] =~ /3'/ && $l->[11] eq "-" ) ? "BEFORE" : "EXACT",
+             # commented due to tbl2asn warnings
+             # [SEQ_FEAT.PartialProblem] PartialLocation: Start does not include first/last residue of sequence FEATURE: misc_feature: /inference=profile:infernal:1.1.3:rfam:RF01766; cspA thermoregulator [lcl|sequence_1:c>2150785-<2150428] [lcl|sequence_1: raw, dna len= 5697240]
+             "end" => $l->[11] eq "+" ? $l->[10] : $l->[9],
+             "end_type" => "EXACT",
+             # "end_type" => ( $l->[12] =~ /3'/ && $l->[11] eq "+" ) || ( $l->[12] =~ /5'/ && $l->[11] eq "-" ) ? "AFTER" : "EXACT",
+             # commented due to tbl2asn warnings
+             # [SEQ_FEAT.PartialProblem] PartialLocation: Start does not include first/last residue of sequence FEATURE: misc_feature: /inference=profile:infernal:1.1.3:rfam:RF01766; cspA thermoregulator [lcl|sequence_1:c>2150785-<2150428] [lcl|sequence_1: raw, dna len= 5697240]
+             "strand" => $l->[11] eq "+" ? 1 : -1,
+             "score" => $l->[16],
+             "product" => ( join " ", @$l[26..$#$l] ),
+             "type" => $i->[18],
+             "clan" => $l->[5],
+             "comment" => $i->[9],
+           }
+  }
+  if ( $program eq "rnammer" ) {
+    # seqname           source                      feature     start      end   score   +/-  frame  attribute
+    # ---------------------------------------------------------------------------------------------------------
+    # [0]               [1]                         [2]         [3]        [4]   [5]     [6]  [7]    [8]
+    return { "seq_id" => $l->[0],
+             "start" => $l->[3],
+             "start_type" => "EXACT", # rnammer can only produce exact coordinates
+             "end" => $l->[4],
+             "end_type" => "EXACT", # rnammer can only produce exact coordinates
+             "strand" => $l->[6] eq "+" ? 1 : -1,
+             "score" => $l->[5],
+             "type" => "rRNA",
+             "product" => $l->[8] =~ s/s_rRNA/S subunit ribosomal rRNA/ri, # make the product name nicer by using the /r option
+           }
+  }
+  if ( $program eq "trnascanse" ) {
+    #Sequence                tRNA    Bounds  tRNA    Anti    Intron Bounds   Inf
+    #Name            tRNA #  Begin   End     Type    Codon   Begin   End     Score   Note
+    #--------        ------  -----   ------  ----    -----   -----   ----    ------  ------
+    #1               1       229152  229228  Ile     GAT     0       0       75      pseudo
+    #[0]             [1]     [2]     [3]     [4]     [5]     [6]     [7]     [8]     [9]
+    return { "seq_id" => $l->[0] =~ s/\s+//ri, # make use of the /r option, sequence name has trailing spaces
+             "start" => $l->[2] > $l->[3] ? $l->[3] : $l->[2],
+             "start_type" => "EXACT", # trnascanse can only produce exact coordinates
+             "end" => $l->[2] > $l->[3] ? $l->[2] : $l->[3],
+             "end_type" => "EXACT", # trnascanse can only produce exact coordinates
+             "strand" => $l->[2] > $l->[3] ? -1 : 1,
+             "score" => $l->[8],
+             "type" => "tRNA",
+             "product" => $l->[4] eq "Undet" ? "tRNA-Xxx" : "tRNA-".$l->[4]."(".$l->[5].")", # SEQ_FEAT.MissingTrnaAA
+                                                                                             # Explanation: The amino acid that the tRNA carries is not included.
+                                                                                             # Suggestion: Include the amino acid as the product of the tRNA. If the amino acid of a tRNA is unknown, use tRNA-Xxx as the product.
+                                                                                             # From: https://www.ncbi.nlm.nih.gov/genbank/genome_validation/
+           }
+  }
+  if ( $program eq "aragorn" ) {
+    #>1-60 tmRNA c[3604541,3604903]
+    #>1-98 tRNA-Phe(gaa) c[5387551,5387626]
+    #[0]   [1]           [2]
+    return { "seq_id" => ( $l->[0] =~ m/^>(\d+)-\d+$/ )[0],
+             "start" => ( $l->[2] =~ m/^c?\[(\d+),\d+\]$/ )[0],
+             "start_type" => "EXACT", # aragorn can only produce exact coordinates
+             "end" => ( $l->[2] =~ m/^c?\[\d+,(\d+)\]$/ )[0],
+             "end_type" => "EXACT", # aragorn can only produce exact coordinates
+             "strand" => $l->[2] =~ m/^c/ ? -1 : 1,
+             "score" => 0,
+             "product" => $l->[1],
+           }
+  }
+
+  if ( $program eq "prodigal" ) {
+    ##gff-version  3
+    # Sequence Data: seqnum=1;seqlen=84908;seqhdr="1"
+    # Model Data: version=Prodigal.v2.6.3;run_type=Metagenomic;model="20|Escherichia_coli_UMN026|B|50.7|11|1";gc_cont=50.70;transl_table=11;uses_sd=1
+    #1       Prodigal_v2.6.3 CDS     3       704     76.7    +       0       ID=1_1;partial=10;start_type=Edge;rbs_motif=None;rbs_spacer=None;gc_cont=0.546;conf=100.00;score=76.68;cscore=73.46;sscore=3.22;rscore=0.00;uscore=0.00;tscore=3.22;
+    #[0]     [1]             [2]     [3]     [4]     [5]     [6]     [7]     [8]
+
+    return { "seq_id" => $l->[0],
+             "start" => $l->[3],
+             #"start_type" => $l->[8] =~ /partial=1\d/ ? "BEFORE" : "EXACT",
+             # commented due to tbl2asn warnings
+             # [SEQ_FEAT.PartialProblem] PartialLocation: Start does not include first/last residue of sequence FEATURE: misc_feature: /inference=profile:infernal:1.1.3:rfam:RF01766; cspA thermoregulator [lcl|sequence_1:c>2150785-<2150428] [lcl|sequence_1: raw, dna len= 5697240]
+             "start_type" => "EXACT",
+             "end" => $l->[4],
+             #"end_type" => $l->[8] =~ /partial=\d1/ ? "AFTER" : "EXACT",
+             # commented due to tbl2asn warnings
+             # [SEQ_FEAT.PartialProblem] PartialLocation: Start does not include first/last residue of sequence FEATURE: misc_feature: /inference=profile:infernal:1.1.3:rfam:RF01766; cspA thermoregulator [lcl|sequence_1:c>2150785-<2150428] [lcl|sequence_1: raw, dna len= 5697240]
+             "end_type" => "EXACT",
+             "strand" => $l->[6] eq "+" ? 1 : -1,
+             "score" => $l->[5],
+             "method" => "ab initio",
+             "type" => "CDS",
+             "tags" => {
+                          "transl_table" => $o->{"g_code"},
+                          "codon_start" => 1,
+              }
+           }
+  }
+
+  if ( $program eq "genemarks" ) {
+    ##gff-version 2
+    ##source-version GeneMark.hmm_PROKARYOTIC 3.36
+    ##date: Tue Feb 25 20:19:42 2020
+    # Sequence file name: /annotate/public/jobs/67E87C78-5803-11EA-ABE0-A900B28B97A2/input_sequences
+    # Model file name: GeneMark_hmm_combined.mod
+    # RBS: true
+    # Model information: GeneMarkS_gcode_11
+    #1       GeneMark.hmm    CDS     3       98      1.290982        +       0       gene_id=1
+    #[0]     [1]             [2]     [3]     [4]     [5]             [6]     [7]     [8]
+    return { "seq_id" => $l->[0],
+             "start" => $l->[3],
+             "start_type" => "EXACT", # genemarks can only produce exact coordinates
+             "end" => $l->[4],
+             "end_type" => "EXACT", # genemarks can only produce exact coordinates
+             "strand" => $l->[6] eq "+" ? 1 : -1,
+             "score" => $l->[5],
+             "method" => "ab initio",
+             "type" => "CDS",
+             "tags" => {
+                          "transl_table" => $o->{"g_code"},
+                          "codon_start" => 1,
+              }
+           }
+  }
+
+  if ( $program eq "glimmer" ) {
+    #1      orf00001      343     2799  +1    10.26
+    #[0]    [1]           [2]     [3]   [4]   [5]
+    return { "seq_id" => $l->[0],
+             "start" => $l->[2] > $l->[3] ? $l->[3] : $l->[2],
+             "start_type" => "EXACT", # glimmer can only produce exact coordinates
+             "end" => $l->[2] > $l->[3] ? $l->[2] : $l->[3],
+             "end_type" => "EXACT", # glimmer can only produce exact coordinates
+             "strand" => $l->[2] > $l->[3] ? -1 : 1,
+             "score" => $l->[5],
+             "method" => "ab initio",
+             "type" => "CDS",
+             "tags" => {
+                          "transl_table" => $o->{"g_code"},
+                          "codon_start" => 1,
+              }
+           }
+  }
+
+  if ( $program eq "diamond" or $program eq "blast" ) {
+    # get the EXCEPTION information line
+    #accession transl_except
+    #--------- ----------------
+    #[0]       [1]
+    my $i = get_line( $o, $o->{"cwd"}."/databases/uniprot/exceptions.txt", $l->[1], "\t" );
+    # print Dumper($l->[1]);
+    #qseqid         sseqid                  qstart      qend        sstart   send       slen      pident    bitscore     stitle
+    #1              sp|A7ZUK1|RPOB_ECO24    5146755     5150780     1        1342       1342      100.0     2638.2       sp|A7ZUK1|RPOB_ECO24 DNA-directed RNA polymerase subunit beta OS=Escherichia coli O139:H28 (strain E24377A / ETEC) OX=331111 GN=rpoB PE=1 SV=1
+    #[0]            [1]                     [2]         [3]         [4]      [5]        [6]       [7]       [8]          [9]
+    # always extend one less aa than $l->[4] to account for 1-based start location in bio
+    my $extension_5 = ( $l->[4] - 1 ) * 3;
+    # always extend one more aa than $l->[8] - $l->[7] to account for and include stop codon
+    my $extension_3 = ( $l->[6] - $l->[5] + 1 ) * 3;
+    # start depends on query orientation
+    my $start = $l->[2] > $l->[3] ? $l->[3] : $l->[2];
+    # so does start extension
+    my $extension_start = $l->[2] > $l->[3] ? $extension_3 : $extension_5;
+    # so does end
+    my $end = $l->[2] > $l->[3] ? $l->[2] : $l->[3];
+    # and its extension
+    my $extension_end = $l->[2] > $l->[3] ? $extension_5 : $extension_3;
+    # never extend start beyond sequence
+    $start = ( $start - $extension_start ) < 1 ? $start : ( $start - $extension_start );
+    # never extend end beyond sequence
+    $end = ( $end + $extension_end ) > $o->{"r"}->{$l->[0]}->length ? $end : ( $end + $extension_end );
+    return {
+             "seq_id" => $l->[0],
+             "hit_id" => $l->[1],
+             "gene_id" => ( $l->[1] =~ m/^\S+\|(\S+)_\S+$/ )[0],
+             "start" => $start,
+             "start_type" => "EXACT", # diamond can only produce exact coordinates
+             "end" => $end,
+             "end_type" => "EXACT", # diamond can only produce exact coordinates
+             "strand" => $l->[2] > $l->[3] ? -1 : 1,
+             "score" => $l->[8],
+             "product" => clean_up_uniprot( ( $l->[9] =~ m/^\S+ (.*) OS=.*$/ )[0] ),
+             "gene_name" => ( $l->[9] =~ m/ GN=(\S+)/ )[0] // undef,
+             "exception" => $i,
+             "type" => "CDS",
+             "method" => "homology",
+             "tags" => {
+                          "transl_table" => $o->{"g_code"},
+                          "codon_start" => 1,
+              }
+           }
+  }
+
+  if ( $program eq "pannzer" ) {
+    #qpid    cluster_GSZ             cluster_RM1sum  cluster_size    cluster_desccount     RM2              val_avg         jac_avg                 desc                                                            genename
+    #337     1188.6501920470491      88.1362508589   100             8585                  1.16895577275    0.19527405526   2.23321196985e-05       Bifunctional aspartate kinase/homoserine dehydrogenase I        ThrA
+    #[0]     [1]                     [2]             [3]             [4]                   [5]              [6]             [7]                     [8]                                                             [9]
+    return { "seq_id" => $l->[0],
+             "product" => clean_up_description( $l->[8] ),
+             "gene_name" => $l->[9],
+             "score" => $l->[1],
+             "type" => "annotation",
+           }
+  }
+
+  if ( $program eq "emapper" ) {
+    #query_name     seed_eggNOG_ortholog    seed_ortholog_evalue    seed_ortholog_score     predicted_gene_name     GO_terms                  KEGG_KOs          BiGG_reactions       Annotation_tax_scope         OGs                bestOG|evalue|score     COG_cat          eggNOG_annot
+    #9397           749414.SBI_06869        1.6e-59                 234.6                   RMLC                    GO:0000271,GO:0003674     K01790,K13316     TDPDRE               NOG[107]                     COG1898@NOG        NA|NA|NA                M, H             DTDP-4-dehydrorhamnose 3,5-epimerase
+    #[0]            [1]                     [2]                     [3]                     [4]                     [5]                       [6]               [7]                  [8]                          [9]                [10]                    [11]             [12]
+    return { "seq_id" => $l->[0],
+             "product" => clean_up_description( $l->[12] ),
+             "score" => $l->[3],
+             "type" => "annotation",
+           }
+  }
+
+  if ( $program eq "trf" ) {
+    #start    end     period     num_copies     consenus_size       adjacent_identity_overall     adjacent_indels_overall       score       A%      C%      G%      T%      entropy           sequences
+    #777012   777170  78         2.0            79                  88                            1                             239         41      20      31      6       1.77              AGAAGAAAGCGGCTGCTGAAAAGGCAGCAGCTGATA...
+    #[0]      [1]     [2]        [3]            [4]                 [5]                           [6]                           [7]         [8]     [9]     [10]    [11]    [12]              [13+]
+    return { "seq_id" => $l->[0],
+              "start" => $l->[0],
+              "start_type" => "EXACT", # trf can only produce exact coordinates
+              "end" => $l->[1],
+              "end_type" => "EXACT", # trf can only produce exact coordinates
+              "strand" => 0,
+              "type" => "tandem",
+              "score" => $l->[7],
+           }
+  }
+
+  if ( $program eq "pilercr" ) {
+    #Pos            Repeat      %id           Spacer     Left flank    Repeat                           Spacer
+    #3760999        29          100.0         32         ATTACCTGAT    .............................    GGTAGTACGCGCCTCCGGACGTTTTTATGTCG
+    #[0]            [1]         [2]           [3]        [4]           [5]                              [6]
+    #Array          Sequence    Position      Length  # Copies  Repeat  Spacer   +  Consensus
+    #    1                 1     2877884         580        10      29      32   +  CGGTTTATCCCCGCTGGCGCGGGGAACTC
+    #    [0]               [1]   [2]             [3]        [4]     [5]     [6] [7] [8]
+    return {  "seq_id" => $l->[7],
+              "primary_tag" => $l->[2] eq "repeat_region" ? "repeat_region" : "misc_feature",
+              "start" => $l->[0],
+              "start_type" => "EXACT", # trf can only produce exact coordinates
+              "end" => $l->[1],
+              "end_type" => "EXACT", # trf can only produce exact coordinates
+              "strand" => 0,
+              "type" => "CRISPR",
+              "score" => $l->[7],
+           }
+  }
+
+  if ( $program eq "minced" ) {
+    #1       minced:0.4.2    repeat_region   3760816 3761332 9       .       .       ID=CRISPR1;rpt_type=direct;rpt_family=CRISPR;rpt_unit_seq=CGGTTTATCCCCGCTGGCGCGGGGAACAC
+    #1       minced:0.4.2    repeat_unit     3760816 3760844 1       .       .       Parent=CRISPR1;ID=DR.CRISPR1.1
+    #[0]     [1]             [2]             [3]     [4]     [5]     [6]     [7]     [8]
+    return { "seq_id" => $l->[0],
+             "start" => $l->[3],
+             "primary_tag" => $l->[2] eq "repeat_region" ? "repeat_region" : "misc_feature",
+             "start_type" => "EXACT", # minced can only produce exact coordinates
+             "end" => $l->[4],
+             "end_type" => "EXACT", # minced can only produce exact coordinates
+             "strand" => 0,
+             "score" => 0,
+             "type" => "CRISPR",
+             "tags" => $l->[2] eq "repeat_region" ?
+                       {
+                          "rpt_type" => "direct",
+                          "rpt_family" => "CRISPR",
+                          "rpt_unit_seq" => ( $l->[8] =~ m/rpt_unit_seq=(.+)/ )[0],
+                        } : { "note" => "repeat unit" },
+           }
+  }
+
+}
+
+sub get_line {
+  my ( $o, $file, $id, $divider ) = @_;
+  # open file if it"s not open.
+  open my $filehandle, "<", $file;
+  while ( my $line = readline ( $filehandle) ) {
+    # chomp line first
+    chomp $line;
+    my @line = split (/$divider/, $line);
+    if ( $line[0] eq $id ) {
+      return \@line;
     }
+  }
 }
 
 
@@ -957,44 +1121,55 @@ sub get_command {
       return $o->{"cwd"}."/bin/rnammer/rnammer -m lsu,ssu,tsu -S bac -T /tmp ".$o->{"job"}."/input_sequences -gff ".$o->{"job"}."/rnammer";
     }
     elsif ( $program eq "trnascanse" ) {
-      return $o->{"cwd"}."/bin/trnascanse/tRNAscan-SE -q -Q -B ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/trnascanse";
+      return $o->{"cwd"}."/bin/trnascanse/tRNAscan-SE -q -B ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/trnascanse";
     }
     elsif ( $program eq "aragorn" ) {
-      return $o->{"cwd"}."/bin/aragorn/aragorn -w -gc11 ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/aragorn";
+      return $o->{"cwd"}."/bin/aragorn/aragorn -fon -gc".$o->{"gcode"}." ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/aragorn";
     }
     elsif ( $program eq "infernal" ) {
-      return $o->{"cwd"}."/bin/infernal/cmscan --tblout ".$o->{"job"}."/infernal --notextw --cut_tc --cpu 1 ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm ".$o->{"job"}."/input_sequences";
+      return $o->{"cwd"}."/bin/infernal/cmscan --cpu 1 --tblout ".$o->{"job"}."/infernal --fmt 2 --anytrunc --oskip --oclan --clanin ".$o->{"cwd"}."/databases/rfam/Rfam.clanin --notextw --cut_ga ".$o->{"cwd"}."/databases/rfam/Rfam.cm ".$o->{"job"}."/input_sequences";
     }
-    elsif ( $program eq "glimmer" ) {
-      return $o->{"cwd"}."/bin/glimmer/long-orfs --trans_table 11 --linear -n -t 1.15 ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs; ".
-             $o->{"cwd"}."/bin/glimmer/extract --nowrap -t ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs | tee ".$o->{"job"}."/glimmer.train; ".
-             $o->{"cwd"}."/bin/glimmer/build-icm -r ".$o->{"job"}."/glimmer.icm < ".$o->{"job"}."/glimmer.train; ".
-             $o->{"cwd"}."/bin/glimmer/glimmer3 --trans_table 11 --linear --extend ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.icm ".$o->{"job"}."/glimmer; ".
-             "mv ".$o->{"job"}."/glimmer.predict ".$o->{"job"}."/glimmer";
+    elsif ( $program eq "glimmer1" ) {
+      return $o->{"cwd"}."/bin/glimmer/long-orfs --trans_table ".$o->{"gcode"}." --linear -n -t 1.15 ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs";
+    }
+    elsif ( $program eq "glimmer2" ) {
+      return $o->{"cwd"}."/bin/glimmer/extract --nowrap -t ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs | ".$o->{"cwd"}."/bin/glimmer/build-icm -r ".$o->{"job"}."/glimmer.icm";
+    }
+    elsif ( $program eq "glimmer3" ) {
+      return $o->{"cwd"}."/bin/glimmer/glimmer3 --trans_table ".$o->{"gcode"}." --linear ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.icm ".$o->{"job"}."/glimmer"
     }
     elsif ( $program eq "prodigal" ) {
         # Error: Sequence must be 20000 characters (only 16084 read).
-        #(Consider running with the '-p anon' option or finding more contigs from the same genome.)
-        # on the other hand:
-        # Error: Can't specify translation table with anon mode or training file.
-        # therefore, either -p anon, or -g 11
-        return $o->{"cwd"}."/bin/prodigal/prodigal -e 0 -q -f gff".( $o->{"input_size"} < 20000 ? " -p anon" : " -g 11 -i " ).$o->{"job"}."/input_sequences -o ".$o->{"job"}."/prodigal";
+        # (Consider running with the '-p anon' option or finding more contigs from the same genome.)
+        # Warning:  ideally Prodigal should be given at least 100000 bases for training.
+        # You may get better results with the -p meta option.
+        return $o->{"cwd"}."/bin/prodigal/prodigal -q -m -f gff -g ".$o->{"gcode"}."".( $o->{"input_size"} < 100000 ? " -p meta" : "" )." -i ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/prodigal";
     }
     elsif ( $program eq "genemarks" ) {
         return $o->{"cwd"}."/bin/genemarks/gmsn.pl --format GFF --prok ".$o->{"job"}."/input_sequences --output ".$o->{"job"}."/genemarks";
     }
     elsif ( $program eq "blast" ) {
-        return $o->{"cwd"}."/bin/blast/blastx -query_gencode 11 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore slen' -max_target_seqs 1 -db ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta -query ".$o->{"job"}."/input_homology_".$o->{"cds-h"}." | tee -a ".$o->{"job"}."/output_homology_".$o->{"cds-h"};
+        return $o->{"cwd"}."/bin/blast/blastx -query_gencode ".$o->{"gcode"}." -outfmt '6 qseqid sseqid qstart qend sstart send slen pident bitscore stitle' -max_target_seqs 1 -db ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta -query ".$o->{"job"}."/input_sequences -out ".$o->{"job"}."/blast";
     }
     elsif ( $program eq "diamond" ) {
-        return $o->{"cwd"}."/bin/diamond/diamond blastx --query-gencode 11 --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore slen --max-target-seqs 1 --query ".$o->{"job"}."/input_homology_".$o->{"cds-h"}." --db ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta --out ".$o->{"job"}."/output_homology_".$o->{"cds-h"};
+        return $o->{"cwd"}."/bin/diamond/diamond blastx --masking 0 --min-score 30 --id 95 --range-culling -F 15 --query-gencode ".$o->{"gcode"}." --outfmt 6 qseqid sseqid qstart qend sstart send slen pident bitscore stitle --max-target-seqs 0 --subject-cover 95 --query ".$o->{"job"}."/input_sequences --db ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta --out ".$o->{"job"}."/diamond";
     }
     elsif ( $program eq "pannzer" ) {
-        return "python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -H localhost -T localhost -d ".$o->{"cwd"}."/databases/pannzer -i ".$o->{"job"}."/input_annotation -o ,".$o->{"job"}."/output.desc,".$o->{"job"}."/output.go,".$o->{"job"}."/output.anno";
+        return "python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -H localhost -T localhost -d ".$o->{"cwd"}."/databases/pannzer -i ".$o->{"job"}."/input_annotation -o ,".$o->{"job"}."/pannzer,,";
     }
     elsif ( $program eq "emapper" ) {
-        return $o->{"cwd"}."/bin/emapper/emapper.py --override --cpu 1 --data_dir ".$o->{"cwd"}."/databases/emapper -m diamond -i ".$o->{"job"}."/input_annotation -o ".$o->{"job"}."/output"
+        return "PATH=\$PATH:".$o->{"cwd"}."/bin/diamond ".$o->{"cwd"}."/bin/emapper/emapper.py --override --cpu 1 --data_dir ".$o->{"cwd"}."/databases/emapper -m diamond -i ".$o->{"job"}."/input_annotation -o ".$o->{"job"}."/emapper";
     }
+    elsif ( $program eq "trf" ) {
+        return $o->{"cwd"}."/bin/trf/trf ".$o->{"job"}."/input_sequences 2 7 7 80 10 50 500 -h -ngs | tee ".$o->{"job"}."/trf";
+    }
+    elsif ( $program eq "pilercr" ) {
+        return $o->{"cwd"}."/bin/pilercr/pilercr -in ".$o->{"job"}."/input_sequences -out ".$o->{"job"}."/pilercr -noinfo -quiet";
+    }
+    elsif ( $program eq "minced" ) {
+        return $o->{"cwd"}."/bin/minced/minced -gffFull ".$o->{"job"}."/input_sequences ".$o->{"job"}."/minced.tmp ".$o->{"job"}."/minced";
+    }
+
 }
 
 1;

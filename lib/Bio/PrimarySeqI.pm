@@ -458,30 +458,18 @@ sub trunc {
         $str = $self->subseq($start,$end);
     }
 
-    # Create a new fresh object if $self is 'Bio::Seq::LargePrimarySeq'
-    # or 'Bio::Seq::LargeSeq', if not take advantage of
-    # Bio::Root::clone to get an object copy
-    my $out;
-    if (   $self->isa('Bio::Seq::LargePrimarySeq')
-        or $self->isa('Bio::Seq::LargeSeq')
-        or $self->isa('Bio::Seq::RichSeq')
-        ) {
-        my ($seqclass, $opts) = $self->_setup_class;
-        $out = $seqclass->new(
-            -seq              => $str,
-            -is_circular      => $self->is_circular,
-            -display_id       => $self->display_id,
-            -accession_number => $self->accession_number,
-            -alphabet         => $self->alphabet,
-            -desc             => $self->desc,
-            -verbose          => $self->verbose,
-            %$opts,
-        );
-    } else {
-        $out = $self->clone;
-        $out->seq($str);
-    }
-    return $out;
+    # Create a new fresh object of the same class and return it
+    my ($seqclass, $opts) = $self->_setup_class;
+    return $seqclass->new(
+        -seq              => $str,
+        -is_circular      => $self->is_circular,
+        -display_id       => $self->display_id,
+        -accession_number => $self->accession_number,
+        -alphabet         => $self->alphabet,
+        -desc             => $self->desc,
+        -verbose          => $self->verbose,
+        %$opts,
+    );
 }
 
 

@@ -11,6 +11,7 @@ BEGIN {
 use lib "$working_folder/lib";
 use SAP::Common;
 use SAP::Update;
+use SAP::DNA;
 use SAP::RNA;
 use SAP::CDS;
 use SAP::Output;
@@ -19,24 +20,30 @@ use SAP::Output;
 my $o = initialize_options($working_folder);
 
 # download and initialize databases if requested
-update( $o ) if ( $o->{"update"} );
+update( $o, $working_folder ) if ( $o->{"update"} );
+
+# no update - run
+initialize_pipeline( $o, $working_folder );
 
 # creating a reference to a hash containing input sequences (SeqIO objects) as values, we will pass this data structure to all our modules
-my $s = create_seq_hash ( $o );
+create_seq_hash ( $o );
 
 # prepare input fasta file which will be used for most of the subcommands
-prepare_input ( $o, $s, "sequences" );
+prepare_input ( $o, "sequences" );
 
 # perform RNA gene prediction if required
-rna_prediction ( $o, $s ) if ( $o->{"rna"} );
+dna_prediction ( $o ) if ( $o->{"dna"} );
+
+# perform RNA gene prediction if required
+rna_prediction ( $o ) if ( $o->{"rna"} );
 
 # perform CDS gene prediction if required
-cds_prediction ( $o, $s ) if ( $o->{"cds"} );
+cds_prediction ( $o ) if ( $o->{"cds"} );
 
 # generate output files and validate them if required
-output_and_validate ( $o, $s );
+output_and_validate ( $o );
 
 # finish
-print_log ( $o, "Done.\x0" );
+print_log ( $o, "Done." );
 
 exit 0;

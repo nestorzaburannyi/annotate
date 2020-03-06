@@ -13,137 +13,80 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(update);
 
 sub update {
-    my ( $o ) = @_;
-    print_log( $o, "Initializing / updating databases..." );
-    mkdir( $o->{"cwd"}."/databases" );
-    taxonomy ( $o );
-    rfam ( $o );
-    sprot ( $o );
-    pannzer ( $o );
-    emapper ( $o );
-    print_log( $o, "Updating databases complete." );
-    exit 0;
+  my ( $o, $cwd ) = @_;
+  # set the option to cwd
+  $o->{"cwd"} = $cwd;
+  # update job has a special job uuid
+  $o->{"job_uuid"} = "update";
+  # the the base for output folder for files
+  $o->{"job"} = $o->{"cwd"}."/public/".$o->{"job_uuid"};
+  print_log( $o, "Initializing / updating databases..." );
+  mkdir( $o->{"cwd"}."/databases" );
+  taxonomy ( $o );
+  rfam ( $o );
+  sprot ( $o );
+  pannzer ( $o );
+  emapper ( $o );
+  print_log( $o, "Updating databases complete." );
+  exit 0;
 }
 
 sub taxonomy {
-    my ( $o ) = @_;
-    mkdir ( $o->{"cwd"}."/databases/taxonomy" );
-    print_log( $o, "Downloading NCBI Taxonomy database..." );
-    download_file ( $o, "ftp", "ftp.ncbi.nlm.nih.gov", "pub/taxonomy/taxdump.tar.gz", $o->{"cwd"}."/databases/taxonomy/taxdump.tar.gz" );
-    decompress_file ( $o, $o->{"cwd"}."/databases/taxonomy/taxdump.tar.gz", $o->{"cwd"}."/databases/taxonomy/" );
-    $o->{"dbh_taxonomy"} = Bio::DB::Taxonomy->new( -force => 1, -source => "flatfile", -directory => $o->{"cwd"}."/databases/taxonomy", -nodesfile => $o->{"cwd"}."/databases/taxonomy/nodes.dmp", -namesfile => $o->{"cwd"}."/databases/taxonomy/names.dmp" );
-    return;
+  my ( $o ) = @_;
+  mkdir ( $o->{"cwd"}."/databases/taxonomy" );
+  print_log( $o, "Downloading NCBI Taxonomy database..." );
+  download_file ( $o, "ftp", "ftp.ncbi.nlm.nih.gov", "pub/taxonomy/taxdump.tar.gz", $o->{"cwd"}."/databases/taxonomy/taxdump.tar.gz" );
+  decompress_file ( $o, $o->{"cwd"}."/databases/taxonomy/taxdump.tar.gz", $o->{"cwd"}."/databases/taxonomy/" );
+  Bio::DB::Taxonomy->new( -force => 1, -source => "flatfile", -directory => $o->{"cwd"}."/databases/taxonomy", -nodesfile => $o->{"cwd"}."/databases/taxonomy/nodes.dmp", -namesfile => $o->{"cwd"}."/databases/taxonomy/names.dmp" );
+  return;
 }
 
 sub rfam {
-    my ( $o ) = @_;
-    mkdir ( $o->{"cwd"}."/databases/rfam" );
-    print_log( $o, "Downloading RFAM taxonomy information..." );
-    download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/database_files/family_ncbi.txt.gz", $o->{"cwd"}."/databases/rfam/family_ncbi.txt" );
-    print_log( $o, "Parsing RFAM taxonomy information..." );
-    my %rfam_records;
-    while (my $line = parse_file( $o, $o->{"cwd"}."/databases/rfam/family_ncbi.txt", "line", "\t", "" )) {
-        # if all the possible taxonomies are present, no need to iterate the class again
-        next if ( exists $rfam_records{$line->[2]} and exists $rfam_records{$line->[2]}{"taxonomy"} and exists $rfam_records{$line->[2]}{"bacteria"} and exists $rfam_records{$line->[2]}{"archaea"} );
-        if ( not exists $rfam_records{$line->[2]}{"bacteria"} and taxon_id_belongs_to ( $o, $line->[0], 2 ) ) {
-            $rfam_records{$line->[2]}{"taxonomy"} = 1;
-            $rfam_records{$line->[2]}{"bacteria"} = 1;
-        }
-        if ( not exists $rfam_records{$line->[2]}{"archaea"} and taxon_id_belongs_to ( $o, $line->[0], 2158 ) ) {
-            $rfam_records{$line->[2]}{"taxonomy"} = 1;
-            $rfam_records{$line->[2]}{"archaea"} = 1;
-        }
-    }
-    print_log( $o, "Downloading RFAM family information..." );
-    download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/database_files/family.txt.gz", $o->{"cwd"}."/databases/rfam/family.txt" );
-    print_log( $o, "Parsing RFAM family information..." );
-    while ( my $line = parse_file( $o, $o->{"cwd"}."/databases/rfam/family.txt", "line", "\t", "" ) ) {
-        next if not ( exists $rfam_records{$line->[0]} and exists $rfam_records{$line->[0]}{"taxonomy"} );
-        $rfam_records{$line->[0]}{"name"} = $line->[1];
-        $rfam_records{$line->[0]}{"product"} = $line->[3];
-        $rfam_records{$line->[0]}{"type"} = $line->[18];
-    }
-    print_log( $o, "Downloading RFAM database..." );
-    download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/Rfam.cm.gz", $o->{"cwd"}."/databases/rfam/Rfam.cm" );
-    print_log( $o, "Parsing RFAM database..." );
-    open my $bacteria_filehandle, ">", $o->{"cwd"}."/databases/rfam/rfam_bacteria.cm" or die "Could not open ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm - $!";
-    open my $archaea_filehandle, ">", $o->{"cwd"}."/databases/rfam/rfam_archaea.cm" or die "Could not open ".$o->{"cwd"}."/databases/rfam/rfam_archaea.cm - $!";
-    while ( my $line = parse_file( $o, $o->{"cwd"}."/databases/rfam/Rfam.cm", "record", "\n//\n", "" ) ) {
-        my ( $spacer, $accession ) = ( $line =~ m/ACC\s(\s+)(\S+)\n/ ) or next;
-        next if not ( exists $rfam_records{$accession} and exists $rfam_records{$accession}{"taxonomy"} );
-        $line =~ s/ACC\s+$accession\n/ACC $spacer$accession\nDESC$spacer$rfam_records{$accession}{"type"} $rfam_records{$accession}{"product"}\n/;
-        print {$bacteria_filehandle} $line if ( exists $rfam_records{$accession}{"bacteria"} );
-        print {$archaea_filehandle} $line if ( exists $rfam_records{$accession}{"archaea"} );
-        }
-    close( $bacteria_filehandle );
-    close( $archaea_filehandle );
-    print_log( $o, "Building RFAM databases..." );
-    system( $o->{"cwd"}."/bin/infernal/cmpress -F ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm" );
-    system( $o->{"cwd"}."/bin/infernal/cmpress -F ".$o->{"cwd"}."/databases/rfam/rfam_archaea.cm" );
-    return;
+  my ( $o ) = @_;
+  mkdir ( $o->{"cwd"}."/databases/rfam" );
+  print_log( $o, "Downloading RFAM family information..." );
+  download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/database_files/family.txt.gz", $o->{"cwd"}."/databases/rfam/family.txt" );
+  print_log( $o, "Downloading RFAM database..." );
+  download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/Rfam.cm.gz", $o->{"cwd"}."/databases/rfam/Rfam.cm" );
+  print_log( $o, "Building RFAM databases..." );
+  run_program( $o, $o->{"cwd"}."/bin/infernal/cmpress -F ".$o->{"cwd"}."/databases/rfam/Rfam.cm" );
+  print_log( $o, "Downloading RFAM clan information..." );
+  download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/Rfam.clanin", $o->{"cwd"}."/databases/rfam/Rfam.clanin" );
+  return;
 }
 
 sub sprot {
-    my ( $o ) = @_;
-    mkdir ( $o->{"cwd"}."/databases/uniprot" );
-    print_log( $o, "Downloading Uniprot/Swissprot..." );
-    download_and_uncompress_file ( $o, "ftp", "ftp.uniprot.org", "pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz", $o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat" );
-    print_log( $o, "Parsing Uniprot/Swissprot..." );
-    # consider double slash as a record division
-    local $/ = "\n//\n";
-    # opening input file
-    open my $input_filehandle, "<", $o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat" or die "Could not open ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat - $!";
-    open my $bacteria_filehandle, ">", $o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta" or die "Could not open ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta - $!";
-    open my $archaea_filehandle, ">", $o->{"cwd"}."/databases/uniprot/sprot_archaea.fasta" or die "Could not open ".$o->{"cwd"}."/databases/uniprot/sprot_archaea.fasta - $!";
-    while ( my $line = <$input_filehandle> ) {
-        my $entry = SWISS::Entry->fromText( $line );
-        # do not consider partial proteins as reliable, unless requested
-        $o->{"update-sprot-complete-only"} = 1;
-        next if ( ( $entry->isFragment or $entry->DEs->hasFragment ) and ( $o->{"update-sprot-complete-only"} ) );
-        # get the protein evidence
-        my $pe = substr( $entry->PE->{"text"}, 0, 1 ) or die "Could not get protein evidence tag from:\n $line\n\nThis should not have happened!";
-        # do not consider proteins with no protein evidence as reliable, unless requested
-        $o->{"update-sprot-protein-evidence"} = 1;
-        next if ( $o->{"update-sprot-protein-evidence"} > $pe );
-        # get the taxid
-        my $taxon_id = ( $entry->OXs->NCBI_TaxID->elements )[0]->text;
-        my $taxon;
-        # limit db to certain taxons
-        if ( taxon_id_belongs_to ( $o, $taxon_id, 2 ) ) {
-            $taxon = "bacteria";
-        }
-        elsif ( taxon_id_belongs_to ( $o, $taxon_id, 2157 ) ) {
-            $taxon = "archaea";
-        }
-        else {
-            next;
-        }
-        # get the ID
-        my $protein_id = $entry->ID or die "Could not get protein ID from:\n $line\n\nThis should not have happened!";
-        # get the sequence
-        my $sequence = $entry->SQ or die "Could not get protein sequence from:\n $line\n\nThis should not have happened!";
-        # set the non-standard tags
-        my $non_std = $line =~ m/ID   IF3_/ ? "_UNUSUAL_START_ATT" : "";
-        $non_std = $line =~ m/ID   PCNB_/ ? "$non_std"."_UNUSUAL_START_ATT" : $non_std;
-        $non_std = $line =~ m/NON_STD\s+\d+\s+\d+\s+Selenocysteine/ ? "$non_std"."_UNUSUAL_NONSTOP_TGA" : $non_std;
-        $non_std = $line =~ m/NON_STD\s+\d+\s+\d+\s+Pyrrolysine/ ? "$non_std"."_UNUSUAL_NONSTOP_TAG" : $non_std;
-        # write the sequence
-        if ( $taxon eq "bacteria" ) {
-            print { $bacteria_filehandle } ">$protein_id$non_std\n$sequence\n";
-        }
-        elsif ( $taxon eq "archaea" ) {
-            print { $archaea_filehandle } ">$protein_id$non_std\n$sequence\n";
-        }
+  my ( $o ) = @_;
+  mkdir ( $o->{"cwd"}."/databases/uniprot" );
+  print_log( $o, "Downloading Uniprot/Swissprot..." );
+  #download_and_uncompress_file ( $o, "ftp", "ftp.uniprot.org", "pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.dat.gz", $o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat" );
+  #download_and_uncompress_file ( $o, "ftp", "ftp.uniprot.org", "pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz", $o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta" );
+  print_log( $o, "Parsing Uniprot/Swissprot..." );
+  # consider double slash as a record division
+  local $/ = "\n//\n";
+  # opening input file
+  open my $input_filehandle, "<", $o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat" or die "Could not open ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.dat - $!";
+  open my $output_filehandle, ">", $o->{"cwd"}."/databases/uniprot/exceptions.txt" or die "Could not open ".$o->{"cwd"}."/databases/uniprot/exceptions.txt - $!";
+  while ( my $record = <$input_filehandle> ) {
+    my $entry = SWISS::Entry->fromText( $record );
+    # get the id
+    my $id = $entry->ID or die "Could not get ID from:\n $record\n\nThis should not have happened!";
+    # get the accession
+    my $ac = $entry->AC or die "Could not get AC from:\n $record\n\nThis should not have happened!";
+    # find the non-standard tags
+    while ( $record =~ m/NON_STD\s+(\d+)\s+(\d+)\s+(Se)leno(c)ysteine/g ) {
+      # id from to type
+      print $output_filehandle "sp|$ac|$id\t$1\t$2\taa:$3$4\n";
     }
-    close ( $input_filehandle );
-    close ( $bacteria_filehandle );
-    close ( $archaea_filehandle );
-    # build sprot databases
-    system( $o->{"cwd"}."/bin/blast/makeblastdb -dbtype prot -in ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta" );
-    system( $o->{"cwd"}."/bin/blast/makeblastdb -dbtype prot -in ".$o->{"cwd"}."/databases/uniprot/sprot_archaea.fasta" );
-    system( $o->{"cwd"}."/bin/diamond/diamond makedb --in ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta --db ".$o->{"cwd"}."/databases/uniprot/sprot_bacteria.fasta" );
-    system( $o->{"cwd"}."/bin/diamond/diamond makedb --in ".$o->{"cwd"}."/databases/uniprot/sprot_archaea.fasta --db ".$o->{"cwd"}."/databases/uniprot/sprot_archaea.fasta" );
-    return;
+    while ( $record =~ m/NON_STD\s+(\d+)\s+(\d+)\s+(Py)rro(l)ysine/g ) {
+      # id from to type
+      print $output_filehandle "sp|$ac|$id\t$1\t$2\taa:$3$4\n";
+    }
+  }
+  # build sprot databases
+  run_program( $o, $o->{"cwd"}."/bin/blast/makeblastdb -dbtype prot -in ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta" );
+  run_program( $o, $o->{"cwd"}."/bin/diamond/diamond makedb --in ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta --db ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta" );
+  return;
 }
 
 sub pannzer {
@@ -196,38 +139,40 @@ sub emapper {
   my ( $o ) = @_;
   print_log( $o, "Updating emapper..." );
   mkdir( $o->{"cwd"}."/databases/emapper" );
-  system( $o->{"cwd"}."/bin/emapper/download_eggnog_data.py -y -f --data_dir ".$o->{"cwd"}."/databases/emapper/ none" );
+  run_program( $o, $o->{"cwd"}."/bin/emapper/download_eggnog_data.py -y -f --data_dir ".$o->{"cwd"}."/databases/emapper/ none" );
 }
 
 sub download_file {
-    my ( $o, $protocol, $host, $path, $target) = @_;
-    if ( $protocol eq "ftp" ) {
-        my $ftp = Net::FTP->new( $host, Passive => 1 ) or exit_program ( $o, "Cannot connect to $protocol://$host: $@" );
-        $ftp->login or exit_program ( $o, "Cannot login, ".( $ftp->message));
-        $ftp->binary or exit_program ( $o, "Cannot set binary mode, ".( $ftp->message));
-        $ftp->get( $path, $target) or exit_program ( $o, "Cannot get file $protocol://$host/$path, ".( $ftp->message ) );
-        $ftp->quit;
+  # downloads a file, either with FTP or HTTP
+  my ( $o, $protocol, $host, $path, $target) = @_;
+  if ( $protocol eq "ftp" ) {
+    my $ftp = Net::FTP->new( $host, Passive => 1 ) or exit_program ( $o, "Cannot connect to $protocol://$host: $@" );
+    $ftp->login or exit_program ( $o, "Cannot login, ".( $ftp->message));
+    $ftp->binary or exit_program ( $o, "Cannot set binary mode, ".( $ftp->message));
+    $ftp->get( $path, $target) or exit_program ( $o, "Cannot get file $protocol://$host/$path, ".( $ftp->message ) );
+    $ftp->quit;
+  }
+  elsif ( $protocol eq "http" ) {
+    my $ua = LWP::UserAgent->new;
+    my $response = $ua->get( "$protocol://$host/$path" );
+    if ($response->is_success) {
+      open my $output_filehandle, ">", "$target" or die "Could not open $target - $!";
+      print {$output_filehandle} $response->decoded_content;
+      close $output_filehandle;
     }
-    elsif ( $protocol eq "http" ) {
-        my $ua = LWP::UserAgent->new;
-        my $response = $ua->get( "$protocol://$host/$path" );
-        if ($response->is_success) {
-            open my $output_filehandle, ">", "$target" or die "Could not open $target - $!";
-            print {$output_filehandle} $response->decoded_content;
-            close $output_filehandle;
-        }
-        else {
-            exit_program ( $o, "Cannot get file $protocol://$host/$path, ".(  $response->status_line ) );
-        }
+    else {
+      exit_program ( $o, "Cannot get file $protocol://$host/$path, ".(  $response->status_line ) );
     }
-    return;
+  }
+  return;
 }
 
 sub decompress_file {
-    my ( $o, $source, $target) = @_;
-    my $ae = Archive::Extract->new (archive => $source);
-    $ae->extract (to => $target) or exit_program ( $o, "Decompression failed: $ae->error" );
-    return;
+  # decompresses a gzip file
+  my ( $o, $source, $target) = @_;
+  my $ae = Archive::Extract->new (archive => $source);
+  $ae->extract (to => $target) or exit_program ( $o, "Decompression failed: $ae->error" );
+  return;
 }
 
 sub download_and_uncompress_file {
