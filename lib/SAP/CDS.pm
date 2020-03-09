@@ -72,9 +72,9 @@ sub run_pannzer {
 }
 
 sub run_emapper {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Running emapper ".$o->{"emapper-version"}."..." );
-    my ( $c ) = get_command ( $o, "emapper" );
+  my ( $o ) = @_;
+  print_log( $o, "Running emapper ".$o->{"emapper-version"}."..." );
+  my ( $c ) = get_command ( $o, "emapper" );
     run_program ( $o, $c );
 }
 
