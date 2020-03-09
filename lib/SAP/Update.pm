@@ -171,27 +171,28 @@ sub emapper {
 }
 
 sub download_file {
-    my ( $o, $protocol, $host, $path, $target) = @_;
-    if ( $protocol eq "ftp" ) {
-        my $ftp = Net::FTP->new( $host, Passive => 1 ) or exit_program ( $o, "Cannot connect to $protocol://$host: $@" );
-        $ftp->login or exit_program ( $o, "Cannot login, ".( $ftp->message));
-        $ftp->binary or exit_program ( $o, "Cannot set binary mode, ".( $ftp->message));
-        $ftp->get( $path, $target) or exit_program ( $o, "Cannot get file $protocol://$host/$path, ".( $ftp->message ) );
-        $ftp->quit;
+  # downloads a file, either with FTP or HTTP
+  my ( $o, $protocol, $host, $path, $target) = @_;
+  if ( $protocol eq "ftp" ) {
+    my $ftp = Net::FTP->new( $host, Passive => 1 ) or exit_program ( $o, "Cannot connect to $protocol://$host: $@" );
+    $ftp->login or exit_program ( $o, "Cannot login, ".( $ftp->message));
+    $ftp->binary or exit_program ( $o, "Cannot set binary mode, ".( $ftp->message));
+    $ftp->get( $path, $target) or exit_program ( $o, "Cannot get file $protocol://$host/$path, ".( $ftp->message ) );
+    $ftp->quit;
+  }
+  elsif ( $protocol eq "http" ) {
+    my $ua = LWP::UserAgent->new;
+    my $response = $ua->get( "$protocol://$host/$path" );
+    if ($response->is_success) {
+      open my $output_filehandle, ">", "$target" or die "Could not open $target - $!";
+      print {$output_filehandle} $response->decoded_content;
+      close $output_filehandle;
     }
-    elsif ( $protocol eq "http" ) {
-        my $ua = LWP::UserAgent->new;
-        my $response = $ua->get( "$protocol://$host/$path" );
-        if ($response->is_success) {
-            open my $output_filehandle, ">", "$target" or die "Could not open $target - $!";
-            print {$output_filehandle} $response->decoded_content;
-            close $output_filehandle;
-        }
-        else {
-            exit_program ( $o, "Cannot get file $protocol://$host/$path, ".(  $response->status_line ) );
-        }
+    else {
+      exit_program ( $o, "Cannot get file $protocol://$host/$path, ".(  $response->status_line ) );
     }
-    return;
+  }
+  return;
 }
 
 sub decompress_file {
