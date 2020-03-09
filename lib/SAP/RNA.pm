@@ -179,7 +179,7 @@ sub parse_tmrna_prediction {
 }
 
 sub parse_ncrna_prediction {
-    my ( $o, $s ) = @_;
+  my ( $o ) = @_;
     print_log( $o, "Parsing ncRNA predictions..." );
     while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"rna-nc-program"}, "line", "\\s+", $o->{"rna-nc-program"} ) ) {
         my ( $seq_id, $start, $end, $strand, $product, $score );
