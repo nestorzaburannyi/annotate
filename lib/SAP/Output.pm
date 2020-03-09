@@ -144,13 +144,26 @@ sub add_gene_features {
                 # remove the rest, unwanted tags
                 $feature->remove_tag( $tag );
             }
-            # change the primary_tag to "gene"
-            $feature->primary_tag( "gene" );
-            # store gene feature
-            check_and_store_feature ( $o, $feature );
-        }
+
+sub mark_ambiguities {
+  my ( $o ) = @_;
+  print_log ( $o, "Marking ambiguities..." );
+  foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
+    my $seq = $o->{"r"}->{$seq_id}->seq();
+    while ( $seq =~ /[^ATGCN]{1,}/g ) {
+      # create a feature first
+      my $feature = create_feature ( $o, {
+                                           primary_tag => "unsure",
+                                           seq_id => $seq_id,
+                                           start => $-[0] + 1,
+                                           start_type => "EXACT",
+                                           end => $+[0],
+                                           end_type => "EXACT",
+                                           strand => 0,
+                                         } );
+      # check and store gap feature candidate
+      check_and_store_feature ( $o, $feature );
     }
-}
 
 sub move_features_to_sequence_hash {
     my ( $o, $s ) = @_;
