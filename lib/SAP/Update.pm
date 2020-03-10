@@ -26,13 +26,13 @@ sub update {
 }
 
 sub taxonomy {
-    my ( $o ) = @_;
-    mkdir ( $o->{"cwd"}."/databases/taxonomy" );
-    print_log( $o, "Downloading NCBI Taxonomy database..." );
-    download_file ( $o, "ftp", "ftp.ncbi.nlm.nih.gov", "pub/taxonomy/taxdump.tar.gz", $o->{"cwd"}."/databases/taxonomy/taxdump.tar.gz" );
-    decompress_file ( $o, $o->{"cwd"}."/databases/taxonomy/taxdump.tar.gz", $o->{"cwd"}."/databases/taxonomy/" );
-    $o->{"dbh_taxonomy"} = Bio::DB::Taxonomy->new( -force => 1, -source => "flatfile", -directory => $o->{"cwd"}."/databases/taxonomy", -nodesfile => $o->{"cwd"}."/databases/taxonomy/nodes.dmp", -namesfile => $o->{"cwd"}."/databases/taxonomy/names.dmp" );
-    return;
+  my ( $o ) = @_;
+  mkdir ( $o->{"cwd"}."/databases/taxonomy" );
+  print_log( $o, "Downloading NCBI Taxonomy database..." );
+  download_file ( $o, "ftp", "ftp.ncbi.nlm.nih.gov", "pub/taxonomy/taxdump.tar.gz", $o->{"cwd"}."/databases/taxonomy/taxdump.tar.gz" );
+  decompress_file ( $o, $o->{"cwd"}."/databases/taxonomy/taxdump.tar.gz", $o->{"cwd"}."/databases/taxonomy/" );
+  Bio::DB::Taxonomy->new( -force => 1, -source => "flatfile", -directory => $o->{"cwd"}."/databases/taxonomy", -nodesfile => $o->{"cwd"}."/databases/taxonomy/nodes.dmp", -namesfile => $o->{"cwd"}."/databases/taxonomy/names.dmp" );
+  return;
 }
 
 sub rfam {
