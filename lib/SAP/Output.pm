@@ -203,7 +203,7 @@ sub comment_output {
 
   my $comment = "StructuredCommentPrefix    \t         Genome-Annotation-Data".
               "\nAnnotation Provider        \t         HZI/HIPS".
-              "\nWebsite                    \t         https://annotate.helmholtz-hzi.de".
+              "\nWebsite                    \t         https://prosnap.helmholtz-hzi.de".
               "\nAnnotation Date            \t       ".current_date_and_time().
               "\nAnnotation Pipeline        \t       ".$o->{"program-name"}.
               "\nSoftware Version           \t       ".$o->{"program-version"}.
