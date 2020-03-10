@@ -25,7 +25,7 @@ sub rna_prediction {
     or $o->{"rna-t"} and $o->{"rna-t-program"} eq "infernal"
     or $o->{"rna-tm"} and $o->{"rna-tm-program"} eq "infernal"
     or $o->{"rna-nc"} and $o->{"rna-nc-program"} eq "infernal" ) {
-        run_infernal ( $o, $s );
+        run_infernal ( $o );
     }
     if ( $o->{"rna-r"} ) {
         parse_rrna_prediction ( $o, $s );
