@@ -58,9 +58,9 @@ sub run_blast {
 }
 
 sub run_diamond {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Running DIAMOND ".$o->{"diamond-version"}."..." );
-    my ( $c ) = get_command ( $o, "diamond" );
+  my ( $o ) = @_;
+  print_log( $o, "Running DIAMOND ".$o->{"diamond-version"}."..." );
+  my ( $c ) = get_command ( $o, "diamond" );
     run_program ( $o, $c );
 }
 
