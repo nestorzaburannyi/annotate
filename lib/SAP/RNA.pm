@@ -42,7 +42,7 @@ sub rna_prediction {
 }
 
 sub run_rnammer {
-    my ( $o, $s ) = @_;
+    my ( $o ) = @_;
     print_log( $o, "Running RNAmmer ".$o->{"rnammer-version"}."..." );
     my ( $c ) = get_command ( $o, "rnammer" );
     run_program ( $o, $c );
