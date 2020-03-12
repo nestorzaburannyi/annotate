@@ -71,17 +71,21 @@ sub add_source_features {
 }
 
 sub add_locus_numbering {
-    my ( $o, $s ) = @_;
+    my ( $o ) = @_;
     print_log ( $o, "Assigning NCBI-compatible locus numbering..." );
     # counter
     my $last_locus_tag = 0;
-    foreach my $seq_id (sort keys %$s) {
+    foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
         # add locus numbers only for for CDS, ncRNA, rRNA, tmRNA and tRNA features
-        my @features = $o->{"dbh_uuid"}->features(-seq_id => $seq_id, -type => ["CDS", "ncRNA", "rRNA", "tmRNA", "tRNA"]);
+        my @features = grep { $_->primary_tag ~~ ["CDS", "ncRNA", "rRNA", "tmRNA", "tRNA"] } sort { $a->start<=>$b->start || $b->end<=>$a->end } $o->{"r"}->{$seq_id}->get_SeqFeatures();
         my $num_features = ( $#features + 1 ) * $o->{"step"};
                             #we have to sort them to keep proper track of locus_tags
                                      # we sort first by start (smaller first), if starts are equal we sort by end (smaller first)
         foreach my $feature ( sort { $a->start<=>$b->start || $a->end<=>$b->end } @features ) {
+
+            # make sure all the CDS features have at least some product tag
+            $feature->add_tag_value ( "product", "Hypothetical protein" ) if ( ( $feature->primary_tag eq "CDS" ) and not ( $feature->has_tag( "product" ) ) );
+
             # do not add locus_tag if there is one already (e.g. derived from features in transparent mode)
             if ( $feature->has_tag("locus_tag") ) {
                 # but make note of the number if possible
