@@ -37,9 +37,9 @@ sub run_glimmer {
 }
 
 sub run_prodigal {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Running Prodigal ".$o->{"prodigal-version"}."..." );
-    my ( $c ) = get_command ( $o, "prodigal" );
+  my ( $o ) = @_;
+  print_log( $o, "Running Prodigal ".$o->{"prodigal-version"}."..." );
+  my ( $c ) = get_command ( $o, "prodigal" );
     run_program ( $o, $c );
 }
 
