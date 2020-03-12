@@ -28,6 +28,7 @@ our @EXPORT = qw(
                 get_intergenic_and_cds_sequences
                 current_date_and_time
                 initialize_options
+                initialize_pipeline
                 print_log
                 print_verbose
                 exit_program
@@ -163,14 +164,15 @@ sub initialize_options {
         "antismash"                                         => \$o->{"antismash"},
         "output|o=s"                                        => \$o->{"output"},
     ) or exit;
+
+sub initialize_pipeline {
+    my ( $o, $cwd ) = @_;
     # set the option to cwd
     $o->{"cwd"} = $cwd;
     # print help and exit
     print_help($o) if $o->{"help"};
     # print version and exit
     print_version($o) if $o->{"version"};
-    # return if update
-    return $o if $o->{"update"};
 
     # generate unique uuid for temp job folder, or reuse the specified one
     $o->{"job_uuid"} = $o->{"uuid"} || Data::UUID->new->create_str;
