@@ -141,10 +141,10 @@ sub parse_homology {
             $o->{"homology"}->{$qseqid} = 1;
             # skip low scores if set by the user
             next if ( $score < $o->{"cds-h-score"} );
-            # skip intraCDS hits unless we are quite sure we deal with the very same protein (>= 90% identity by default)
-            next if ( ( abs($source_strand) eq 1 ) and ( $identity < $o->{"cds-h-identity"} ) );
-            ################### DETECT ###################
-            my $feature = find_appropriate_cds_feature ( $o, $s, $seq_id, $qstart + $qoffset - ( $qstrand eq 1 ? ($sstart-1)*3 : 0 ), $qend + $qoffset + ( $qstrand eq 1 ? 0 : ($sstart-1)*3 ), $qstrand, $score, $sseqid ) or next;
+    # set the primary tag
+    $l->{"primary_tag"} = "CDS";
+    # create CDS sequence feature candidate
+    my $feature = create_feature ( $o, $l );
 
             # convert ORF to CDS only if they have been confirmed in the second round
             if ( ( $source_strand eq 2 ) and ( get_overlapped_features ( $o, $feature, "equals", ["ORF"] ) ) ) {
