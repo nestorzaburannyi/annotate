@@ -50,8 +50,8 @@ sub initialize_options {
     my ( $cwd ) = @_;
     #setting default values
     my $o = {
-        #steps
-            #substeps
+        #modules
+            #submodules
                 #parameters
         #RNA gene prediction
         "rna" => 1,
@@ -106,8 +106,8 @@ sub initialize_options {
 	  };
         #getting options
     GetOptions (
-        #steps
-            #substeps
+        #modules
+            #submodules
                 #parameters
         #mandatory
         "input|i=s"                                         => \$o->{"i"},
