@@ -356,13 +356,37 @@ sub add_leading_zeros {
 
 ################################################### SEQUENCE AND FEATURE ##################################################
 sub create_feature {
-    my ( $l ) = @_;
-    return Bio::SeqFeature::Generic->new(-location => Bio::Location::Fuzzy->new(-start => $l->{"start"}, -end => $l->{"end"}, -strand => $l->{"strand"}, -start_fuz => $l->{"start_type"}, -end_fuz => $l->{"end_type"} ), -primary => $l->{"primary_tag"}, -seq_id => $l->{"seq_id"}, -score => $l->{"score"}, -tag => $l->{"tags"} );
-}
+    my ( $o, $l ) = @_;
 
-sub store_feature {
-    my ( $o, $feature) = @_;
-    $o->{"dbh_uuid"}->store( $feature ) or die "Could not store feature.";
+    my $feature = Bio::SeqFeature::Generic->new(-location => $l->{"location"} // Bio::Location::Fuzzy->new( -start => $l->{"start"},
+                                                                                                            -end => $l->{"end"},
+                                                                                                            -strand => $l->{"strand"},
+                                                                                                            -start_fuz => $l->{"start_type"},
+                                                                                                            -end_fuz => $l->{"end_type"}
+                                                                                                            ),
+                                                -seq_id => $l->{"seq_id"},
+                                                -primary => $l->{"primary_tag"},
+                                                );
+
+    # attach sequence to a feature
+    $feature->attach_seq( $o->{"r"}->{$l->{"seq_id"}} );
+
+    # add custom annotations
+    $feature->annotation( {
+                          "gene_id" => $l->{"gene_id"}, # to track duplicate hits to the same gene
+                          "hit_id" => $l->{"hit_id"}, # to track special feature exceptions
+                          "exception" => $l->{"exception"} // undef,
+                          "score" => $l->{"score"},
+                          "type" => $l->{"type"} // undef,
+                          "method" => $l->{"method"} // undef,
+                          "unique_id" => ++$o->{"unique_id"}, # just an unique counter
+    } );
+
+    # set initial tags provided by the generator
+    $feature->set_attributes( -tag => $l->{"tags"} );
+
+    return $feature;
+
 }
 
 sub check_and_store_feature {
