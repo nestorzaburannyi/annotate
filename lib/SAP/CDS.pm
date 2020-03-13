@@ -65,9 +65,9 @@ sub run_diamond {
 }
 
 sub run_pannzer {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Running PANNZER ".$o->{"pannzer-version"}."..." );
-    my ( $c ) = get_command ( $o, "pannzer" );
+  my ( $o ) = @_;
+  print_log( $o, "Running PANNZER ".$o->{"pannzer-version"}."..." );
+  my ( $c ) = get_command ( $o, "pannzer" );
     run_program ( $o, $c );
 }
 
