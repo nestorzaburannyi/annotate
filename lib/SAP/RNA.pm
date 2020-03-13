@@ -31,7 +31,7 @@ sub rna_prediction {
         parse_rrna_prediction ( $o, $s );
     }
     if ( $o->{"rna-tm"} ) {
-        parse_tmrna_prediction ( $o, $s )
+        parse_tmrna_prediction ( $o )
     }
     if ( $o->{"rna-t"} ) {
         parse_trna_prediction ( $o )
@@ -148,19 +148,17 @@ sub parse_trna_prediction {
 }
 
 sub parse_tmrna_prediction {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Parsing tmRNA predictions..." );
-    while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"rna-tm-program"}, "line", "\\s+", $o->{"rna-tm-program"} ) ) {
-        my ( $seq_id, $start, $end, $strand, $product, $score );
-        #program-specific part
-        if ( $o->{"rna-tm-program"} eq "aragorn" ) {
-            ( $seq_id, $start, $end, $strand, $product, $score ) = ( $l->[-1], ( $l->[2] =~ m/^(c?)\[(\d+),(\d+)\]$/ )[1], ( $l->[2] =~ m/^(c?)(\[\d+),(\d+)\]$/ )[2], ( $l->[2] =~ m/^(c?)(\[\d+),(\d+)\]$/ )[0] ne "c" ? 1 : -1, $l->[1] =~ m/\*/ ? "$l->[1] (permuted)" : $l->[1], 'inf' );
-            # skip low scores if set by the user
-            next if ( $score < $o->{"rna-tm-score"} );
-            # skip non-tmRNA predictons
-            next if not ( $product =~ m/^tmRNA/ );
-        }
-        elsif ( $o->{"rna-tm-program"} eq "infernal" ) {
+  my ( $o ) = @_;
+  print_log( $o, "Annotating tmRNA predictions..." );
+  foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"rna-tm-program"}, "\\s+", $o->{"rna-tm-program"} ) ) {
+    # program-independent block
+    # skip low scores if set by the user
+    next if ( $l->{"score"} < $o->{"rna-tm-score"} );
+    # set the primary tag
+    $l->{"primary_tag"} = "tmRNA";
+    # create tmRNA sequence feature candidate
+    my $feature = create_feature ( $o, $l );
+
             ( $seq_id, $start, $end, $strand, $product, $score ) = ( $l->[2], $l->[9] eq "+" ? $l->[7] : $l->[8], $l->[9] eq "+" ? $l->[8] : $l->[7], $l->[9] eq "+" ? 1 : -1, $l->[0], $l->[14] );
             # skip low scores if set by the user
             next if ( $score < $o->{"rna-tm-score"} );
