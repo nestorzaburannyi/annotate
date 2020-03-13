@@ -180,19 +180,16 @@ sub parse_tmrna_prediction {
 
 sub parse_ncrna_prediction {
   my ( $o ) = @_;
-    print_log( $o, "Parsing ncRNA predictions..." );
-    while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"rna-nc-program"}, "line", "\\s+", $o->{"rna-nc-program"} ) ) {
-        my ( $seq_id, $start, $end, $strand, $product, $score );
-        # program-specific part
-        if ( $o->{"rna-nc-program"} eq "infernal" ) {                                                                                                                                                # taking trailing fields (17+) and removing subfields ending with ";", then joining the rest with spaces -> this goes to $product
-            ( $seq_id, $start, $end, $strand, $product, $score ) = ( $l->[2], $l->[9] eq "+" ? $l->[7] : $l->[8], $l->[9] eq "+" ? $l->[8] : $l->[7], $l->[9] eq "+" ? 1 : -1, ( join " ", grep { not $_ =~ m/;$/ } @$l[17..$#$l] ), $l->[14] );
-            # skip low scores if set by the user
-            next if ( $score < $o->{"rna-nc-score"} );
-            my $accession = $l->[1];
-            # skip rRNA/tRNA/tmRNA genes - these are annotated from the same file elsewhere
-            next if ( ( $l->[17] eq "Gene;" ) and ( $l->[18] eq "rRNA;" ) );
-            next if ( ( $l->[17] eq "Gene;" ) and ( $l->[18] eq "tRNA;" ) );
-            next if ( ( $l->[17] eq "Gene;" ) and ( $product =~ m/transfer-messenger RNA$/ ) );
+  print_log( $o, "Annotating ncRNA predictions..." );
+  foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"rna-nc-program"}, "\\s+", $o->{"rna-nc-program"} ) ) {
+    # program-independent block
+    # skip low scores if set by the user
+    next if ( $l->{"score"} < $o->{"rna-nc-score"} );
+    # set the primary tag
+    $l->{"primary_tag"} = "ncRNA";
+    # create ncRNA sequence feature candidate
+    my $feature = create_feature ( $o, $l );
+
             # create ncRNA sequence feature
             my $feature = create_feature ( "ncRNA", $seq_id, $start, "EXACT", $end, "EXACT", $strand, $score );
             # these are "true" ncRNA
