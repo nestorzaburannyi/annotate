@@ -13,16 +13,22 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(update);
 
 sub update {
-    my ( $o ) = @_;
-    print_log( $o, "Initializing / updating databases..." );
-    mkdir( $o->{"cwd"}."/databases" );
-    taxonomy ( $o );
-    rfam ( $o );
-    sprot ( $o );
-    pannzer ( $o );
-    emapper ( $o );
-    print_log( $o, "Updating databases complete." );
-    exit 0;
+  my ( $o, $cwd ) = @_;
+  # set the option to cwd
+  $o->{"cwd"} = $cwd;
+  # update job has a special job uuid
+  $o->{"job_uuid"} = "update";
+  # the the base for output folder for the log files
+  $o->{"job"} = $o->{"cwd"};
+  print_log( $o, "Initializing / updating databases..." );
+  mkdir( $o->{"cwd"}."/databases" );
+  taxonomy ( $o );
+  rfam ( $o );
+  sprot ( $o );
+  pannzer ( $o );
+  emapper ( $o );
+  print_log( $o, "Updating databases complete." );
+  exit 0;
 }
 
 sub taxonomy {
