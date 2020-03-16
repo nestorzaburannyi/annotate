@@ -28,7 +28,7 @@ sub rna_prediction {
         run_infernal ( $o );
     }
     if ( $o->{"rna-r"} ) {
-        parse_rrna_prediction ( $o, $s );
+        parse_rrna_prediction ( $o );
     }
     if ( $o->{"rna-tm"} ) {
         parse_tmrna_prediction ( $o )
@@ -37,7 +37,7 @@ sub rna_prediction {
         parse_trna_prediction ( $o )
     }
     if ( $o->{"rna-nc"} ) {
-        parse_ncrna_prediction ( $o, $s )
+        parse_ncrna_prediction ( $o )
     }
 }
 
