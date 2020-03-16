@@ -9,24 +9,26 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(cds_prediction);
 
 sub cds_prediction {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Starting ab initio CDS predictions..." ) if ( $o->{"cds-i"} );
-    run_glimmer ( $o, $s ) if ( $o->{"cds-i"} and $o->{"cds-i-program"} eq "glimmer" );
-    run_prodigal ( $o, $s ) if ( $o->{"cds-i"} and $o->{"cds-i-program"} eq "prodigal" );
-    run_genemarks ( $o, $s ) if ( $o->{"cds-i"} and $o->{"cds-i-program"} eq "genemarks" );
-    parse_ab_initio ( $o, $s ) if ( $o->{"cds-i"} );
-    while ( $o->{"cds-h"} ) {
-        print_log( $o, "Starting homology CDS predictions, iteration ".$o->{"cds-h"}."..." ) if ( $o->{"cds-h"} );
-        prepare_input ( $o, $s, "homology" ) if ( $o->{"cds-h"} ) ;
-        run_blast ( $o, $s ) if ( $o->{"cds-h"} and $o->{"cds-h-program"} eq "blast" );
-        run_diamond ( $o, $s ) if ( $o->{"cds-h"} and $o->{"cds-h-program"} eq "diamond" );
-        parse_homology ( $o, $s ) if ( $o->{"cds-h"} ) ;
-    }
-    prepare_input ( $o, $s, "annotation" ) if ( $o->{"cds-a"} );
-    print_log( $o, "Starting protein annotation..." ) if ( $o->{"cds-a"} );
-    run_pannzer ( $o, $s ) if ( $o->{"cds-a"} and $o->{"cds-a-program"} eq "pannzer" );
-    run_emapper ( $o, $s ) if ( $o->{"cds-a"} and $o->{"cds-a-program"} eq "emapper" );
-    parse_annotation ( $o, $s ) if ( $o->{"cds-a"} );
+  my ( $o ) = @_;
+  # cds-h
+  print_log( $o, "Starting homology CDS predictions..." ) if ( $o->{"cds-h"} );
+  prepare_input ( $o, "sequences" ) if ( $o->{"cds-h"} ) ;
+  run_blast ( $o ) if ( $o->{"cds-h"} and $o->{"cds-h-program"} eq "blast" );
+  run_diamond ( $o ) if ( $o->{"cds-h"} and $o->{"cds-h-program"} eq "diamond" );
+  parse_homology ( $o ) if ( $o->{"cds-h"} ) ;
+  # cds-i
+  print_log( $o, "Starting ab initio CDS predictions..." ) if ( $o->{"cds-i"} );
+  prepare_input ( $o, "sequences" ) if ( $o->{"cds-i"} ) ;
+  run_glimmer ( $o ) if ( $o->{"cds-i"} and $o->{"cds-i-program"} eq "glimmer" );
+  run_prodigal ( $o ) if ( $o->{"cds-i"} and $o->{"cds-i-program"} eq "prodigal" );
+  run_genemarks ( $o ) if ( $o->{"cds-i"} and $o->{"cds-i-program"} eq "genemarks" );
+  parse_ab_initio ( $o ) if ( $o->{"cds-i"} );
+  # cds-a
+  prepare_input ( $o, "annotation" ) if ( $o->{"cds-a"} );
+  print_log( $o, "Starting protein annotation..." ) if ( $o->{"cds-a"} );
+  run_pannzer ( $o ) if ( $o->{"cds-a"} and $o->{"cds-a-program"} eq "pannzer" );
+  run_emapper ( $o ) if ( $o->{"cds-a"} and $o->{"cds-a-program"} eq "emapper" );
+  parse_annotation ( $o ) if ( $o->{"cds-a"} );
 }
 
 sub run_glimmer {
