@@ -44,22 +44,6 @@ sub taxonomy {
 sub rfam {
     my ( $o ) = @_;
     mkdir ( $o->{"cwd"}."/databases/rfam" );
-    print_log( $o, "Downloading RFAM taxonomy information..." );
-    download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/database_files/family_ncbi.txt.gz", $o->{"cwd"}."/databases/rfam/family_ncbi.txt" );
-    print_log( $o, "Parsing RFAM taxonomy information..." );
-    my %rfam_records;
-    while (my $line = parse_file( $o, $o->{"cwd"}."/databases/rfam/family_ncbi.txt", "line", "\t", "" )) {
-        # if all the possible taxonomies are present, no need to iterate the class again
-        next if ( exists $rfam_records{$line->[2]} and exists $rfam_records{$line->[2]}{"taxonomy"} and exists $rfam_records{$line->[2]}{"bacteria"} and exists $rfam_records{$line->[2]}{"archaea"} );
-        if ( not exists $rfam_records{$line->[2]}{"bacteria"} and taxon_id_belongs_to ( $o, $line->[0], 2 ) ) {
-            $rfam_records{$line->[2]}{"taxonomy"} = 1;
-            $rfam_records{$line->[2]}{"bacteria"} = 1;
-        }
-        if ( not exists $rfam_records{$line->[2]}{"archaea"} and taxon_id_belongs_to ( $o, $line->[0], 2158 ) ) {
-            $rfam_records{$line->[2]}{"taxonomy"} = 1;
-            $rfam_records{$line->[2]}{"archaea"} = 1;
-        }
-    }
     print_log( $o, "Downloading RFAM family information..." );
     download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/database_files/family.txt.gz", $o->{"cwd"}."/databases/rfam/family.txt" );
     print_log( $o, "Parsing RFAM family information..." );
