@@ -186,10 +186,11 @@ sub download_file {
 }
 
 sub decompress_file {
-    my ( $o, $source, $target) = @_;
-    my $ae = Archive::Extract->new (archive => $source);
-    $ae->extract (to => $target) or exit_program ( $o, "Decompression failed: $ae->error" );
-    return;
+  # decompresses a gzip file
+  my ( $o, $source, $target) = @_;
+  my $ae = Archive::Extract->new (archive => $source);
+  $ae->extract (to => $target) or exit_program ( $o, "Decompression failed: $ae->error" );
+  return;
 }
 
 sub download_and_uncompress_file {
