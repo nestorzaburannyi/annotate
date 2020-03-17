@@ -48,18 +48,6 @@ sub rfam {
   download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/database_files/family.txt.gz", $o->{"cwd"}."/databases/rfam/family.txt" );
     print_log( $o, "Downloading RFAM database..." );
     download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/Rfam.cm.gz", $o->{"cwd"}."/databases/rfam/Rfam.cm" );
-    print_log( $o, "Parsing RFAM database..." );
-    open my $bacteria_filehandle, ">", $o->{"cwd"}."/databases/rfam/rfam_bacteria.cm" or die "Could not open ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm - $!";
-    open my $archaea_filehandle, ">", $o->{"cwd"}."/databases/rfam/rfam_archaea.cm" or die "Could not open ".$o->{"cwd"}."/databases/rfam/rfam_archaea.cm - $!";
-    while ( my $line = parse_file( $o, $o->{"cwd"}."/databases/rfam/Rfam.cm", "record", "\n//\n", "" ) ) {
-        my ( $spacer, $accession ) = ( $line =~ m/ACC\s(\s+)(\S+)\n/ ) or next;
-        next if not ( exists $rfam_records{$accession} and exists $rfam_records{$accession}{"taxonomy"} );
-        $line =~ s/ACC\s+$accession\n/ACC $spacer$accession\nDESC$spacer$rfam_records{$accession}{"type"} $rfam_records{$accession}{"product"}\n/;
-        print {$bacteria_filehandle} $line if ( exists $rfam_records{$accession}{"bacteria"} );
-        print {$archaea_filehandle} $line if ( exists $rfam_records{$accession}{"archaea"} );
-        }
-    close( $bacteria_filehandle );
-    close( $archaea_filehandle );
     print_log( $o, "Building RFAM databases..." );
     system( $o->{"cwd"}."/bin/infernal/cmpress -F ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm" );
     system( $o->{"cwd"}."/bin/infernal/cmpress -F ".$o->{"cwd"}."/databases/rfam/rfam_archaea.cm" );
