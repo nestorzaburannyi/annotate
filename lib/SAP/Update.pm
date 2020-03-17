@@ -44,15 +44,8 @@ sub taxonomy {
 sub rfam {
     my ( $o ) = @_;
     mkdir ( $o->{"cwd"}."/databases/rfam" );
-    print_log( $o, "Downloading RFAM family information..." );
-    download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/database_files/family.txt.gz", $o->{"cwd"}."/databases/rfam/family.txt" );
-    print_log( $o, "Parsing RFAM family information..." );
-    while ( my $line = parse_file( $o, $o->{"cwd"}."/databases/rfam/family.txt", "line", "\t", "" ) ) {
-        next if not ( exists $rfam_records{$line->[0]} and exists $rfam_records{$line->[0]}{"taxonomy"} );
-        $rfam_records{$line->[0]}{"name"} = $line->[1];
-        $rfam_records{$line->[0]}{"product"} = $line->[3];
-        $rfam_records{$line->[0]}{"type"} = $line->[18];
-    }
+  print_log( $o, "Downloading RFAM family information..." );
+  download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/database_files/family.txt.gz", $o->{"cwd"}."/databases/rfam/family.txt" );
     print_log( $o, "Downloading RFAM database..." );
     download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/Rfam.cm.gz", $o->{"cwd"}."/databases/rfam/Rfam.cm" );
     print_log( $o, "Parsing RFAM database..." );
