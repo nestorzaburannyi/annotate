@@ -49,7 +49,7 @@ sub rfam {
     print_log( $o, "Downloading RFAM database..." );
     download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/Rfam.cm.gz", $o->{"cwd"}."/databases/rfam/Rfam.cm" );
     print_log( $o, "Building RFAM databases..." );
-    system( $o->{"cwd"}."/bin/infernal/cmpress -F ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm" );
+  run_program( $o, $o->{"cwd"}."/bin/infernal/cmpress -F ".$o->{"cwd"}."/databases/rfam/Rfam.cm" );
   print_log( $o, "Downloading RFAM clan information..." );
   download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/Rfam.clanin", $o->{"cwd"}."/databases/rfam/Rfam.clanin" );
     return;
