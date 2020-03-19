@@ -42,17 +42,17 @@ sub taxonomy {
 }
 
 sub rfam {
-    my ( $o ) = @_;
-    mkdir ( $o->{"cwd"}."/databases/rfam" );
+  my ( $o ) = @_;
+  mkdir ( $o->{"cwd"}."/databases/rfam" );
   print_log( $o, "Downloading RFAM family information..." );
   download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/database_files/family.txt.gz", $o->{"cwd"}."/databases/rfam/family.txt" );
-    print_log( $o, "Downloading RFAM database..." );
-    download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/Rfam.cm.gz", $o->{"cwd"}."/databases/rfam/Rfam.cm" );
-    print_log( $o, "Building RFAM databases..." );
+  print_log( $o, "Downloading RFAM database..." );
+  download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/Rfam.cm.gz", $o->{"cwd"}."/databases/rfam/Rfam.cm" );
+  print_log( $o, "Building RFAM databases..." );
   run_program( $o, $o->{"cwd"}."/bin/infernal/cmpress -F ".$o->{"cwd"}."/databases/rfam/Rfam.cm" );
   print_log( $o, "Downloading RFAM clan information..." );
   download_and_uncompress_file ( $o, "ftp", "ftp.ebi.ac.uk", "pub/databases/Rfam/CURRENT/Rfam.clanin", $o->{"cwd"}."/databases/rfam/Rfam.clanin" );
-    return;
+  return;
 }
 
 sub sprot {
