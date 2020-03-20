@@ -168,14 +168,13 @@ sub parse_tmrna_prediction {
       # inference tag
       $feature->add_tag_value ( "inference", "profile:".$o->{"rna-tm-program"}.":".$o->{$o->{"rna-tm-program"}."-version"} );
     }
-        # create tmRNA sequence feature
-        my $feature = create_feature ( "tmRNA", $seq_id, $start, "EXACT", $end, "EXACT", $strand, $score );
-        $feature->add_tag_value ( "product", $product );
-        # generate the inference tag
-        my $inference = "profile:".$o->{"rna-tm-program"}.":".$o->{$o->{"rna-tm-program"}."-version"};
-        $feature->add_tag_value ("inference", $inference );
-        #store tmRNA sequence feature
-        store_feature ( $o, $feature );
+    elsif ( $o->{"rna-tm-program"} eq "infernal" ) {
+      # skip non-tmRNA infernal predictons
+      next if not ( $l->{"hit_id"} =~ m/tmRNA$/ );
+      # product tag
+      $feature->add_tag_value ( "product", $l->{"product"} );
+      # inference tag
+      $feature->add_tag_value ( "inference", "profile:".$o->{"rna-tm-program"}.":".$o->{$o->{"rna-tm-program"}."-version"}.":rfam:".$l->{"accession"} );
     }
 }
 
