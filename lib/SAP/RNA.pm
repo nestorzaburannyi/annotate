@@ -202,6 +202,10 @@ sub parse_ncrna_prediction {
       next if ( $l->{"type"} =~ m/^Gene; tRNA;$/ );
       # skip tmRNA infernal predictons
       next if ( $l->{"hit_id"} =~ m/tmRNA$/ );
+
+      # inference tag
+      $feature->add_tag_value ( "inference", "profile:".$o->{"rna-nc-program"}.":".$o->{$o->{"rna-nc-program"}."-version"}.":rfam:".$l->{"accession"} );
+
                 }
                 elsif ( $l->[18] eq "antitoxin;" ) {
                     $feature->add_tag_value ( "ncRNA_class", "antitoxin" );
