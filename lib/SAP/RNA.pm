@@ -160,11 +160,14 @@ sub parse_tmrna_prediction {
     my $feature = create_feature ( $o, $l );
 
     # program-specific block
-            # skip low scores if set by the user
-            next if ( $score < $o->{"rna-tm-score"} );
-            # skip non-tmRNA predictons
-            next if not ( $product =~ m/^tmRNA/ );
-        }
+    if ( $o->{"rna-tm-program"} eq "aragorn" ) {
+      # skip non-tmRNA aragorn predictons
+      next if not ( $l->{"product"} =~ m/^tmRNA/ );
+      # product tag
+      $feature->add_tag_value ( "product", $l->{"product"} );
+      # inference tag
+      $feature->add_tag_value ( "inference", "profile:".$o->{"rna-tm-program"}.":".$o->{$o->{"rna-tm-program"}."-version"} );
+    }
         # create tmRNA sequence feature
         my $feature = create_feature ( "tmRNA", $seq_id, $start, "EXACT", $end, "EXACT", $strand, $score );
         $feature->add_tag_value ( "product", $product );
