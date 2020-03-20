@@ -176,6 +176,10 @@ sub parse_tmrna_prediction {
       # inference tag
       $feature->add_tag_value ( "inference", "profile:".$o->{"rna-tm-program"}.":".$o->{$o->{"rna-tm-program"}."-version"}.":rfam:".$l->{"accession"} );
     }
+
+    # check and store tmRNA sequence feature
+    check_and_store_feature ( $o, $feature );
+  }
 }
 
 sub parse_ncrna_prediction {
