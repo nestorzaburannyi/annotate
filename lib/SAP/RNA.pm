@@ -159,7 +159,7 @@ sub parse_tmrna_prediction {
     # create tmRNA sequence feature candidate
     my $feature = create_feature ( $o, $l );
 
-            ( $seq_id, $start, $end, $strand, $product, $score ) = ( $l->[2], $l->[9] eq "+" ? $l->[7] : $l->[8], $l->[9] eq "+" ? $l->[8] : $l->[7], $l->[9] eq "+" ? 1 : -1, $l->[0], $l->[14] );
+    # program-specific block
             # skip low scores if set by the user
             next if ( $score < $o->{"rna-tm-score"} );
             # skip non-tmRNA predictons
