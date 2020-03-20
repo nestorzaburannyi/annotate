@@ -194,13 +194,14 @@ sub parse_ncrna_prediction {
     # create ncRNA sequence feature candidate
     my $feature = create_feature ( $o, $l );
 
-            # create ncRNA sequence feature
-            my $feature = create_feature ( "ncRNA", $seq_id, $start, "EXACT", $end, "EXACT", $strand, $score );
-            # these are "true" ncRNA
-            if ( $l->[17] eq "Gene;" ) {
-                if ( $l->[18] eq "antisense;" ) {
-                    $feature->add_tag_value ( "ncRNA_class", "antisense" );
-                    $feature->add_tag_value ( "product", $product );
+    # program-specific block
+    if ( $o->{"rna-nc-program"} eq "infernal" ) {
+      # skip rRNA infernal predictons
+      next if ( $l->{"type"} =~ m/^Gene; rRNA;$/ );
+      # skip tRNA infernal predictons
+      next if ( $l->{"type"} =~ m/^Gene; tRNA;$/ );
+      # skip tmRNA infernal predictons
+      next if ( $l->{"hit_id"} =~ m/tmRNA$/ );
                 }
                 elsif ( $l->[18] eq "antitoxin;" ) {
                     $feature->add_tag_value ( "ncRNA_class", "antitoxin" );
