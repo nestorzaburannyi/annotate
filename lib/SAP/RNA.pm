@@ -216,10 +216,12 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", $l->{"hit_id"} );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                elsif ( $l->[18] eq "CRISPR;" ) {
-                    $feature->add_tag_value ( "ncRNA_class", "CRISPR" );
-                    $feature->add_tag_value ( "product", $product );
-                }
+      # Annotate these as ncRNA with ncRNA_class="ribozyme"
+      # even though it is "Gene; riboswitch;", annotate is as a ribozyme
+      elsif ( $l->{"accession"} eq "RF00234" ) { # glmS glucosamine-6-phosphate activated ribozyme
+          $feature->add_tag_value ( "ncRNA_class", "ribozyme" );
+          $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                 elsif ( $l->[18] eq "lncRNA;" ) {
                     $feature->add_tag_value ( "ncRNA_class", "lncRNA" );
                     $feature->add_tag_value ( "product", $product );
