@@ -206,7 +206,11 @@ sub parse_ncrna_prediction {
       # inference tag
       $feature->add_tag_value ( "inference", "profile:".$o->{"rna-nc-program"}.":".$o->{$o->{"rna-nc-program"}."-version"}.":rfam:".$l->{"accession"} );
 
-                }
+      # RNaseP clan
+      if ( $l->{"clan"} eq "CL00002" ) {
+        $feature->add_tag_value ( "ncRNA_class", $l->{"hit_id"} );
+        $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                 elsif ( $l->[18] eq "antitoxin;" ) {
                     $feature->add_tag_value ( "ncRNA_class", "antitoxin" );
                     $feature->add_tag_value ( "product", $product );
