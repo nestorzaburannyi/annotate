@@ -211,10 +211,11 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", $l->{"hit_id"} );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                elsif ( $l->[18] eq "antitoxin;" ) {
-                    $feature->add_tag_value ( "ncRNA_class", "antitoxin" );
-                    $feature->add_tag_value ( "product", $product );
-                }
+      # SRP clan
+      elsif ( $l->{"clan"} eq "CL00003" ) {
+        $feature->add_tag_value ( "ncRNA_class", $l->{"hit_id"} );
+        $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                 elsif ( $l->[18] eq "CRISPR;" ) {
                     $feature->add_tag_value ( "ncRNA_class", "CRISPR" );
                     $feature->add_tag_value ( "product", $product );
