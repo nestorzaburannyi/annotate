@@ -231,10 +231,12 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "flavin mononucleotide" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                elsif ( $l->[18] eq "miRNA;" ) {
-                    $feature->add_tag_value ( "ncRNA_class", "miRNA" );
-                    $feature->add_tag_value ( "product", $product );
-                }
+      elsif ( $l->{"accession"} eq "RF00059" ) { # TPP riboswitch (THI element)
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "thiamine/thiamin pyrophosphate" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                 elsif ( $l->[18] eq "ribozyme;" ) {
                     # special cases
                     if ( $accession eq "RF00010" ) {
