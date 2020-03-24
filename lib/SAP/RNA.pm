@@ -222,10 +222,15 @@ sub parse_ncrna_prediction {
           $feature->add_tag_value ( "ncRNA_class", "ribozyme" );
           $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                elsif ( $l->[18] eq "lncRNA;" ) {
-                    $feature->add_tag_value ( "ncRNA_class", "lncRNA" );
-                    $feature->add_tag_value ( "product", $product );
-                }
+      # Riboswitches should be annotated as 'regulatory' features when there is a known bound moiety and they
+      # aren't defined as ribozymes. They must also include the mandatory attribute /regulatory_class="riboswitch",
+      # and should include the /bound_moiety qualifier.
+      elsif ( $l->{"accession"} eq "RF00050" ) { # FMN riboswitch (RFN element)
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "flavin mononucleotide" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                 elsif ( $l->[18] eq "miRNA;" ) {
                     $feature->add_tag_value ( "ncRNA_class", "miRNA" );
                     $feature->add_tag_value ( "product", $product );
