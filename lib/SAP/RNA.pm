@@ -237,12 +237,16 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "thiamine/thiamin pyrophosphate" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                elsif ( $l->[18] eq "ribozyme;" ) {
-                    # special cases
-                    if ( $accession eq "RF00010" ) {
-                        $feature->add_tag_value ( "ncRNA_class", "RNase_P_RNA" );
-                        $feature->add_tag_value ( "product", $product );
-                    }
+      elsif ( $l->{"clan"} eq "CL00101" # Cobalamin riboswitch clan
+           or $l->{"accession"} eq "RF00174" # Cobalamin riboswitch
+           or $l->{"accession"} eq "RF01482" # AdoCbl riboswitch
+           or $l->{"accession"} eq "RF01689" # AdoCbl variant RNA
+            ) {
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "adenosylcobalamin" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                     else {
                         $feature->add_tag_value ( "ncRNA_class", "ribozyme" );
                         $feature->add_tag_value ( "product", $product );
