@@ -253,7 +253,12 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "glycine" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                }
+      elsif ( $l->{"accession"} eq "RF02912" ) { # AAC AAD 5' leader riboswitch
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "aminoglycoside" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                 elsif ( $l->[18] eq "snRNA;" ) {
                     $feature->add_tag_value ( "ncRNA_class", "snRNA" );
                     $feature->add_tag_value ( "product", $product );
