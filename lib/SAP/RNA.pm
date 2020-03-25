@@ -259,10 +259,19 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "aminoglycoside" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                elsif ( $l->[18] eq "snRNA;" ) {
-                    $feature->add_tag_value ( "ncRNA_class", "snRNA" );
-                    $feature->add_tag_value ( "product", $product );
-                }
+      elsif ( $l->{"accession"} eq "RF00162" # SAM riboswitch (S box leader)
+           or $l->{"accession"} eq "RF00521" # SAM riboswitch (alpha-proteobacteria)
+           or $l->{"accession"} eq "RF00634" # S-adenosyl methionine (SAM) riboswitch
+           or $l->{"accession"} eq "RF01725" # SAM-I/IV variant riboswitch
+           or $l->{"accession"} eq "RF01767" # SMK box translational riboswitch
+           or $l->{"accession"} eq "RF01826" # SAM-V riboswitch
+           or $l->{"accession"} eq "RF02885" # SAM-VI riboswitch
+          ) {
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "S-adenosylmethionine" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                 elsif ( $l->[18] eq "sRNA;" ) {
                     $feature->add_tag_value ( "ncRNA_class", "sRNA" );
                     $feature->add_tag_value ( "product", $product );
