@@ -284,10 +284,12 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "S-adenosylhomocysteine" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                    else {
-                        $feature->add_tag_value ( "ncRNA_class", "other" );
-                        $feature->add_tag_value ( "product", $product );
-                    }
+      elsif ( $l->{"accession"} eq "RF00167" ) { # Purine riboswitch
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "guanine and/or adenine" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                 }
             }
             elsif ( $l->[17] eq "intron;" ) {
