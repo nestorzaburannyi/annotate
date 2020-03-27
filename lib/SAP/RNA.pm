@@ -290,7 +290,12 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "guanine and/or adenine" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                }
+      elsif ( $l->{"accession"} eq "RF00442" ) { # Guanidine-I riboswitch
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "guanidine" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
             }
             elsif ( $l->[17] eq "intron;" ) {
                 $feature->add_tag_value ( "ncRNA_class", "autocatalytically_spliced_intron" );
