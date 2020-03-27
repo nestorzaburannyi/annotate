@@ -303,10 +303,15 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "lysine" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-            elsif ( $l->[17] eq "intron;" ) {
-                $feature->add_tag_value ( "ncRNA_class", "autocatalytically_spliced_intron" );
-                $feature->add_tag_value ( "product", $product );
-            }
+      elsif ( $l->{"accession"} eq "RF00522" # PreQ1 riboswitch
+           or $l->{"accession"} eq "RF01054" # preQ1-II (pre queuosine) riboswitch
+           or $l->{"accession"} eq "RF02680" # PreQ1-III riboswitch
+            ) {
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "pre-queuosine1" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
             # these are "false" ncRNA features, so we change the primary_tag, but with some exceptions
             elsif ( $l->[17] eq "Cis-reg;" ) {
                 if ( $l->[18] eq "frameshift_element" ) {
