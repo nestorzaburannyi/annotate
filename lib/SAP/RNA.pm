@@ -296,7 +296,13 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "guanidine" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-            }
+
+      elsif ( $l->{"accession"} eq "RF00168" ) { # Lysine riboswitch
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "lysine" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
             elsif ( $l->[17] eq "intron;" ) {
                 $feature->add_tag_value ( "ncRNA_class", "autocatalytically_spliced_intron" );
                 $feature->add_tag_value ( "product", $product );
