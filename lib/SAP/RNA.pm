@@ -324,10 +324,12 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "molybdenum cofactor" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                elsif ( $l->[18] eq "leader;" ) {
-                    $feature->primary_tag("misc_feature" );
-                    $feature->add_tag_value ( "note", $product );
-                }
+      elsif ( $l->{"accession"} eq "RF01786" ) { # Cyclic di-GMP-II riboswitch
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "cyclic di-GMP" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                 elsif ( $l->[18] eq "riboswitch;" ) {
                     # special cases
                     if ( $accession eq "RF00234" ) {
