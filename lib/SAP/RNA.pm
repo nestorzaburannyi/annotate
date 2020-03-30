@@ -312,12 +312,12 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "pre-queuosine1" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-            # these are "false" ncRNA features, so we change the primary_tag, but with some exceptions
-            elsif ( $l->[17] eq "Cis-reg;" ) {
-                if ( $l->[18] eq "frameshift_element" ) {
-                    $feature->primary_tag("misc_feature" );
-                    $feature->add_tag_value ( "note", $product );
-                }
+      elsif ( $l->{"accession"} eq "RF01831" ) { # THF riboswitch
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "tetrahydrofolate" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                 elsif ( $l->[18] eq "IRES;" ) {
                     $feature->primary_tag("misc_feature" );
                     $feature->add_tag_value ( "note", $product );
