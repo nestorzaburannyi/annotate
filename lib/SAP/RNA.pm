@@ -336,7 +336,13 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "magnesium" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                    }
+      elsif ( $l->{"accession"} eq "RF01734" ) { # Fluoride riboswitch
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "fluoride" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+
+      }
                     # Riboswitches should be annotated as misc_binding feature when there is a known bound moiety and they aren't defined as ribozymes.
                     elsif ( $accession eq "RF00050" ) {
                         $feature->primary_tag("misc_binding" );
