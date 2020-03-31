@@ -349,12 +349,12 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "nickel/cobalt" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                    elsif ( $accession eq "RF00059" ) {
-
-                        $feature->primary_tag("misc_binding" );
-                        $feature->add_tag_value ( "bound_moiety", "thiamine pyrophosphate" );
-                        $feature->add_tag_value ( "note", $product );
-                    }
+      elsif ( $l->{"accession"} eq "RF01739" ) { # Glutamine riboswitch
+        $feature->primary_tag( "regulatory" );
+        $feature->add_tag_value ( "regulatory_class", "riboswitch" );
+        $feature->add_tag_value ( "bound_moiety", "glutamine" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                     elsif ( ( $accession eq "RF01482") or ( $product eq "RF01689") or ( $product eq "RF00174") ) {
                         $feature->primary_tag("misc_binding" );
                         $feature->add_tag_value ( "bound_moiety", "adenosylcobalamin" );
