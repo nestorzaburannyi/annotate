@@ -355,11 +355,20 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "bound_moiety", "glutamine" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                    elsif ( ( $accession eq "RF01482") or ( $product eq "RF01689") or ( $product eq "RF00174") ) {
-                        $feature->primary_tag("misc_binding" );
-                        $feature->add_tag_value ( "bound_moiety", "adenosylcobalamin" );
-                        $feature->add_tag_value ( "note", $product );
-                    }
+      # Riboswitches with unknown functions or bound moieties are annotated as misc_features with the name in a note.
+      # for now, includes:
+      # RF00080 # yybP-ykoY manganese riboswitch
+      # RF00379 # ydaO/yuaA leader
+      # RF01510 # M. florum riboswitch
+      # RF01750 # ZMP/ZTP riboswitch
+      # RF03057 # nhaA-I RNA
+      # RF03058 # sul1 RNA
+      # RF03071 # DUF1646 RNA
+      # RF03072 # raiA RNA
+      elsif ( $l->{"type"} eq "Gene; riboswitch" ) {
+          $feature->primary_tag( "misc_feature" );
+          $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                     elsif ( $product eq "RF00504" ) {
                         $feature->primary_tag("misc_binding" );
                         $feature->add_tag_value ( "bound_moiety", "glycine" );
