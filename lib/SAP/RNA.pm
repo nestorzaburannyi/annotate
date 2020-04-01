@@ -374,10 +374,10 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", "antisense" );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                    elsif ( ( $product eq "RF00634") or ( $product eq "RF01826") or ( $product eq "RF01725") or ( $product eq "RF00162") or ( $product eq "RF01767") or ( $product eq "RF00521") ) {
-                        $feature->primary_tag("misc_binding" );
-                        $feature->add_tag_value ( "bound_moiety", "S-adenosylmethionine" );
-                        $feature->add_tag_value ( "note", $product );
+      elsif ( $l->{"type"} eq "Gene; antitoxin" ) {
+        $feature->add_tag_value ( "ncRNA_class", "antitoxin" );
+        $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                     }
                     elsif ( $product eq "RF01727" ) {
                         $feature->primary_tag("misc_binding" );
