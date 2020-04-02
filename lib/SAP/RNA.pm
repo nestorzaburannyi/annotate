@@ -391,10 +391,10 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", "miRNA" );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                    elsif ( $product eq "RF01057" ) {
-                        $feature->primary_tag("misc_binding" );
-                        $feature->add_tag_value ( "bound_moiety", "S-adenosylhomocysteine" );
-                        $feature->add_tag_value ( "note", $product );
+      elsif ( $l->{"type"} eq "Gene; ribozyme" ) {
+        $feature->add_tag_value ( "ncRNA_class", "ribozyme" );
+        $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                     }
                     elsif ( $product eq "RF00167" ) {
                         $feature->primary_tag("misc_binding" );
