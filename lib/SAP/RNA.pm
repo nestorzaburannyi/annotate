@@ -378,7 +378,10 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", "antitoxin" );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                    }
+      elsif ( $l->{"type"} eq "Gene; CRISPR" ) {
+        $feature->add_tag_value ( "ncRNA_class", "CRISPR" );
+        $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                     elsif ( $product eq "RF01727" ) {
                         $feature->primary_tag("misc_binding" );
                         $feature->add_tag_value ( "bound_moiety", "S-adenosylmethionine and/or S-adenosylhomocysteine" );
