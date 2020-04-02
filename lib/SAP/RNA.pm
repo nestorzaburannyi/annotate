@@ -382,10 +382,10 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", "CRISPR" );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                    elsif ( $product eq "RF01727" ) {
-                        $feature->primary_tag("misc_binding" );
-                        $feature->add_tag_value ( "bound_moiety", "S-adenosylmethionine and/or S-adenosylhomocysteine" );
-                        $feature->add_tag_value ( "note", $product );
+      elsif ( $l->{"type"} eq "Gene; lncRNA" ) {
+        $feature->add_tag_value ( "ncRNA_class", "lncRNA" );
+        $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                     }
                     elsif ( $product eq "RF01057" ) {
                         $feature->primary_tag("misc_binding" );
