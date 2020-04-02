@@ -386,7 +386,11 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", "lncRNA" );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                    }
+      # Annotate microRNA as ncRNA with ncRNA_class="miRNA"
+      elsif ( $l->{"type"} eq "Gene; miRNA" ) {
+        $feature->add_tag_value ( "ncRNA_class", "miRNA" );
+        $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                     elsif ( $product eq "RF01057" ) {
                         $feature->primary_tag("misc_binding" );
                         $feature->add_tag_value ( "bound_moiety", "S-adenosylhomocysteine" );
