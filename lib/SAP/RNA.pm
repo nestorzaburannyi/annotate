@@ -403,7 +403,11 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", "sRNA" );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                    }
+      # Catalytic introns should be annotated as ncRNAs with ncRNA_class="autocatalytically_spliced_intron"
+      elsif ( $l->{"type"} eq "Intron;" ) {
+        $feature->add_tag_value ( "ncRNA_class", "autocatalytically_spliced_intron" );
+        $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                     elsif ( $product eq "RF00168" ) {
                         $feature->primary_tag("misc_binding" );
                         $feature->add_tag_value ( "bound_moiety", "lysine" );
