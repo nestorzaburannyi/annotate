@@ -395,7 +395,10 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", "ribozyme" );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                    }
+      elsif ( $l->{"type"} eq "Gene; snRNA" ) {
+        $feature->add_tag_value ( "ncRNA_class", "snRNA" );
+        $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                     elsif ( $product eq "RF00167" ) {
                         $feature->primary_tag("misc_binding" );
                         $feature->add_tag_value ( "bound_moiety", "guanine and/or adenine" );
