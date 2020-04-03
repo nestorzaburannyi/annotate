@@ -399,10 +399,10 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", "snRNA" );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                    elsif ( $product eq "RF00167" ) {
-                        $feature->primary_tag("misc_binding" );
-                        $feature->add_tag_value ( "bound_moiety", "guanine and/or adenine" );
-                        $feature->add_tag_value ( "note", $product );
+      elsif ( $l->{"type"} eq "Gene; sRNA" ) {
+        $feature->add_tag_value ( "ncRNA_class", "sRNA" );
+        $feature->add_tag_value ( "product", $l->{"product"} );
+      }
                     }
                     elsif ( $product eq "RF00168" ) {
                         $feature->primary_tag("misc_binding" );
