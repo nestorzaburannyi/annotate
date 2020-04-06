@@ -420,17 +420,10 @@ sub parse_ncrna_prediction {
         $feature->primary_tag( "misc_feature" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                    }
-                    elsif ( $product eq "RF01831" ) {
-                        $feature->primary_tag("misc_binding" );
-                        $feature->add_tag_value ( "bound_moiety", "tetrahydrofolate" );
-                        $feature->add_tag_value ( "note", $product );
-                    }
-                    elsif ( $product eq "RF01055" ) {
-                        $feature->primary_tag("misc_binding" );
-                        $feature->add_tag_value ( "bound_moiety", "molybdenum cofactor" );
-                        $feature->add_tag_value ( "note", $product );
-                    }
+      elsif ( $l->{"type"} eq "Gene; thermoregulator;" ) {
+          $feature->primary_tag( "misc_feature" );
+          $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                     elsif ( $product eq "RF01786" ) {
                         $feature->primary_tag("misc_binding" );
                         $feature->add_tag_value ( "bound_moiety", "cyclic di-GMP" );
