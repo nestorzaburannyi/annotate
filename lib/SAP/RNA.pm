@@ -408,10 +408,10 @@ sub parse_ncrna_prediction {
         $feature->add_tag_value ( "ncRNA_class", "autocatalytically_spliced_intron" );
         $feature->add_tag_value ( "product", $l->{"product"} );
       }
-                    elsif ( $product eq "RF00168" ) {
-                        $feature->primary_tag("misc_binding" );
-                        $feature->add_tag_value ( "bound_moiety", "lysine" );
-                        $feature->add_tag_value ( "note", $product );
+      elsif ( $l->{"type"} eq "Gene; frameshift_element" ) {
+        $feature->primary_tag( "misc_feature" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                     }
                     elsif ( ( $product eq "RF00522") or ( $product eq "RF01054") ) {
                         $feature->primary_tag("misc_binding" );
