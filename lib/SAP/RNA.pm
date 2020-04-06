@@ -412,7 +412,10 @@ sub parse_ncrna_prediction {
         $feature->primary_tag( "misc_feature" );
         $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                    }
+      elsif ( $l->{"type"} eq "Gene; IRES;" ) {
+        $feature->primary_tag( "misc_feature" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
                     elsif ( ( $product eq "RF00522") or ( $product eq "RF01054") ) {
                         $feature->primary_tag("misc_binding" );
                         $feature->add_tag_value ( "bound_moiety", "pre-queuosine1" );
