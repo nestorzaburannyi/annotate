@@ -23,13 +23,27 @@ sub output_and_validate {
     write_fasta_output ( $o, $s );
     write_table_output ( $o, $s );
     write_gbf_and_sqn_output ( $o, $s );
-    run_antismash ( $o, $s ) if $o->{"antismash"};
+    merge_transparent_features ( $o ) if $o->{"transparent"};
 }
 
-sub run_antismash {
-    my ( $o, $s ) = @_;
-    print_log ( $o, "Running optional antismash tool..." );
-    run_program ( $o, "cp ".$o->{"job"}."/output.gbf ".$o->{"job"}."/output.gbk" );
+sub merge_transparent_features {
+  my ( $o ) = @_;
+  print_log ( $o, "Merging transparent features..." );
+  my $input_filehandle = Bio::SeqIO->new(-file => $o->{"job"}."/output.gbf", -format => "genbank" );
+  my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/output.gbk", -format => "genbank" );
+  foreach my $record ( $input_filehandle->next_seq() ) {
+    # combine "new" and transparent features
+    my @features = ( $record->get_SeqFeatures(), @{ $o->{"r"}->{$record->id}->{"transparent"} } );
+    # remove features once again
+    $record->remove_SeqFeatures();
+    # loop all features, has to be sorted because "new" and transparent are probably out of their natural order...
+    foreach my $feature ( sort { $a->start<=>$b->start || $b->end<=>$a->end } @features ) {
+      $record->add_SeqFeature( $feature );
+    }
+    # write the record
+    $output_filehandle->write_seq( $record );
+  }
+}
     run_program ( $o, "PATH=\$PATH:".$o->{"cwd"}."/bin/antismash_deps ".$o->{"cwd"}."/bin/antismash/run_antismash.py --genefinding-tool prodigal --cb-general --cb-subclusters --cb-knownclusters --minlength 1 -c 1 --output-dir ".$o->{"job"}."/antismash ".$o->{"job"}."/output.gbk" );
 }
 
