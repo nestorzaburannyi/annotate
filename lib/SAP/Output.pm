@@ -2,6 +2,7 @@ package SAP::Output;
 
 use strict;
 use warnings;
+no warnings "experimental";
 use SAP::Common;
 use Bio::SeqIO;
 
