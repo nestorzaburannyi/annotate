@@ -24,6 +24,7 @@ sub output_and_validate {
     write_table_output ( $o, $s );
     write_gbf_and_sqn_output ( $o, $s );
     merge_transparent_features ( $o ) if $o->{"transparent"};
+    copy_gbf_to_gbk ( $o ) if ! $o->{"transparent"};
 }
 
 sub merge_transparent_features {
@@ -44,7 +45,11 @@ sub merge_transparent_features {
     $output_filehandle->write_seq( $record );
   }
 }
-    run_program ( $o, "PATH=\$PATH:".$o->{"cwd"}."/bin/antismash_deps ".$o->{"cwd"}."/bin/antismash/run_antismash.py --genefinding-tool prodigal --cb-general --cb-subclusters --cb-knownclusters --minlength 1 -c 1 --output-dir ".$o->{"job"}."/antismash ".$o->{"job"}."/output.gbk" );
+
+sub copy_gbf_to_gbk {
+  my ( $o ) = @_;
+  # antismash does not understand gbf file extensions
+  run_program ( $o, "cp ".$o->{"job"}."/output.gbf ".$o->{"job"}."/output.gbk" );
 }
 
 sub add_general_information {
