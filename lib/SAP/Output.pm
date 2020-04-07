@@ -25,6 +25,7 @@ sub output_and_validate {
     write_gbf_and_sqn_output ( $o, $s );
     merge_transparent_features ( $o ) if $o->{"transparent"};
     copy_gbf_to_gbk ( $o ) if ! $o->{"transparent"};
+    run_antismash ( $o ) if $o->{"antismash"};
 }
 
 sub merge_transparent_features {
@@ -52,12 +53,14 @@ sub copy_gbf_to_gbk {
   run_program ( $o, "cp ".$o->{"job"}."/output.gbf ".$o->{"job"}."/output.gbk" );
 }
 
+sub run_antismash {
+    my ( $o ) = @_;
+    print_log( $o, "Running antiSMASH ".$o->{"antismash-version"}."..." );
+    run_program ( $o, "PATH=\$PATH:".$o->{"cwd"}."/bin/antismash_deps ".$o->{"cwd"}."/bin/antismash/run_antismash.py --genefinding-tool prodigal --cb-general --cb-subclusters --cb-knownclusters --minlength 1 --output-dir ".$o->{"job"}."/antismash ".$o->{"job"}."/output.gbk" );
+}
+
 sub add_general_information {
-    my ( $o, $s ) = @_;
-    foreach my $seq_id (sort keys %$s) {
-        # set id to sequence + number
-        $s->{$seq_id}->id( "sequence_$seq_id" );
-    }
+    my ( $o ) = @_;
     # set the ORGANISM/SOURCE lines if it was specified
     if ( $o->{"taxid"} ) {
         my $node = $o->{"dbh_taxonomy"}->get_taxon( -taxonid => $o->{"taxid"} );
