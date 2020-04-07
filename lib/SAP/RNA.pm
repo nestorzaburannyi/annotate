@@ -424,36 +424,15 @@ sub parse_ncrna_prediction {
           $feature->primary_tag( "misc_feature" );
           $feature->add_tag_value ( "note", $l->{"product"} );
       }
-                    elsif ( $product eq "RF01786" ) {
-                        $feature->primary_tag("misc_binding" );
-                        $feature->add_tag_value ( "bound_moiety", "cyclic di-GMP" );
-                        $feature->add_tag_value ( "note", $product );
-                    }
-                    # Riboswitches with unknown functions or bound moieties are annotated as misc_features with the name in a note
-                    else {
-                        $feature->primary_tag("misc_feature" );
-                        $feature->add_tag_value ( "note", $product );
-                    }
-                }
-                elsif ( $l->[18] eq "thermoregulator;" ) {
-                    $feature->primary_tag("misc_feature" );
-                    $feature->add_tag_value ( "note", $product );
-                }
-                else {
-                    $feature->primary_tag("misc_feature" );
-                    $feature->add_tag_value ( "note", $product );
-                }
-            }
-            else {
-                next;
-            }
-        # generate the inference tag
-        my $inference = "profile:".$o->{"rna-nc-program"}.":".$o->{$o->{"rna-nc-program"}."-version"}.":rfam:$l->[1]";
-        $feature->add_tag_value ( "inference", $inference );
-        # store ncRNA sequence feature
-        store_feature ( $o, $feature );
-        }
+      else {
+        $feature->primary_tag("misc_feature" );
+        $feature->add_tag_value ( "note", $l->{"product"} );
+      }
     }
+
+    # check and store ncRNA/misc_feature/misc_binding sequence feature
+    check_and_store_feature ( $o, $feature );
+  }
 }
 
 1;
