@@ -49,14 +49,14 @@ sub run_rnammer {
 }
 
 sub run_trnascanse {
-    my ( $o, $s ) = @_;
+    my ( $o ) = @_;
     print_log( $o, "Running tRNAscan-SE ".$o->{"trnascanse-version"}."..." );
     my ( $c ) = get_command ( $o, "trnascanse" );
     run_program ( $o, $c );
 }
 
 sub run_aragorn {
-    my ( $o, $s ) = @_;
+    my ( $o ) = @_;
     print_log( $o, "Running ARAGORN ".$o->{"aragorn-version"}."..." );
     my ( $c ) = get_command ( $o, "aragorn" );
     run_program ( $o, $c );
