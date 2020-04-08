@@ -143,34 +143,25 @@ sub add_locus_numbering {
 }
 
 sub add_gene_features {
-    my ( $o, $s ) = @_;
-    print_log ( $o, "Adding gene features..." );
-    foreach my $feature_to_copy ( $o->{"dbh_uuid"}->features(-type => ["CDS", "ncRNA", "rRNA", "tmRNA", "tRNA"]) ) {
-        # if there is a "pseudo" tag, we do not copy. Instead, we change the primary tag to "gene"
-        if ( $feature_to_copy->has_tag("pseudo") ) {
-            # change the primary_tag to "gene"
-            $feature_to_copy->primary_tag("gene" );
-            # change the "product" tag(s?) to "note"
-            if ( $feature_to_copy->has_tag("product") ) {
-                foreach my $product_tag ( $feature_to_copy->get_tagset_values("product") ) {
-                    $feature_to_copy->add_tag_value( "note", $product_tag." pseudogene" );
-                }
-                $feature_to_copy->remove_tag( "product" );
-            }
-            # store gene feature
-            check_and_store_feature ( $o, $feature_to_copy );
+  my ( $o ) = @_;
+  print_log ( $o, "Adding gene features..." );
+  foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
+    foreach my $feature ( grep { $_->primary_tag ~~ ["CDS", "ncRNA", "rRNA", "tmRNA", "tRNA"] } sort { $a->start<=>$b->start || $b->end<=>$a->end } $o->{"r"}->{$seq_id}->get_SeqFeatures() ) {
+      my $gene_feature = create_feature ( $o, { primary_tag => "gene",
+                                                seq_id => $seq_id,
+                                                location => $feature->location(),
+                                               } );
+      foreach my $tag ( grep { $_ ~~ ["pseudo", "locus_tag", "gene"] } $feature->get_all_tags() ) {
+        foreach my $value ( $feature->get_tagset_values($tag) ) {
+          $gene_feature->add_tag_value( $tag, $value );
         }
-        else {
-            # we do not want to modify already present features, so we copy it
-            my $feature = clone_feature( $o, $feature_to_copy );
-            foreach my $tag ( $feature->get_all_tags ) {
-                # keep gene tags
-                next if $tag eq "gene";
-                # keep locus tags
-                next if $tag eq "locus_tag";
-                # remove the rest, unwanted tags
-                $feature->remove_tag( $tag );
-            }
+      }
+
+      # check and store gene feature candidate
+      check_and_store_feature ( $o, $gene_feature );
+    }
+  }
+}
 
 sub mark_ambiguities {
   my ( $o ) = @_;
