@@ -132,7 +132,7 @@ sub add_locus_numbering {
                 $feature->add_tag_value ( "locus_tag", $new_locus_tag);
                 # protein_id tag is only valid in conjunction with CDS features
                 # see http://www.insdc.org/documents/feature-table#7.3.1
-                if ( $feature->primary_tag eq "CDS" ) {
+                if ( $feature->primary_tag eq "CDS" and $o->{"bioproject"} ) {
                   $feature->add_tag_value ( "protein_id", "gnl|".$o->{"bioproject"}."|$new_locus_tag" );
                 }
                 #update feature
