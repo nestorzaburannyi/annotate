@@ -245,30 +245,30 @@ sub comment_output {
 }
 
 sub write_fasta_output {
-    my ( $o, $s ) = @_;
+    my ( $o ) = @_;
     print_log ( $o, "Writing .fsa output file..." );
     my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/output.fsa", -format => "fasta" );
-    foreach my $seq_id (sort keys %$s) {
+    foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
         #add some data that is needed later by tbl2asn and also if *.fsa is required for the submission (BankIt)
-        $s->{$seq_id}->description(
+        $o->{"r"}->{$seq_id}->description(
                                             ("[organism=".($o->{"organism"} ? $o->{"organism"} : "unidentified")."] ").
-                                            "[gcode=11] ".
-                                            "[division=BCT] ".
+                                          "\n[gcode=11] ".
+                                          "\n[division=BCT] ".
                                             ($o->{"classification"} ? "[lineage=".$o->{"classification"}."] " : "").
-                                            ($s->{$seq_id}->is_circular ? "[topology=circular] " : "[topology=linear] ").
+                                            ($o->{"r"}->{$seq_id}->is_circular ? "[topology=circular] " : "[topology=linear] ").
                                             ($o->{"complete"} ? "[completeness=complete] " : "").
                                             # reuse the description without changes in transparent mode, if it exists
-                                            # ( $o->{"transparent"} and $s->{$seq_id}->description ? $s->{$seq_id}->description :
+                                            # ( $o->{"transparent"} and $o->{"r"}->{$seq_id}->description ? $o->{"r"}->{$seq_id}->description :
                                               (
                                                   ($o->{"organism"} ? $o->{"organism"} : "Unidentified organism").
                                                   ($o->{"strain"} ? " strain ".$o->{"strain"} : "").
-                                                  ", ".
+                                                "\n, ".
                                                   ($o->{"complete"} ? "complete genome" : "draft genome")
                                               )
                                             # )
 
                                             );
-        $output_filehandle->write_seq( $s->{$seq_id} );
+        $output_filehandle->write_seq( $o->{"r"}->{$seq_id} );
     }
 }
 
