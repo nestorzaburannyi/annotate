@@ -258,12 +258,12 @@ sub write_fasta_output {
 }
 
 sub write_table_output {
-    my ( $o, $s ) = @_;
+    my ( $o ) = @_;
     print_log ( $o, "Writing Sequin/BankIt .tbl output file..." );
     open my $output_filehandle, ">", $o->{"job"}."/output.tbl" or die "Could not open ".$o->{"job"}."/output.tbl for writing - $!";
-    foreach my $seq_id (sort keys %$s) {
-        print {$output_filehandle} ">Feature ".$s->{$seq_id}->id."\n";
-        foreach my $feature ( $s->{$seq_id}->get_SeqFeatures ) {
+    foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
+        print {$output_filehandle} ">Feature ".$o->{"r"}->{$seq_id}->id."\n";
+        foreach my $feature ( $o->{"r"}->{$seq_id}->get_SeqFeatures ) {
             # $end is first in case of -1 strand, in all other cases "$start" should be first
             print {$output_filehandle} ( $feature->strand eq -1 ? ( $feature->location->end_pos_type eq "AFTER" ? "<".$feature->end : $feature->end ) : ( $feature->location->start_pos_type eq "BEFORE" ? "<".$feature->start : $feature->start ) )."\t".( $feature->strand eq -1 ? ( $feature->location->start_pos_type eq "BEFORE" ? ">".$feature->start : $feature->start ) : ( $feature->location->end_pos_type eq "AFTER" ? ">".$feature->end : $feature->end ) )."\t".$feature->primary_tag."\n";
             foreach my $tag_type ( $feature->get_all_tags ) {
