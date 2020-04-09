@@ -280,7 +280,7 @@ sub write_table_output {
 sub write_gbf_and_sqn_output {
     my ( $o, $s ) = @_;
     print_log ( $o, "Writing Sequin .sqn output file..." );
-    run_program ( $o, $o->{"cwd"}."/bin/tbl2asn/tbl2asn -T T -i ".$o->{"job"}."/output.fsa -w ".$o->{"job"}."/output.cmt -o ".$o->{"job"}."/output.sqn -V vb -s T" );
+    run_program ( $o, $o->{"cwd"}."/bin/tbl2asn/tbl2asn -T T -i ".$o->{"job"}."/output.fsa -w ".$o->{"job"}."/output.cmt -o ".$o->{"job"}."/output.sqn -V vb -s T -a r10k" );
 }
 
 1;
