@@ -16,7 +16,7 @@ sub output_and_validate {
     add_source_features ( $o, $s );
     add_locus_numbering ( $o, $s ) if $o->{"prefix"};
     add_gene_features ( $o, $s );
-    move_features_to_sequence_hash ( $o, $s );
+    count_features ( $o );
     count_features ( $o, $s );
     # no more modification of features after this point, only writing sequences
     comment_output ( $o );
@@ -183,22 +183,7 @@ sub mark_ambiguities {
       check_and_store_feature ( $o, $feature );
     }
 
-sub move_features_to_sequence_hash {
-    my ( $o, $s ) = @_;
-    print_log ( $o, "Populating sequences with features..." );
-    foreach my $seq_id ( sort keys %$s ) {
-        # we have to sort the feature, otherwise they won't be in ascending numerical order in the output files
-        foreach my $feature ( sort { $a->start<=>$b->start || $b->end<=>$a->end } $o->{"dbh_uuid"}->features(-seq_id => $seq_id ) ) {
-            # removing the internal database ID tags
-            $feature->remove_tag( "ID" );
-            # removing the score tags, not needed any more
-            $feature->remove_tag( "score" ) if $feature->has_tag( "score" );
-            # make sure all the CDS features have at least some product tag
-            $feature->add_tag_value ( "product", "Hypothetical protein" ) if ( ( $feature->primary_tag eq "CDS" ) and not ( $feature->has_tag( "product" ) ) );
-            print_verbose ( $o, "Adding feature on sequence ".$feature->seq_id.", start ".$feature->start.", end ".$feature->end.", strand ".$feature->strand );
-            $s->{$seq_id}->add_SeqFeature( $feature );
-        }
-    }
+  }
 }
 
 sub count_features {
