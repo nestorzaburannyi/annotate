@@ -11,18 +11,18 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(output_and_validate);
 
 sub output_and_validate {
-    my ( $o, $s ) = @_;
-    add_general_information ( $o, $s );
-    add_source_features ( $o, $s );
-    add_locus_numbering ( $o, $s ) if $o->{"prefix"};
-    add_gene_features ( $o, $s );
+    my ( $o ) = @_;
+    add_general_information ( $o );
+    add_source_features ( $o );
+    add_locus_numbering ( $o ) if $o->{"prefix"};
+    add_gene_features ( $o );
     count_features ( $o );
-    count_features ( $o, $s );
+    mark_ambiguities ( $o );
     # no more modification of features after this point, only writing sequences
     comment_output ( $o );
-    write_fasta_output ( $o, $s );
-    write_table_output ( $o, $s );
-    write_gbf_and_sqn_output ( $o, $s );
+    write_fasta_output ( $o );
+    write_table_output ( $o );
+    write_gbf_and_sqn_output ( $o );
     merge_transparent_features ( $o ) if $o->{"transparent"};
     copy_gbf_to_gbk ( $o ) if ! $o->{"transparent"};
     run_antismash ( $o ) if $o->{"antismash"};
@@ -187,7 +187,7 @@ sub mark_ambiguities {
 }
 
 sub count_features {
-    my ( $o, $s ) = @_;
+  my ( $o ) = @_;
     print_log ( $o, "Counting features..." );
     foreach my $feature_to_count ( $o->{"dbh_uuid"}->features ) {
         ++$o->{"feature_count"}->{$feature_to_count->primary_tag};
@@ -278,7 +278,7 @@ sub write_table_output {
 }
 
 sub write_gbf_and_sqn_output {
-    my ( $o, $s ) = @_;
+    my ( $o ) = @_;
     print_log ( $o, "Writing Sequin .sqn output file..." );
     run_program ( $o, $o->{"cwd"}."/bin/tbl2asn/tbl2asn -i ".$o->{"job"}."/output.fsa -w ".$o->{"job"}."/output.cmt -o ".$o->{"job"}."/output.sqn -V vb -s T -a r10k" );
 }
