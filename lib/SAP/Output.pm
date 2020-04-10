@@ -135,8 +135,6 @@ sub add_locus_numbering {
                 if ( $feature->primary_tag eq "CDS" and $o->{"bioproject"} ) {
                   $feature->add_tag_value ( "protein_id", "gnl|".$o->{"bioproject"}."|$new_locus_tag" );
                 }
-                #update feature
-                store_feature ( $o, $feature );
             }
         }
     }
