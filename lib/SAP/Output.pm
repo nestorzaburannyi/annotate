@@ -184,16 +184,19 @@ sub mark_ambiguities {
   }
 }
 
+
 sub count_features {
   my ( $o ) = @_;
-    print_log ( $o, "Counting features..." );
-    foreach my $feature_to_count ( $o->{"dbh_uuid"}->features ) {
-        ++$o->{"feature_count"}->{$feature_to_count->primary_tag};
+  print_log ( $o, "Counting features..." );
+  foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
+    foreach my $feature ( sort { $a->start<=>$b->start || $b->end<=>$a->end } $o->{"r"}->{$seq_id}->get_SeqFeatures() ) {
+        ++$o->{"feature_count"}->{$feature->primary_tag};
         # if there is a "pseudo" tag in "gene feature", increment pseudo as well
-        if ( ( $feature_to_count->primary_tag eq "gene" ) and ( $feature_to_count->has_tag('pseudo') ) ) {
+        if ( ( $feature->primary_tag eq "gene" ) and ( $feature->has_tag('pseudo') ) ) {
             ++$o->{"pseudo_count"}->{"pseudo"};
         }
     }
+  }
 }
 
 sub comment_output {
