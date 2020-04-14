@@ -218,23 +218,6 @@ sub initialize_pipeline {
     $o->{"forbidden_locus_tags"} = ();
     return $o;
 
-sub get_sequence {
-  my ( $o, $s, $seq_id, $start, $end, $strand ) = @_;
-  if ( $start < 1 ) {
-    # too far left
-    return
-  }
-  if ( $end > length( $s->{$seq_id}->seq ) ) {
-    # too far right
-    return
-  }
-  my $sequence = Bio::Seq->new(-alphabet => "dna", -seq => (substr ( $s->{$seq_id}->seq, $start - 1, $end - $start + 1 )));
-  # skip problematic DNA stretches
-  if ( $sequence->alphabet ne "dna" ) {
-    return
-  }
-  # revcom the DNA sequence if needed
-  return $strand eq 1 ? $sequence : $sequence->revcom;
 }
 
 sub print_help {
