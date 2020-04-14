@@ -797,6 +797,15 @@ sub clean_up_description {
   return $description // "Hypothetical protein";
 }
 
+sub clean_up_uniprot {
+  # returns a description that follows the NCBI guidelines
+  my ( $description ) = @_;
+  # WARNING: valid [SEQ_FEAT.ProteinNameEndsInBracket] Protein name ends with bracket and may contain organism name FEATURE: Prot: Nicotinate-nucleotide pyrophosphorylase [carboxylating] [lcl|sequence_1_108:1-297] [lcl|sequence_1_108: raw, aa len= 297]
+  $description =~ s/\[/(/g;
+  $description =~ s/\]/)/g;
+
+  return $description // "Hypothetical protein";
+}
 
 # memoized sub parse_file
 {
