@@ -25,7 +25,6 @@ our @EXPORT = qw(
                 run_program
                 get_nucleotide_sequence_of_feature
                 get_protein_sequence_of_feature
-                get_intergenic_and_cds_sequences
                 current_date_and_time
                 initialize_options
                 initialize_pipeline
@@ -440,37 +439,7 @@ sub get_overlapped_features {
   return @return_features;
 }
 
-sub get_intergenic_and_cds_sequences {
-    my ( $o, $s ) = @_;
-    my @return_sequences;
-    # id is a hash of the sequence
-    foreach my $seq_id (sort keys %$s) {
-        # first lets add CDS, as they should be analyzed before any intergenic region kicks in
-        my @sorted_features = sort { $a->start<=>$b->start || $a->end<=>$b->end } $o->{"dbh_uuid"}->features( -seq_id => $seq_id, -type => ["CDS"] );
-        # output CDS
-        for my $i (0 .. $#sorted_features) {
-            my $seq = $s->{$seq_id}->subseq( $sorted_features[$i]->start, $sorted_features[$i]->end );
-            my $id = $seq_id."_offset".( $sorted_features[$i]->start - 1)."_strand".$sorted_features[$i]->strand."_".md5_hex($seq);
-            push @return_sequences, Bio::Seq->new(-seq => $seq, -id => $id );
-        }
-        # intergenic means everything that is not defined as a gene. This way we can fix such locations: CDS1-repeat_region-CDS2
-        @sorted_features = sort { $a->start<=>$b->start || $a->end<=>$b->end } $o->{"dbh_uuid"}->features( -seq_id => $seq_id, -type => ["CDS", "misc_RNA", "rRNA", "tmRNA", "tRNA", "gene"] );
-        # push one fake feature if sequence is linear (in case it has no features, will output whole sequence)
-        if ( ! $s->{$seq_id}->is_circular ) {
-          unshift @sorted_features, Bio::SeqFeature::Generic->new( -start => 0 , -end => 0 );
-          push @sorted_features, Bio::SeqFeature::Generic->new( -start => $s->{$seq_id}->length + 1 , -end => $s->{$seq_id}->length + 1 );
-        }
-        # output intergenic sequences
-        for my $i (1 .. $#sorted_features) {
-          # skip very small sequences (<30bp)
-          next if ( $sorted_features[$i]->start - $sorted_features[$i-1]->end < 30 );
-          my $seq = $s->{$seq_id}->subseq( $sorted_features[$i-1]->end + 1, $sorted_features[$i]->start - 1 );
-          my $id = $seq_id."_offset".$sorted_features[$i-1]->end."_strand0_".md5_hex($seq);
-          push @return_sequences, Bio::Seq->new(-seq => $seq, -id => $id );
-        }
-    }
-    return @return_sequences;
-}
+
 
 sub create_seq_hash {
     my ( $o ) = @_;
