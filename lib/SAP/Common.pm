@@ -302,18 +302,15 @@ sub print_log {
     if ( ! $o->{"quiet"} ) {
       print print_message( $o, $message );
     }
-    # do not print to log on updates
-    if ( ! $o->{"update"} ) {
-      # print to log
-      open my $output_filehandle, ">>", $o->{"job"}."/log" or die "Could not open ".$o->{"job"}."/log for writing - $!";
-      print {$output_filehandle} print_message( $o, $message );
+    # print to log
+    open my $output_filehandle, ">>", $o->{"job"}."/log" or die "Could not open ".$o->{"job"}."/log for writing - $!";
+    print {$output_filehandle} print_message( $o, $message );
       close $output_filehandle;
       # print to verbose log
       open $output_filehandle, ">>", $o->{"job"}."/verbose" or die "Could not open ".$o->{"job"}."/verbose for writing - $!";
       print {$output_filehandle} print_message( $o, $message );
       close $output_filehandle;
     }
-}
 
 sub print_verbose {
     my ( $o, $message ) = @_;
@@ -321,13 +318,10 @@ sub print_verbose {
     if ( $o->{"verbose"} ) {
       print print_message( $o, $message );
     }
-    # do not print to log on updates
-    if ( ! $o->{"update"} ) {
       open my $output_filehandle, ">>", $o->{"job"}."/verbose" or die "Could not open ".$o->{"job"}."/verbose for writing - $!";
       print {$output_filehandle} print_message( $o, $message );
       close $output_filehandle;
     }
-}
 
 sub run_program {
     my ( $o, $command ) = @_;
