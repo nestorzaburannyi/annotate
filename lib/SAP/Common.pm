@@ -366,15 +366,11 @@ sub create_feature {
 }
 
 sub check_and_store_feature {
-    my ( $o, $feature) = @_;
-    # set the score to zero if there is no score
-    $feature->score(0) if not $feature->score;
-    # perform checks before each storage. Checks can remove both the query feature and feature(s) it overlaps
-    return if overlap_rules ( $o, $feature );
-    print_verbose ( $o, "Storing feature: ".$feature->start."-".$feature->end." ".$feature->primary_tag." score: ".$feature->score);
-    store_feature ( $o, $feature );
-    return 1;
-}
+  my ( $o, $feature ) = @_;
+  # perform feature checks before any feature storage
+  return if feature_rules ( $o, $feature );
+  # perform overlap checks before any feature storage
+  return if overlap_rules ( $o, $feature );
 
 sub delete_feature {
   # removes the feature from the feature pool
