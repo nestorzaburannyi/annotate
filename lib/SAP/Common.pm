@@ -646,14 +646,16 @@ sub prepare_input {
 }
 
 sub prepare_sequences {
-    my ( $o, $s ) = @_;
-    my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_sequences", -format => "fasta");
-    foreach my $seq_id (sort keys %$s) {
-        # suppress the description (breaks some tools, like genemarks)
-        $s->{$seq_id}->description(undef);
-        $output_filehandle->write_seq( $s->{$seq_id} );
-    }
-    exit_program ( $o, "Required file ".$o->{"job"}."/input_sequences does not exist.") if not (-e $o->{"job"}."/input_sequences" );
+  # prepares an input file containing input sequences in FASTA format
+  my ( $o ) = @_;
+  my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_sequences", -format => "fasta");
+
+  foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
+    # do not just dump $o->{"r"}; instead re-create to get rid of the description (breaks some tools, e.g. GeneMarkS)
+    $output_filehandle->write_seq( Bio::Seq->new( -seq => $o->{"r"}->{$seq_id}->seq(),
+                                                  -id => $seq_id ) );
+  }
+  exit_program ( $o, "Required file ".$o->{"job"}."/input_sequences does not exist.") if not (-e $o->{"job"}."/input_sequences" );
 }
 
 sub prepare_homology {
