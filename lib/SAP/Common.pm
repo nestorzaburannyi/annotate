@@ -791,18 +791,16 @@ sub clean_up_uniprot {
                 next if ( $line =~ m/^#/);
                 # skip header in tRNAscan-SE
                 next if (( $program eq "trnascanse") && ( $line =~ m/^Sequence\s+tRNA|Name\s+tRNA|\-+\s+\-+/));
-                # skip summary line in ARAGORN
-                next if (( $program eq "aragorn") && ( $line =~ m/^\d+\s+gene/));
-                # skip the line containg sequence name in ARAGORN, but store it for the next cycle
-                next if (( $program eq "aragorn") && ( $line =~ m/^>(\S+)/) && ( $aragorn_sequence_name = $1));
+    # skip sequence lines in ARAGORN
+    next if (( $program eq "aragorn") && ( $line !~ m/^>/));
                 # skip the line containg sequence name in Glimmer, but store it for the next cycle
                 next if (( $program eq "glimmer") && ( $line =~ m/^>(\S+)/) && ( $glimmer_sequence_name = $1));
                 # skip the header line from PANNZER
                 next if (( $program eq "pannzer") && ( $line =~ m/^qpid/));
                 # warn on parse error
                 print_log( $o, "Parse error in file $file, line $.") if not (my @line = split (/$divider/, $line));
-                # make use of the previously stored $aragorn_sequence_name
-                push @line, $aragorn_sequence_name if ( ( $aragorn_sequence_name ) && ( $program eq "aragorn" ) );
+    # push the line to the lines
+    push @lines, \@line;
                 # make use of the previously stored $glimmer_sequence_name
                 push @line, $glimmer_sequence_name if ( ( $glimmer_sequence_name ) && ( $program eq "glimmer" ) );
                 return \@line;
@@ -823,7 +821,7 @@ sub get_command {
       return $o->{"cwd"}."/bin/trnascanse/tRNAscan-SE -q -Q -B ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/trnascanse";
     }
     elsif ( $program eq "aragorn" ) {
-      return $o->{"cwd"}."/bin/aragorn/aragorn -w -gc11 ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/aragorn";
+      return $o->{"cwd"}."/bin/aragorn/aragorn -fon -gc11 ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/aragorn";
     }
     elsif ( $program eq "infernal" ) {
       return $o->{"cwd"}."/bin/infernal/cmscan --tblout ".$o->{"job"}."/infernal --notextw --cut_tc --cpu 1 ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm ".$o->{"job"}."/input_sequences";
