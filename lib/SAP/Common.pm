@@ -856,6 +856,9 @@ sub get_command {
     elsif ( $program eq "emapper" ) {
         return $o->{"cwd"}."/bin/emapper/emapper.py --override --cpu 1 --data_dir ".$o->{"cwd"}."/databases/emapper -m diamond -i ".$o->{"job"}."/input_annotation -o ".$o->{"job"}."/output"
     }
+    elsif ( $program eq "minced" ) {
+        return $o->{"cwd"}."/bin/minced/minced -gffFull ".$o->{"job"}."/input_sequences ".$o->{"job"}."/minced.tmp ".$o->{"job"}."/minced";
+    }
 }
 
 1;
