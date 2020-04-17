@@ -838,6 +838,19 @@ sub parse_line {
            }
   }
 }
+
+  if ( $program eq "pannzer" ) {
+    #qpid    cluster_GSZ             cluster_RM1sum  cluster_size    cluster_desccount     RM2              val_avg         jac_avg                 desc                                                            genename
+    #337     1188.6501920470491      88.1362508589   100             8585                  1.16895577275    0.19527405526   2.23321196985e-05       Bifunctional aspartate kinase/homoserine dehydrogenase I        ThrA
+    #[0]     [1]                     [2]             [3]             [4]                   [5]              [6]             [7]                     [8]                                                             [9]
+    return { "seq_id" => $l->[0],
+             "product" => $l->[8],
+             "gene_name" => $l->[9],
+             "score" => $l->[1],
+             "type" => "annotation",
+           }
+  }
+
                 return \@line;
             }
         }
