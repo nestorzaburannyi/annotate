@@ -803,6 +803,41 @@ sub clean_up_uniprot {
     push @lines, \@line;
                 # make use of the previously stored $glimmer_sequence_name
                 push @line, $glimmer_sequence_name if ( ( $glimmer_sequence_name ) && ( $program eq "glimmer" ) );
+
+sub parse_line {
+  # returns line elements that are required depending on a type of a program
+  my ( $o, $program, $l ) = @_;
+  if ( $program eq "infernal" ) {
+    #idx target name            accession query name           accession clan name mdl mdl from   mdl to seq from   seq to strand trunc pass   gc  bias  score   E-value inc olp anyidx afrct1 afrct2 winidx wfrct1 wfrct2 description of target
+    #--- ---------------------- --------- -------------------- --------- --------- --- -------- -------- -------- -------- ------ ----- ---- ---- ----- ------ --------- --- --- ------ ------ ------ ------ ------ ------ ---------------------
+    #[0] [1]                    [2]       [3]                  [4]       [5]       [6] [7]      [8]      [9]      [10]     [11]   [12]  [13] [14] [15]  [16]   [17]      [18][19][20]   [21]   [22]   [23]   [24]   [25]   [26]
+    # get the RFAM information line
+    my $i = get_line( $o, $o->{"cwd"}."/databases/rfam/family.txt", $l->[2], "\t" );
+    # column names from http://ftp.ebi.ac.uk/pub/databases/Rfam/CURRENT/database_files/family.sql
+    #rfam_acc rfam_id auto_wiki description author seed_source gathering_cutoff trusted_cutoff noise_cutoff comment previous_id cmbuild cmcalibrate cmsearch num_seed num_full num_genome_seq num_refseq type structure_source number_of_species number_3d_structures num_pseudonokts tax_seed ecmli_lambda ecmli_mu ecmli_cal_db ecmli_cal_hits maxl clen match_pair_node hmm_tau hmm_lambda created updated
+    #[0]      [1]     [2]       [3]         [4]    [5]         [6]              [7]            [8]          [9]     [10]        [11]    [12]        [13]     [14]     [15]     [16]           [17]       [18] [19]             [20]              [21]                 [22]            [23]     [24]         [25]     [26]         [27]           [28] [29] [30]            [31]    [32]       [33]    [34]
+    return { "seq_id" => $l->[3],
+             "accession" => $l->[2],
+             "hit_id" => $l->[1],
+             "start" => $l->[11] eq "+" ? $l->[9] : $l->[10],
+             "start_type" => "EXACT",
+             # "start_type" => ( $l->[12] =~ /5'/ && $l->[11] eq "+" ) || ( $l->[12] =~ /3'/ && $l->[11] eq "-" ) ? "BEFORE" : "EXACT",
+             # commented due to tbl2asn warnings
+             # [SEQ_FEAT.PartialProblem] PartialLocation: Start does not include first/last residue of sequence FEATURE: misc_feature: /inference=profile:infernal:1.1.3:rfam:RF01766; cspA thermoregulator [lcl|sequence_1:c>2150785-<2150428] [lcl|sequence_1: raw, dna len= 5697240]
+             "end" => $l->[11] eq "+" ? $l->[10] : $l->[9],
+             "end_type" => "EXACT",
+             # "end_type" => ( $l->[12] =~ /3'/ && $l->[11] eq "+" ) || ( $l->[12] =~ /5'/ && $l->[11] eq "-" ) ? "AFTER" : "EXACT",
+             # commented due to tbl2asn warnings
+             # [SEQ_FEAT.PartialProblem] PartialLocation: Start does not include first/last residue of sequence FEATURE: misc_feature: /inference=profile:infernal:1.1.3:rfam:RF01766; cspA thermoregulator [lcl|sequence_1:c>2150785-<2150428] [lcl|sequence_1: raw, dna len= 5697240]
+             "strand" => $l->[11] eq "+" ? 1 : -1,
+             "score" => $l->[16],
+             "product" => ( join " ", @$l[26..$#$l] ),
+             "type" => $i->[18],
+             "clan" => $l->[5],
+             "comment" => $i->[9],
+           }
+  }
+}
                 return \@line;
             }
         }
