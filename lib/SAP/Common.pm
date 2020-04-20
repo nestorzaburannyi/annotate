@@ -75,7 +75,7 @@ sub initialize_options {
             #de novo
             "cds-i" => 1,
                 "cds-i-program" => "prodigal",
-                "cds-i-score" => 20,
+                "cds-i-score" => -inf,
             #homology
             "cds-h" => 1,
                 "cds-h-program" => "diamond",
