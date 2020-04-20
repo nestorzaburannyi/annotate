@@ -839,6 +839,34 @@ sub parse_line {
   }
 }
 
+  if ( $program eq "prodigal" ) {
+    ##gff-version  3
+    # Sequence Data: seqnum=1;seqlen=84908;seqhdr="1"
+    # Model Data: version=Prodigal.v2.6.3;run_type=Metagenomic;model="20|Escherichia_coli_UMN026|B|50.7|11|1";gc_cont=50.70;transl_table=11;uses_sd=1
+    #1       Prodigal_v2.6.3 CDS     3       704     76.7    +       0       ID=1_1;partial=10;start_type=Edge;rbs_motif=None;rbs_spacer=None;gc_cont=0.546;conf=100.00;score=76.68;cscore=73.46;sscore=3.22;rscore=0.00;uscore=0.00;tscore=3.22;
+    #[0]     [1]             [2]     [3]     [4]     [5]     [6]     [7]     [8]
+
+    return { "seq_id" => $l->[0],
+             "start" => $l->[3],
+             #"start_type" => $l->[8] =~ /partial=1\d/ ? "BEFORE" : "EXACT",
+             # commented due to tbl2asn warnings
+             # [SEQ_FEAT.PartialProblem] PartialLocation: Start does not include first/last residue of sequence FEATURE: misc_feature: /inference=profile:infernal:1.1.3:rfam:RF01766; cspA thermoregulator [lcl|sequence_1:c>2150785-<2150428] [lcl|sequence_1: raw, dna len= 5697240]
+             "start_type" => "EXACT",
+             "end" => $l->[4],
+             #"end_type" => $l->[8] =~ /partial=\d1/ ? "AFTER" : "EXACT",
+             # commented due to tbl2asn warnings
+             # [SEQ_FEAT.PartialProblem] PartialLocation: Start does not include first/last residue of sequence FEATURE: misc_feature: /inference=profile:infernal:1.1.3:rfam:RF01766; cspA thermoregulator [lcl|sequence_1:c>2150785-<2150428] [lcl|sequence_1: raw, dna len= 5697240]
+             "end_type" => "EXACT",
+             "strand" => $l->[6] eq "+" ? 1 : -1,
+             "score" => $l->[5],
+             "method" => "ab initio",
+             "type" => "CDS",
+             "tags" => {
+                          "transl_table" => $o->{"g_code"},
+                          "codon_start" => 1,
+              }
+           }
+  }
   if ( $program eq "pannzer" ) {
     #qpid    cluster_GSZ             cluster_RM1sum  cluster_size    cluster_desccount     RM2              val_avg         jac_avg                 desc                                                            genename
     #337     1188.6501920470491      88.1362508589   100             8585                  1.16895577275    0.19527405526   2.23321196985e-05       Bifunctional aspartate kinase/homoserine dehydrogenase I        ThrA
