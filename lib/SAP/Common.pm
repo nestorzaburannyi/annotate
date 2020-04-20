@@ -867,6 +867,25 @@ sub parse_line {
               }
            }
   }
+
+  if ( $program eq "glimmer" ) {
+    #1      orf00001      343     2799  +1    10.26
+    #[0]    [1]           [2]     [3]   [4]   [5]
+    return { "seq_id" => $l->[0],
+             "start" => $l->[2] > $l->[3] ? $l->[3] : $l->[2],
+             "start_type" => "EXACT", # glimmer can only produce exact coordinates
+             "end" => $l->[2] > $l->[3] ? $l->[2] : $l->[3],
+             "end_type" => "EXACT", # glimmer can only produce exact coordinates
+             "strand" => $l->[2] > $l->[3] ? -1 : 1,
+             "score" => $l->[5],
+             "method" => "ab initio",
+             "type" => "CDS",
+             "tags" => {
+                          "transl_table" => $o->{"g_code"},
+                          "codon_start" => 1,
+              }
+           }
+  }
   if ( $program eq "pannzer" ) {
     #qpid    cluster_GSZ             cluster_RM1sum  cluster_size    cluster_desccount     RM2              val_avg         jac_avg                 desc                                                            genename
     #337     1188.6501920470491      88.1362508589   100             8585                  1.16895577275    0.19527405526   2.23321196985e-05       Bifunctional aspartate kinase/homoserine dehydrogenase I        ThrA
