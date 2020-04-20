@@ -901,13 +901,14 @@ sub get_command {
     }
     elsif ( $program eq "infernal" ) {
       return $o->{"cwd"}."/bin/infernal/cmscan --tblout ".$o->{"job"}."/infernal --notextw --cut_tc --cpu 1 ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm ".$o->{"job"}."/input_sequences";
+    elsif ( $program eq "glimmer1" ) {
+      return $o->{"cwd"}."/bin/glimmer/long-orfs --trans_table ".$o->{"gcode"}." --linear -n -t 1.15 ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs";
     }
-    elsif ( $program eq "glimmer" ) {
-      return $o->{"cwd"}."/bin/glimmer/long-orfs --trans_table 11 --linear -n -t 1.15 ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs; ".
-             $o->{"cwd"}."/bin/glimmer/extract --nowrap -t ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs | tee ".$o->{"job"}."/glimmer.train; ".
-             $o->{"cwd"}."/bin/glimmer/build-icm -r ".$o->{"job"}."/glimmer.icm < ".$o->{"job"}."/glimmer.train; ".
-             $o->{"cwd"}."/bin/glimmer/glimmer3 --trans_table 11 --linear --extend ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.icm ".$o->{"job"}."/glimmer; ".
-             "mv ".$o->{"job"}."/glimmer.predict ".$o->{"job"}."/glimmer";
+    elsif ( $program eq "glimmer2" ) {
+      return $o->{"cwd"}."/bin/glimmer/extract --nowrap -t ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs | ".$o->{"cwd"}."/bin/glimmer/build-icm -r ".$o->{"job"}."/glimmer.icm";
+    }
+    elsif ( $program eq "glimmer3" ) {
+      return $o->{"cwd"}."/bin/glimmer/glimmer3 --trans_table ".$o->{"gcode"}." --linear ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.icm ".$o->{"job"}."/glimmer"
     }
     elsif ( $program eq "prodigal" ) {
         # Error: Sequence must be 20000 characters (only 16084 read).

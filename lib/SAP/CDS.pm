@@ -32,10 +32,14 @@ sub cds_prediction {
 }
 
 sub run_glimmer {
-    my ( $o, $s ) = @_;
+  my ( $o ) = @_;
     print_log( $o, "Running Glimmer ".$o->{"glimmer-version"}."..." );
-    my ( $c ) = get_command ( $o, "glimmer" );
-    run_program ( $o, $c );
+  my ( $c ) = get_command ( $o, "glimmer1" );
+  run_program ( $o, $c ) if ! $o->{"test"};
+  ( $c ) = get_command ( $o, "glimmer2" );
+  run_program ( $o, $c ) if ! $o->{"test"};
+  ( $c ) = get_command ( $o, "glimmer3" );
+  run_program ( $o, $c ) if ! $o->{"test"};
 }
 
 sub run_prodigal {
