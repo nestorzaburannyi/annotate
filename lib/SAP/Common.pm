@@ -790,7 +790,7 @@ sub clean_up_uniprot {
                 # skip comments
                 next if ( $line =~ m/^#/);
                 # skip header in tRNAscan-SE
-                next if (( $program eq "trnascanse") && ( $line =~ m/^Sequence\s+tRNA|Name\s+tRNA|\-+\s+\-+/));
+    next if $program eq "trnascanse" and $line =~ m/^Sequence|^Name|^-/;
     # skip sequence lines in ARAGORN
     next if (( $program eq "aragorn") && ( $line !~ m/^>/));
                 # skip the line containg sequence name in Glimmer, but store it for the next cycle
