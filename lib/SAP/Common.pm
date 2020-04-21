@@ -497,11 +497,12 @@ sub create_seq_hash {
 }
 
 sub overlap_rules {
-    my ( $o, $check_feature) = @_;
+    my ( $o, $check_feature ) = @_;
 
-    # catch-all rule for duplicates, no need to even mention it in the log
-    foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "equals", [$check_feature->primary_tag] ) ) {
-        return 1;
+    # catch-all rule for unique location/primary tag combination
+    if ( exists $o->{"feature_by_loc"}->{ $check_feature->seq_id().$check_feature->primary_tag.$check_feature->location()->to_FTstring() } ) {
+      print_verbose ( $o, "Skipping exact location duplicate feature ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
+      return 1;
     }
 
     if ( $check_feature->primary_tag eq "source" ) {
