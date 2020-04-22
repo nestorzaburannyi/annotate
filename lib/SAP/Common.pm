@@ -551,13 +551,7 @@ sub overlap_rules {
         foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "contains", ["tRNA", "tmRNA"] ) ) {
             print_verbose ( $o, "Skipping ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.") due to overlap with ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.")" );
             return 1;
-        }
-        # repeat_region inside a new CDS -> we remove the repeat_region, likely mispredicted
-        #--------------------------------------------------------------------------------------> CDS
-        #        ---------------> repeat_region
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "contains", ["repeat_region"] ) ) {
-            print_verbose ( $o, "Removing previously annotated ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.") fully contained within ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
-            delete_feature ( $o, $overlapped_feature);
+          }
         }
 
         # old CDS is inside a larger new CDS, different starts/ends # we remove different starts/ends first if the score is greater
