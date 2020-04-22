@@ -79,8 +79,7 @@ sub initialize_options {
             #homology
             "cds-h" => 1,
                 "cds-h-program" => "diamond",
-                "cds-h-score" => 40,
-                "cds-h-identity" => 90,
+                "cds-h-score" => -inf,
             #annotation
             "cds-a" => 1,
                 "cds-a-program" => "pannzer",
