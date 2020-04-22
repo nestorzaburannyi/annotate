@@ -518,7 +518,11 @@ sub overlap_rules {
     }
 
     elsif ( $check_feature->primary_tag eq "tRNA" ) {
-        # tRNA features are not to be skipped
+      if ( get_adjoined_features ( $o, $check_feature, "overlaps", "tmRNA" ) ) {
+        # a tRNA gene within the tmRNA gene is the same gene -> skip it
+        print_verbose ( $o, "Skipping same gene annotated at the same place ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
+        return 1;
+      }
     }
 
     elsif ( $check_feature->primary_tag eq "tmRNA" ) {
