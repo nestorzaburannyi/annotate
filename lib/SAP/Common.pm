@@ -915,6 +915,24 @@ sub parse_line {
            }
   }
 
+  if ( $program eq "pilercr" ) {
+    #Pos            Repeat      %id           Spacer     Left flank    Repeat                           Spacer
+    #3760999        29          100.0         32         ATTACCTGAT    .............................    GGTAGTACGCGCCTCCGGACGTTTTTATGTCG
+    #[0]            [1]         [2]           [3]        [4]           [5]                              [6]
+    #Array          Sequence    Position      Length  # Copies  Repeat  Spacer   +  Consensus
+    #    1                 1     2877884         580        10      29      32   +  CGGTTTATCCCCGCTGGCGCGGGGAACTC
+    #    [0]               [1]   [2]             [3]        [4]     [5]     [6] [7] [8]
+    return {  "seq_id" => $l->[7],
+              "primary_tag" => $l->[2] eq "repeat_region" ? "repeat_region" : "misc_feature",
+              "start" => $l->[0],
+              "start_type" => "EXACT", # trf can only produce exact coordinates
+              "end" => $l->[1],
+              "end_type" => "EXACT", # trf can only produce exact coordinates
+              "strand" => 0,
+              "type" => "CRISPR",
+              "score" => $l->[7],
+           }
+  }
                 return \@line;
             }
         }
