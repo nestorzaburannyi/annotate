@@ -589,20 +589,8 @@ sub overlap_rules {
             }
         }
 
-        #########################INVERSE CONTAINMENT#########################
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "overlaps", ["CDS"] ) ) {
-            if ( $overlapped_feature->contains( $check_feature, "ignore" ) ) {
-                # new CDS is inside a larger old CDS
-                #                           <--------------- CDS1
-                #--------------------------------------------------------------------------------------> CDS2
-                # or
-                #                                                                       ---------------> CDS1
-                #--------------------------------------------------------------------------------------> CDS2
-                print_verbose ( $o, "Removing previously annotated ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.") fully contained within ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
-                delete_feature ( $o, $overlapped_feature);
-            }
-        }
     }
+
     # all good
     return 0;
 }
