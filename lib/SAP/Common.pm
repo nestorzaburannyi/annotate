@@ -904,6 +904,17 @@ sub parse_line {
            }
   }
 
+  if ( $program eq "emapper" ) {
+    #query_name     seed_eggNOG_ortholog    seed_ortholog_evalue    seed_ortholog_score     predicted_gene_name     GO_terms                  KEGG_KOs          BiGG_reactions       Annotation_tax_scope         OGs                bestOG|evalue|score     COG_cat          eggNOG_annot
+    #9397           749414.SBI_06869        1.6e-59                 234.6                   RMLC                    GO:0000271,GO:0003674     K01790,K13316     TDPDRE               NOG[107]                     COG1898@NOG        NA|NA|NA                M, H             DTDP-4-dehydrorhamnose 3,5-epimerase
+    #[0]            [1]                     [2]                     [3]                     [4]                     [5]                       [6]               [7]                  [8]                          [9]                [10]                    [11]             [12]
+    return { "seq_id" => $l->[0],
+             "product" => $l->[12],
+             "score" => $l->[3],
+             "type" => "annotation",
+           }
+  }
+
                 return \@line;
             }
         }
