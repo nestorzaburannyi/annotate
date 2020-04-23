@@ -624,6 +624,20 @@ sub get_protein_sequence_of_feature {
                                                      -codontable_id => $o->{"gcode"},
                                                      -complete => $complete )->seq();
 
+  # if this hit has a /transl_except
+  if ( my $exception = $feature->annotation()->{"exception"} ) {
+    if ( $exception->[0] eq $feature->annotation()->{"hit_id"} ) {
+      if ( $exception->[3] eq "aa:Sec" ) {
+        # modify to unusual codon tables
+        substr( $sequence,$exception->[1]-1,1 ) = "U";
+      }
+      elsif ( $exception->[3] eq "aa:Pyl" ) {
+        # modify to unusual codon tables
+        substr( $sequence,$exception->[1]-1,1 ) = "O";
+      }
+    }
+  }
+
   return $sequence;
 }
 
