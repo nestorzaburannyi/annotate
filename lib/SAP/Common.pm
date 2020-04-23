@@ -614,9 +614,9 @@ sub overlap_rules {
 ######################################################## DATABASE #########################################################
 
 sub get_nucleotide_sequence_of_feature {
-    my ( $o, $feature) = @_;
-    # get the sequence of the object (unfortunately it is not implemented in Bio:DB::*)
-    my $sequence_object = $o->{"dbh_uuid"}->fetch_sequence( -seq_id=>$feature->seq_id, -start=>$feature->start, -end=>$feature->end, -bioseq=>1 );
+  # get the sequence of a feature
+  my ( $o, $feature ) = @_;
+  return $feature->spliced_seq()->seq();
     # set the id of the new sequence to the id of the feature (otherwise it has $seq_id:$start..$end format)
     $sequence_object->id( $feature->primary_id );
     # change the strand if needed
