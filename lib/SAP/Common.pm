@@ -616,9 +616,15 @@ sub get_nucleotide_sequence_of_feature {
 
 # wrapper for get_nucleotide_sequence_of_feature
 sub get_protein_sequence_of_feature {
-    my ( $o, $feature) = @_;
-    my $sequence_object = get_nucleotide_sequence_of_feature( $o, $feature )->translate( -complete => 1, -codontable_id => 11 );
-    return $sequence_object;
+  # get the sequence of a feature
+  my ( $o, $feature, $complete ) = @_;
+  # lack of -complete passed to ->translate allows to expose terminal stop codons as asterisks (*)
+  # -complete translation converts start codons into M
+  my $sequence = $feature->spliced_seq()->translate( -offset => ( $feature->get_tagset_values( "codon_start" ) )[0] || 1,
+                                                     -codontable_id => $o->{"gcode"},
+                                                     -complete => $complete )->seq();
+
+  return $sequence;
 }
 
 ##################################################### IO FILE ######################################################
