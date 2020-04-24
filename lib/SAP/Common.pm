@@ -895,6 +895,55 @@ sub parse_line {
               }
            }
   }
+
+  if ( $program eq "diamond" or $program eq "blast" ) {
+    # get the EXCEPTION information line
+    #accession transl_except
+    #--------- ----------------
+    #[0]       [1]
+    my $i = get_line( $o, $o->{"cwd"}."/databases/uniprot/exceptions.txt", $l->[1], "\t" );
+    # print Dumper($l->[1]);
+    #qseqid         sseqid                  qstart      qend        sstart   send       slen      pident    bitscore     stitle
+    #1              sp|A7ZUK1|RPOB_ECO24    5146755     5150780     1        1342       1342      100.0     2638.2       sp|A7ZUK1|RPOB_ECO24 DNA-directed RNA polymerase subunit beta OS=Escherichia coli O139:H28 (strain E24377A / ETEC) OX=331111 GN=rpoB PE=1 SV=1
+    #[0]            [1]                     [2]         [3]         [4]      [5]        [6]       [7]       [8]          [9]
+    # always extend one less aa than $l->[4] to account for 1-based start location in bio
+    my $extension_5 = ( $l->[4] - 1 ) * 3;
+    # always extend one more aa than $l->[8] - $l->[7] to account for and include stop codon
+    my $extension_3 = ( $l->[6] - $l->[5] + 1 ) * 3;
+    # start depends on query orientation
+    my $start = $l->[2] > $l->[3] ? $l->[3] : $l->[2];
+    # so does start extension
+    my $extension_start = $l->[2] > $l->[3] ? $extension_3 : $extension_5;
+    # so does end
+    my $end = $l->[2] > $l->[3] ? $l->[2] : $l->[3];
+    # and its extension
+    my $extension_end = $l->[2] > $l->[3] ? $extension_5 : $extension_3;
+    # never extend start beyond sequence
+    $start = ( $start - $extension_start ) < 1 ? $start : ( $start - $extension_start );
+    # never extend end beyond sequence
+    $end = ( $end + $extension_end ) > $o->{"r"}->{$l->[0]}->length ? $end : ( $end + $extension_end );
+    return {
+             "seq_id" => $l->[0],
+             "hit_id" => $l->[1],
+             "gene_id" => ( $l->[1] =~ m/^\S+\|(\S+)_\S+$/ )[0],
+             "start" => $start,
+             "start_type" => "EXACT", # diamond can only produce exact coordinates
+             "end" => $end,
+             "end_type" => "EXACT", # diamond can only produce exact coordinates
+             "strand" => $l->[2] > $l->[3] ? -1 : 1,
+             "score" => $l->[8],
+             "product" => clean_up_uniprot( ( $l->[9] =~ m/^\S+ (.*) OS=.*$/ )[0] ),
+             "gene_name" => ( $l->[9] =~ m/ GN=(\S+)/ )[0] // undef,
+             "exception" => $i,
+             "type" => "CDS",
+             "method" => "homology",
+             "tags" => {
+                          "transl_table" => $o->{"g_code"},
+                          "codon_start" => 1,
+              }
+           }
+  }
+
   if ( $program eq "pannzer" ) {
     #qpid    cluster_GSZ             cluster_RM1sum  cluster_size    cluster_desccount     RM2              val_avg         jac_avg                 desc                                                            genename
     #337     1188.6501920470491      88.1362508589   100             8585                  1.16895577275    0.19527405526   2.23321196985e-05       Bifunctional aspartate kinase/homoserine dehydrogenase I        ThrA
