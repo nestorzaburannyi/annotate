@@ -877,6 +877,32 @@ sub parse_line {
            }
   }
 
+  if ( $program eq "genemarks" ) {
+    ##gff-version 2
+    ##source-version GeneMark.hmm_PROKARYOTIC 3.36
+    ##date: Tue Feb 25 20:19:42 2020
+    # Sequence file name: /annotate/public/jobs/67E87C78-5803-11EA-ABE0-A900B28B97A2/input_sequences
+    # Model file name: GeneMark_hmm_combined.mod
+    # RBS: true
+    # Model information: GeneMarkS_gcode_11
+    #1       GeneMark.hmm    CDS     3       98      1.290982        +       0       gene_id=1
+    #[0]     [1]             [2]     [3]     [4]     [5]             [6]     [7]     [8]
+    return { "seq_id" => $l->[0],
+             "start" => $l->[3],
+             "start_type" => "EXACT", # genemarks can only produce exact coordinates
+             "end" => $l->[4],
+             "end_type" => "EXACT", # genemarks can only produce exact coordinates
+             "strand" => $l->[6] eq "+" ? 1 : -1,
+             "score" => $l->[5],
+             "method" => "ab initio",
+             "type" => "CDS",
+             "tags" => {
+                          "transl_table" => $o->{"g_code"},
+                          "codon_start" => 1,
+              }
+           }
+  }
+
   if ( $program eq "glimmer" ) {
     #1      orf00001      343     2799  +1    10.26
     #[0]    [1]           [2]     [3]   [4]   [5]
