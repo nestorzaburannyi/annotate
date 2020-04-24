@@ -458,8 +458,10 @@ sub create_seq_hash {
         # we have to change the name in the very beginning, otherwise transparency won"t work
         $input_record->id(add_leading_zeros($counter, $o->{"sequence_digit"}));
 
-        # set the sequence to circular if specified
-        $input_record->is_circular( $o->{"circular"}->{$counter} );
+      # set the sequence to circular if specified
+      if ( $o->{"circular"}->{$record->id} ) {
+        $record->is_circular( $o->{"circular"}->{$record->id} );
+      }
 
         # transparent
         if ( $o->{"transparent"} ) {
