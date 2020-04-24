@@ -83,6 +83,7 @@ sub initialize_options {
             #annotation
             "cds-a" => 1,
                 "cds-a-program" => "pannzer",
+                "cds-a-score" => -inf,
         #additional parameters
         "program-name" => "Sequence Annotation Pipeline",
         "program-version" => "20200106",
