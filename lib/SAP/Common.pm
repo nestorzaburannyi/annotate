@@ -376,14 +376,7 @@ sub check_and_store_feature {
   # perform overlap checks before any feature storage
   return if overlap_rules ( $o, $feature );
 
-sub delete_feature {
-  # removes the feature from the feature pool
-  # accepts: a Bio::SeqFeature::Generic object to be deleted
-  # returns: undef
-  my ( $o, $outgoing_feature ) = @_;
-  if ( ! $outgoing_feature->isa("Bio::SeqFeature::Generic") ) {
-    exit_program( $o, "outgoing feature is not a Bio::SeqFeature::Generic object" );
-  }
+}
   if ( $outgoing_feature->has_tag("locus_tag") ) {
     foreach my $locus_tag_value ( $outgoing_feature->get_tag_values("locus_tag") ) {
       if ( exists $o->{"forbidden_locus_tags"}->{$locus_tag_value} ) {
@@ -391,8 +384,6 @@ sub delete_feature {
       }
     }
   }
-  $o->{"dbh_uuid"}->delete( $outgoing_feature ) or die "Could not delete feature";
-}
 
 sub clone_feature {
   # clones a feature, that is creates an independently mutable copy
