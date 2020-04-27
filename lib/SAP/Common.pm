@@ -560,17 +560,15 @@ sub overlap_rules {
             return 1;
           }
         }
-
-        # old CDS is inside a larger new CDS, different starts/ends # we remove different starts/ends first if the score is greater
-        #--------------------------------------------------------------------------------------> CDS1
-        #        ---------------> CDS2
-        # or
-        #--------------------------------------------------------------------------------------> CDS1
-        #                                                                       ---------------> CDS2
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "contains", ["CDS"] ) ) {
-            print_verbose ( $o, "Removing previously annotated ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.") fully contained within ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
-            delete_feature ( $o, $overlapped_feature);
+        # derived from ab initio
+        if ( $check_feature->annotation()->{"method"} eq "ab initio" ) {
+          # doesn't matter whom contans whom -> do not add a second one at the same place
+          if ( $feature->contains( $check_feature ) or $check_feature->contains( $feature ) ) {
+            print_verbose ( $o, "Skipping a CDS annotated at the same place ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
+            return 1;
+          }
         }
+      }
 
         #########################OVERLAPS#########################
         # a CDS overlaping a rRNA is likely a mistake, we skip it
