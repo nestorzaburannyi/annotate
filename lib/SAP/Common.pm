@@ -314,8 +314,8 @@ sub run_program {
     # show full command verbose
     print_verbose( $o, "Command used: $command" );
     # this is the only system call allowed, always wrap calls in run_program()
-    # tee everything to verbose log
-    system ( $command . "| tee -a ".$o->{"job"}."/verbose 1>/dev/null 2>/dev/null" );
+    # forward both stdout and stderr to respective log
+    system ( $command . " 2>>". $o->{"job"}."/stdio 1>&2" );
 }
 
 sub exit_program {
