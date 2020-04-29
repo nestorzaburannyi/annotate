@@ -416,57 +416,41 @@ sub create_seq_hash {
     my ( $o ) = @_;
     # to decide on sequence numbering below
     my $tmp_filehandle = Bio::SeqIO->new(-file => $o->{"i"}, -format => $o->{"input_format"} );
-    while ( my $input_record = $tmp_filehandle->next_seq ) {
+    while ( my $record = $tmp_filehandle->next_seq ) {
         $o->{"input_count"}++;
-        $o->{"input_size"} = ( $o->{"input_size"} ? $o->{"input_size"} : 0 ) + $input_record->length;
+        $o->{"input_size"} = ( $o->{"input_size"} ? $o->{"input_size"} : 0 ) + $record->length;
     }
     $o->{"sequence_digit"} = length( $o->{"input_count"} );
     print_log( $o, "Input has ".$o->{"input_count"}." sequences, setting sequence numbering to ".$o->{"sequence_digit"}."-digit" );
     # the real part
     my $input_filehandle = Bio::SeqIO->new(-file => $o->{"i"}, -format => $o->{"input_format"} );
-    my %s;
-    while ( my $input_record = $input_filehandle->next_seq ) {
-      my $counter = ( keys %s ) + 1;
-        # we have to change the name in the very beginning, otherwise transparency won"t work
-        $input_record->id(add_leading_zeros($counter, $o->{"sequence_digit"}));
+
+    while ( my $record = $input_filehandle->next_seq ) {
+
+      # we have to change the name in the very beginning
+      $record->id(add_leading_zeros(( keys %{$o->{"r"}} ) + 1, $o->{"sequence_digit"}));
+
+      # put the input record for further reference
+      $o->{"r"}->{$record->id} = $record;
 
       # set the sequence to circular if specified
       if ( $o->{"circular"}->{$record->id} ) {
         $record->is_circular( $o->{"circular"}->{$record->id} );
       }
 
-        # transparent
-        if ( $o->{"transparent"} ) {
-            foreach my $feature ( $input_record->get_SeqFeatures ) {
-                # set organism taxonomy based on db_xref tag of source feature
-                if ( $feature->primary_tag eq "source" ) {
-                    if ( not $o->{"taxid"} ) {
-                        foreach my $db_xref ( $feature->get_tagset_values( "db_xref" ) ) {
-                            next if not ( $db_xref =~ m/taxon:(\d+)/ );
-                            $o->{"taxid"} = $1;
-                        }
-                    }
-                    if ( not $o->{"strain"} ) {
-                        $o->{"strain"} = ( $feature->get_tagset_values( "strain" ) )[0];
-                    }
-                }
-                print_verbose ( $o, "Transparent mode, keeping ".$feature->primary_tag." (".$feature->start."..".$feature->end.")" );
-                my $transparent_feature = clone_feature( $o, $feature );
-                $transparent_feature->seq_id( $input_record->id );
-                store_feature ( $o, $transparent_feature );
-            }
-        }
-        # remove features anyway, transparent or not -> they will be stored in the sqlite DB only
-        $input_record->remove_SeqFeatures;
-        # now store naked sequence in the database, to be able to query for id:start..end features
-        $o->{"dbh_uuid"}->insert_sequence( $input_record->id, $input_record->seq );
-        $s{$input_record->id} = $input_record;
+      # transparent
+      if ( $o->{"transparent"} ) {
+        # store all features in case of transparent mode
+        @{ $o->{"r"}->{$record->id}->{"transparent"} } = $record->get_all_SeqFeatures();
+      }
+
+      # remove all features, transparent or not
+      $o->{"r"}->{$record->id}->remove_SeqFeatures();
+
     }
 
-    $o->{"dbh_uuid"}->commit;
     $o->{"locus_digit"} = int (log( 100000 )/log(10) - 2);
     print_log( $o, "Input is ".$o->{"input_size"}." bp long, setting locus numbering to ".$o->{"locus_digit"}."-digit" );
-    return wantarray ? %s : \%s;
 }
 
 sub overlap_rules {
