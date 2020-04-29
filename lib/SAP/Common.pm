@@ -385,29 +385,9 @@ sub check_and_store_feature {
     }
   }
 
-sub clone_feature {
-  # clones a feature, that is creates an independently mutable copy
-  # accepts: a Bio::SeqFeature::Generic object to be cloned
-  # returns: a cloned Bio::SeqFeature::Generic object
-  my ( $o, $source_feature ) = @_;
-  $source_feature->isa("Bio::SeqFeature::Generic") or die "source feature is not a Bio::SeqFeature::Generic object";
-  # create a feature wuth the same location parameters as the source feature
-  my $new_feature = create_feature ( $source_feature->primary_tag,
-                                     $source_feature->seq_id,
-                                     $source_feature->start,
-                                     $source_feature->location->start_pos_type,
-                                     $source_feature->end,
-                                     $source_feature->location->end_pos_type,
-                                     $source_feature->strand,
-                                     $source_feature->score );
-  # transfer all the tags from the source feature to its clone
-  foreach my $source_tag_type ( $source_feature->get_all_tags ) {
-    foreach my $source_tag_value ( $source_feature->get_tag_values( $source_tag_type ) ) {
-      $new_feature->add_tag_value( $source_tag_type, $source_tag_value );
-    }
   }
-  $new_feature->isa("Bio::SeqFeature::Generic") or die "new feature is not a Bio::SeqFeature::Generic object";
-  return $new_feature;
+  # all good
+  return 0;
 }
 
 sub get_overlapped_features {
