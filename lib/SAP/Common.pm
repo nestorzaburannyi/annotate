@@ -577,16 +577,8 @@ sub get_nucleotide_sequence_of_feature {
   # get the sequence of a feature
   my ( $o, $feature ) = @_;
   return $feature->spliced_seq()->seq();
-    # set the id of the new sequence to the id of the feature (otherwise it has $seq_id:$start..$end format)
-    $sequence_object->id( $feature->primary_id );
-    # change the strand if needed
-    if ( defined $feature->strand and $feature->strand == -1 ) {
-        $sequence_object = $sequence_object->revcom;
-    }
-    return $sequence_object;
 }
 
-# wrapper for get_nucleotide_sequence_of_feature
 sub get_protein_sequence_of_feature {
   # get the sequence of a feature
   my ( $o, $feature, $complete ) = @_;
