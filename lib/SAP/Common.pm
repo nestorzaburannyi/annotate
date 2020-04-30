@@ -390,6 +390,24 @@ sub check_and_store_feature {
   return 0;
 }
 
+sub get_adjoined_features {
+  # returns all features that equal/contain/overlap with certain feature
+  # accepts: $feature - a feature to check for equality/containment/overlap
+  #          $rule - rule, according to which the check is being performed (equals, contains, overlaps)
+  #          @types - a list of one or more feature types to include in the check
+  # returns: a list of features of type @types that have a $rule relation (equal, contain, overlap) to the feature in question
+  my ( $o, $feature, $rule, @types ) = @_;
+  my @candidates;
+  foreach my $type ( @types ) {
+    foreach my $candidate ( $o->{"r"}->{ $feature->seq_id() }->get_SeqFeatures($type) ) {
+      if ( $feature->$rule( $candidate ) ) {
+        push @candidates, $candidate;
+      }
+    }
+  }
+  return @candidates;
+}
+
 
 
 
