@@ -390,25 +390,6 @@ sub check_and_store_feature {
   return 0;
 }
 
-sub get_overlapped_features {
-  # checks if a feature overlaps / contains certain feature types
-  # accepts: $new_feature - a feature to check for overlaps
-  #          $rule - rule, according to which the check is being performed
-  #          $source_features - a list of one or more feature types to include in checking
-  # returns: a list of features that overlap the feature in question
-  my ( $o, $new_feature, $rule, $source_features ) = @_;
-  my $source_feature_iterator = $o->{"dbh_uuid"}->get_seq_stream( -seq_id => $new_feature->seq_id,
-                                                                  -start => $new_feature->start,
-                                                                  -end => $new_feature->end,
-                                                                  -type => $source_features );
-  my @return_features;
-  while (my $source_feature = $source_feature_iterator->next_seq) {
-      if ( $new_feature->$rule( $source_feature, "ignore") ) {
-          push @return_features, $source_feature;
-      }
-  }
-  return @return_features;
-}
 
 
 
