@@ -714,11 +714,6 @@ sub clean_up_uniprot {
   return $description // "Hypothetical protein";
 }
 
-# memoized sub parse_file
-{
-    my %filehandles;
-    my $aragorn_sequence_name;
-    my $glimmer_sequence_name;
     sub parse_file {
         my ( $o, $file, $action, $divider, $program ) = @_;
         # open file if it"s not open.
@@ -959,7 +954,6 @@ sub parse_line {
             }
         }
     }
-}
 
 
 
