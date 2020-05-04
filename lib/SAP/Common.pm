@@ -982,11 +982,10 @@ sub get_command {
     }
     elsif ( $program eq "prodigal" ) {
         # Error: Sequence must be 20000 characters (only 16084 read).
-        #(Consider running with the '-p anon' option or finding more contigs from the same genome.)
-        # on the other hand:
-        # Error: Can't specify translation table with anon mode or training file.
-        # therefore, either -p anon, or -g 11
-        return $o->{"cwd"}."/bin/prodigal/prodigal -e 0 -q -f gff".( $o->{"input_size"} < 20000 ? " -p anon" : " -g 11 -i " ).$o->{"job"}."/input_sequences -o ".$o->{"job"}."/prodigal";
+        # (Consider running with the '-p anon' option or finding more contigs from the same genome.)
+        # Warning:  ideally Prodigal should be given at least 100000 bases for training.
+        # You may get better results with the -p meta option.
+        return $o->{"cwd"}."/bin/prodigal/prodigal -q -m -f gff -g ".$o->{"gcode"}."".( $o->{"input_size"} < 100000 ? " -p meta" : "" )." -i ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/prodigal";
     }
     elsif ( $program eq "genemarks" ) {
         return $o->{"cwd"}."/bin/genemarks/gmsn.pl --format GFF --prok ".$o->{"job"}."/input_sequences --output ".$o->{"job"}."/genemarks";
