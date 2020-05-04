@@ -1002,6 +1002,9 @@ sub get_command {
     elsif ( $program eq "emapper" ) {
         return $o->{"cwd"}."/bin/emapper/emapper.py --override --cpu 1 --data_dir ".$o->{"cwd"}."/databases/emapper -m diamond -i ".$o->{"job"}."/input_annotation -o ".$o->{"job"}."/output"
     }
+    elsif ( $program eq "trf" ) {
+        return $o->{"cwd"}."/bin/trf/trf ".$o->{"job"}."/input_sequences 2 7 7 80 10 50 500 -h -ngs | tee ".$o->{"job"}."/trf";
+    }
     elsif ( $program eq "pilercr" ) {
         return $o->{"cwd"}."/bin/pilercr/pilercr -in ".$o->{"job"}."/input_sequences -out ".$o->{"job"}."/pilercr -noinfo -quiet";
     }
