@@ -947,6 +947,28 @@ sub parse_line {
               "score" => $l->[7],
            }
   }
+
+  if ( $program eq "minced" ) {
+    #1       minced:0.4.2    repeat_region   3760816 3761332 9       .       .       ID=CRISPR1;rpt_type=direct;rpt_family=CRISPR;rpt_unit_seq=CGGTTTATCCCCGCTGGCGCGGGGAACAC
+    #1       minced:0.4.2    repeat_unit     3760816 3760844 1       .       .       Parent=CRISPR1;ID=DR.CRISPR1.1
+    #[0]     [1]             [2]             [3]     [4]     [5]     [6]     [7]     [8]
+    return { "seq_id" => $l->[0],
+             "start" => $l->[3],
+             "primary_tag" => $l->[2] eq "repeat_region" ? "repeat_region" : "misc_feature",
+             "start_type" => "EXACT", # minced can only produce exact coordinates
+             "end" => $l->[4],
+             "end_type" => "EXACT", # minced can only produce exact coordinates
+             "strand" => 0,
+             "score" => 0,
+             "type" => "CRISPR",
+             "tags" => $l->[2] eq "repeat_region" ?
+                       {
+                          "rpt_type" => "direct",
+                          "rpt_family" => "CRISPR",
+                          "rpt_unit_seq" => ( $l->[8] =~ m/rpt_unit_seq=(.+)/ )[0],
+                        } : { "note" => "repeat unit" },
+           }
+  }
                 return \@line;
             }
         }
