@@ -593,7 +593,6 @@ sub prepare_input {
   # prepares the input
     my ( $o, $s, $input_type ) = @_;
     prepare_sequences ( $o, $s ) if ( $input_type eq "sequences" );
-    prepare_homology ( $o, $s ) if ( $input_type eq "homology" );
     prepare_annotation ( $o, $s ) if ( $input_type eq "annotation" );
     return;
 }
@@ -609,21 +608,6 @@ sub prepare_sequences {
                                                   -id => $seq_id ) );
   }
   exit_program ( $o, "Required file ".$o->{"job"}."/input_sequences does not exist.") if not (-e $o->{"job"}."/input_sequences" );
-}
-
-sub prepare_homology {
-    my ( $o, $s ) = @_;
-    # query file contains blast input if is has NOT been calculated previously
-    my $query_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_homology_".$o->{"cds-h"}, -format => "fasta" );
-    foreach my $intergenic_and_cds_sequence ( get_intergenic_and_cds_sequences ( $o, $s ) ) {
-        $intergenic_and_cds_sequence->id ( $intergenic_and_cds_sequence->id );
-        if ( not exists $o->{"homology"}->{$intergenic_and_cds_sequence->id} ) {
-            # set the "exists" tag
-            $o->{"homology"}->{$intergenic_and_cds_sequence->id} = 1;
-            # store the empty for future runs
-            $query_filehandle->write_seq( $intergenic_and_cds_sequence );
-        }
-    }
 }
 
 sub prepare_annotation {
