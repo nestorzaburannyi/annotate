@@ -607,15 +607,16 @@ sub prepare_sequences {
 }
 
 sub prepare_annotation {
-    my ( $o, $s ) = @_;
-    my $query_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_annotation", -format => "fasta" );
-    foreach my $seq_id (sort keys %$s) {
-        foreach my $feature ( $o->{"dbh_uuid"}->features( -seq_id => $seq_id, -type => ["CDS"] ) ) {
-            my $sequence_object = get_protein_sequence_of_feature( $o, $feature );
-            $sequence_object->id ( $sequence_object->id );
-            $query_filehandle->write_seq( $sequence_object );
-        }
+  # prepares an input file containing protein sequences in FASTA format
+  my ( $o, $s ) = @_;
+  my $output_filehandle = Bio::SeqIO->new(-file => ">".$o->{"job"}."/input_annotation", -format => "fasta" );
+  foreach my $seq_id ( sort keys %{$o->{"r"}} ) {
+    foreach my $feature ( grep { ! $_->has_tag("product") } $o->{"r"}->{$seq_id}->get_SeqFeatures( "CDS" ) ) {
+      my $sequence = get_protein_sequence_of_feature( $o, $feature, 1 );
+      $output_filehandle->write_seq( Bio::Seq->new( -seq => $sequence,
+                                                    -id => $feature->annotation()->{"unique_id"} ) );
     }
+  }
 }
 
 sub clean_up_description {
