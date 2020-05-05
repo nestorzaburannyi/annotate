@@ -498,10 +498,6 @@ sub overlap_rules {
         # misc_binding features are not to be skipped
     }
 
-    elsif ( $check_feature->primary_tag eq "ORF" ) {
-        # ORF features are not to be skipped
-    }
-
     # CDS features are most difficult
     elsif ( $check_feature->primary_tag eq "CDS" ) {
 
