@@ -985,7 +985,7 @@ sub get_command {
       return $o->{"cwd"}."/bin/aragorn/aragorn -fon -gc11 ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/aragorn";
     }
     elsif ( $program eq "infernal" ) {
-      return $o->{"cwd"}."/bin/infernal/cmscan --tblout ".$o->{"job"}."/infernal --fmt 2 --notextw --cut_ga --cpu 1 ".$o->{"cwd"}."/databases/rfam/rfam_bacteria.cm ".$o->{"job"}."/input_sequences";
+      return $o->{"cwd"}."/bin/infernal/cmscan --tblout ".$o->{"job"}."/infernal --fmt 2 --anytrunc --cut_ga ".$o->{"cwd"}."/databases/rfam/Rfam.cm ".$o->{"job"}."/input_sequences";
     elsif ( $program eq "glimmer1" ) {
       return $o->{"cwd"}."/bin/glimmer/long-orfs --trans_table ".$o->{"gcode"}." --linear -n -t 1.15 ".$o->{"job"}."/input_sequences ".$o->{"job"}."/glimmer.longorfs";
     }
