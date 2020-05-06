@@ -52,6 +52,16 @@ sub initialize_options {
         #modules
             #submodules
                 #parameters
+        #DNA feature prediction
+        "dna" => 1,
+            #CRISPR
+            "dna-crispr" => 1,
+                "dna-crispr-program" => "minced",
+                "dna-crispr-score" => -inf,
+            #tandem repeats
+            "dna-tandem" => 0,
+                "dna-tandem-program" => "trf",
+                "dna-tandem-score" => -inf,
         #RNA gene prediction
         "rna" => 1,
             #rRNA
@@ -116,6 +126,16 @@ sub initialize_options {
         "input|i=s"                                         => \$o->{"i"},
         #update databases
         "update"                                            => \$o->{"update"},
+        #DNA feature prediction
+        "dna!"                                              => \$o->{"dna"},
+            #CRISPR
+            "dna-crispr!"                                   => \$o->{"dna-crispr"},
+                "dna-crispr-program=s"                      => \$o->{"dna-crispr-program"},
+                "dna-crispr-score=s"                        => \$o->{"dna-crispr-score"},
+            #tandem repeats
+            "dna-tandem!"                                   => \$o->{"dna-tandem"},
+                "dna-tandem-program=s"                      => \$o->{"dna-tandem-program"},
+                "dna-tandem-score=s"                        => \$o->{"dna-tandem-score"},
         #RNA gene prediction
         "rna!"                                              => \$o->{"rna"},
             #rRNA
