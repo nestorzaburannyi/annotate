@@ -50,14 +50,14 @@ sub run_prodigal {
 }
 
 sub run_genemarks {
-    my ( $o, $s ) = @_;
+  my ( $o ) = @_;
     print_log( $o, "Running GeneMarkS ".$o->{"genemarks-version"}."..." );
     my ( $c ) = get_command ( $o, "genemarks" );
     run_program ( $o, $c );
 }
 
 sub run_blast {
-    my ( $o, $s ) = @_;
+  my ( $o ) = @_;
     print_log( $o, "Running BLASTX ".$o->{"blast-version"}."..." );
     my ( $c ) = get_command ( $o, "blast" );
     run_program ( $o, $c );
