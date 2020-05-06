@@ -85,52 +85,34 @@ sub run_emapper {
 }
 
 sub parse_ab_initio {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Parsing ab initio CDS predictions..." );
-    my ( $c ) = get_command ( $o, $o->{"cds-i-program"} );
-    while ( my $l = parse_file( $o, $o->{"job"}."/".$o->{"cds-i-program"}, "line", "\\s+", $o->{"cds-i-program"} ) ) {
-        my ( $seq_id, $start, $end, $strand, $score, $start_before, $end_after );
-        #program-specific part
-        if ( $o->{"cds-i-program"} eq "prodigal" ) {
-            ( $seq_id, $start, $end, $strand, $score ) = ( $l->[0], $l->[3], $l->[4], $l->[6] eq "+" ? 1 : -1, $l->[5] );
-            ( $start_before, $end_after, my $start_type, my $stop_type ) = $l->[8] =~ m/;partial=([0|1])([0|1]);start_type=(.*);stop_type=(.*);rbs_motif=/;
-            $start_before = "1" if ( ( ! $stop_type ) and ( $strand eq "-1" ) );
-            $end_after = "1" if ( ( ! $start_type ) and ( $strand eq "1" ) );
-            # skip low scores if set by the user
-            next if ( $score < $o->{"cds-i-score"} );
-        }
-        elsif ( $o->{"cds-i-program"} eq "glimmer" ) {
-            ( $seq_id, $start, $end, $strand, $score ) = ( $l->[-1], $l->[3] =~ m/\+/ ? $l->[1] : $l->[2], $l->[3] =~ m/\+/ ? $l->[2] : $l->[1], $l->[3] =~ m/\+/ ? 1 : -1, $l->[4] );
-            # glimmer can extend beyong sequence, both sides
-            $start = $start+3 if ( $start < 1 );
-            $end = $end-3 if ( $end > $s->{$seq_id}->length );
-            # do not skip
-            # next if ( $score < $o->{"cds-i-score"} );
-        }
-        elsif ( $o->{"cds-i-program"} eq "genemarks" ) {
-            ( $seq_id, $start, $end, $strand, $score ) = ( $l->[0], $l->[3], $l->[4], $l->[6] eq "+" ? 1 : -1, $l->[5] );
-            # skip low scores if set by the user
-            # next if ( $score < $o->{"cds-i-score"} );
-        }
-        # create CDS sequence feature
-        my $feature = create_feature ( "CDS", $seq_id, $start, $start_before ? "BEFORE" : "EXACT", $end, $end_after ? "AFTER" : "EXACT", $strand, $score );
-        # WАRNING: valid [SEQ_FEAT.PartialProblem] PartialLocation: 3' partial is not at stop AND is not at consensus splice site FEATURE: CDS: Alginate lyase [lcl|sequence_1:c985-<2] [lcl|sequence_1: raw, dna len= 76377] -> [lcl|sequence_1_1]
-        # NОTE: valid [SEQ_FEAT.PartialProblem] PartialLocation: Stop does not include first/last residue of sequence (but is at consensus splice site) FEATURE: CDS: Type IV secretion protein Rhs [lcl|sequence_1:71735->76375] [lcl|sequence_1: raw, dna len= 76377] -> [
-        # if $start_before and $strand = 1, or $end_after and $strand = -1, check the difference between sequence start / end and apply codon_start, if necessary
-        # if ( $start_before and $strand eq 1 and $start > 1 ) {
-        #   $feature->add_tag_value ("codon_start", $start );
-        #   $start = 1;
-        # }
-        # if ( $end_after and $strand eq -1 and $end < $s->{$seq_id}->length ) {
-        #   $feature->add_tag_value ("codon_start", $s->{$seq_id}->length );
-        #   $end = $s->{$seq_id}->length;
-        # }
-        # generate the inference tag
-        my $inference = "COORDINATES:ab initio prediction:".$o->{"cds-i-program"}.":".$o->{$o->{"cds-i-program"}."-version"};
-        $feature->add_tag_value ("inference", $inference );
-        #store CDS sequence feature
-        check_and_store_feature ( $o, $feature );
+  my ( $o ) = @_;
+  print_log( $o, "Annotating ab initio CDS predictions..." );
+  foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"cds-i-program"}, "\\s+", $o->{"cds-i-program"} ) ) {
+    # program-independent block
+    # skip low scores if set by the user
+    next if ( $l->{"score"} < $o->{"cds-i-score"} );
+    # set the primary tag
+    $l->{"primary_tag"} = "CDS";
+    # create CDS sequence feature candidate
+    my $feature = create_feature ( $o, $l );
+
+    # program-specific block
+    if ( $o->{"cds-i-program"} eq "prodigal" ) {
+      # inference tag
+      $feature->add_tag_value ("inference", "COORDINATES:ab initio prediction:".$o->{"cds-i-program"}.":".$o->{$o->{"cds-i-program"}."-version"} );
     }
+    elsif ( $o->{"cds-i-program"} eq "glimmer" ) {
+      # inference tag
+      $feature->add_tag_value ("inference", "COORDINATES:ab initio prediction:".$o->{"cds-i-program"}.":".$o->{$o->{"cds-i-program"}."-version"} );
+    }
+    elsif ( $o->{"cds-i-program"} eq "genemarks" ) {
+      # inference tag
+      $feature->add_tag_value ("inference", "COORDINATES:ab initio prediction:".$o->{"cds-i-program"}.":".$o->{$o->{"cds-i-program"}."-version"} );
+    }
+
+    # check and store CDS sequence feature
+    check_and_store_feature ( $o, $feature );
+  }
 }
 
 sub parse_homology {
