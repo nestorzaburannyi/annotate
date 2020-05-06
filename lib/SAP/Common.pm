@@ -764,6 +764,21 @@ sub parse_line {
              "comment" => $i->[9],
            }
   }
+  if ( $program eq "rnammer" ) {
+    # seqname           source                      feature     start      end   score   +/-  frame  attribute
+    # ---------------------------------------------------------------------------------------------------------
+    # [0]               [1]                         [2]         [3]        [4]   [5]     [6]  [7]    [8]
+    return { "seq_id" => $l->[0],
+             "start" => $l->[3],
+             "start_type" => "EXACT", # rnammer can only produce exact coordinates
+             "end" => $l->[4],
+             "end_type" => "EXACT", # rnammer can only produce exact coordinates
+             "strand" => $l->[6] eq "+" ? 1 : -1,
+             "score" => $l->[5],
+             "type" => "rRNA",
+             "product" => $l->[8] =~ s/s_rRNA/S subunit ribosomal rRNA/ri, # make the product name nicer by using the /r option
+           }
+  }
 }
 
   if ( $program eq "prodigal" ) {
