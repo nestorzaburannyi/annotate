@@ -134,45 +134,29 @@ sub parse_ab_initio {
 }
 
 sub parse_homology {
-    my ( $o, $s ) = @_;
-    print_log( $o, "Parsing homology CDS predictions..." );
-    my $success;
-    while ( my $l = parse_file( $o, $o->{"job"}."/output_homology_".$o->{"cds-h"}, "line", "\\s+", $o->{"cds-h-program"} ) ) {
-        # program-specific part
-        if ( ( $o->{"cds-h-program"} eq "blast" ) or ( $o->{"cds-h-program"} eq "diamond" ) ) {
-            #qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue score slen cached
-            my ( $qseqid, $sseqid, $qstart, $qend, $qstrand, $sstart, $score, $identity, $cached ) = ( $l->[0], $l->[1], $l->[6] < $l->[7] ? $l->[6] : $l->[7], $l->[6] < $l->[7] ? $l->[7] : $l->[6], $l->[6] < $l->[7] ? 1 : -1, $l->[8], $l->[11], $l->[2], $l->[13] );
-            my ( $seq_id, $qoffset, $source_strand ) = ( $l->[0] =~ m/^(\d+)_offset(\S+)_strand(.?\d)_.*$/ );
-            # set an "exists" flag so we will not repeat this search
-            $o->{"homology"}->{$qseqid} = 1;
-            # skip low scores if set by the user
-            next if ( $score < $o->{"cds-h-score"} );
+  my ( $o ) = @_;
+  print_log( $o, "Annotating homology CDS predictions..." );
+  foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"cds-h-program"}, "\\t", $o->{"cds-h-program"} ) ) {
+    # program-independent block
+    # skip low scores if set by the user
+    next if ( $l->{"score"} < $o->{"cds-h-score"} );
     # set the primary tag
     $l->{"primary_tag"} = "CDS";
     # create CDS sequence feature candidate
     my $feature = create_feature ( $o, $l );
 
-            # convert ORF to CDS only if they have been confirmed in the second round
-            if ( ( $source_strand eq 2 ) and ( get_overlapped_features ( $o, $feature, "equals", ["ORF"] ) ) ) {
-                my $new_qseqid = $qseqid;
-                my $new_feature_strand = $feature->strand;
-                $new_qseqid =~ s/_strand2/_strand$new_feature_strand/;
-                $o->{"homology"}->{$new_qseqid} = 1;
-            }
-            elsif ( $source_strand eq 2 ) {
-                next;
-            }
-            # generate the inference tag
-            my $inference = "COORDINATES:alignment:swissprot:$sseqid";
-            $feature->add_tag_value ("inference", $inference);
-            #store CDS sequence feature
-            $success++ if check_and_store_feature ( $o, $feature );
-        }
+    # program-specific block
+    if ( $o->{"cds-h-program"} eq "blast" or $o->{"cds-h-program"} eq "diamond" ) {
+      # product tag
+      $feature->add_tag_value ( "product", $l->{"product"} );
+      # gene tag
+      $feature->add_tag_value ( "gene", $l->{"gene_name"} );
+      # inference tag
+      $feature->add_tag_value ( "inference", "COORDINATES:alignment:swissprot:".( $l->{"hit_id"} =~ m/^\S+\|(\S+_\S+)$/ )[0] );
+      # check and store CDS sequence feature
+      check_and_store_feature ( $o, $feature );
     }
-    # last iteration when no more success
-    $o->{"cds-h"} = 0 if not $success;
-    # else next iteration
-    $o->{"cds-h"}++ if $success;
+  }
 }
 
 sub parse_annotation {
