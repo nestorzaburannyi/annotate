@@ -607,9 +607,9 @@ sub get_protein_sequence_of_feature {
 ##################################################### IO FILE ######################################################
 sub prepare_input {
   # prepares the input
-    my ( $o, $s, $input_type ) = @_;
-    prepare_sequences ( $o, $s ) if ( $input_type eq "sequences" );
-    prepare_annotation ( $o, $s ) if ( $input_type eq "annotation" );
+    my ( $o, $input_type ) = @_;
+    prepare_sequences ( $o ) if ( $input_type eq "sequences" );
+    prepare_annotation ( $o ) if ( $input_type eq "annotation" );
     return;
 }
 

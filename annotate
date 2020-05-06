@@ -28,7 +28,7 @@ initialize_pipeline( $o, $working_folder );
 my $s = create_seq_hash ( $o );
 
 # prepare input fasta file which will be used for most of the subcommands
-prepare_input ( $o, $s, "sequences" );
+prepare_input ( $o, "sequences" );
 
 # perform RNA gene prediction if required
 rna_prediction ( $o, $s ) if ( $o->{"rna"} );
