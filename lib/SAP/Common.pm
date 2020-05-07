@@ -396,14 +396,42 @@ sub check_and_store_feature {
   # perform overlap checks before any feature storage
   return if overlap_rules ( $o, $feature );
 
+    print_verbose ( $o, "Storing feature: ".$feature->primary_tag.":".$feature->start."-".$feature->end );
+
+    # store feature on the record
+    $o->{"r"}->{$feature->seq_id()}->add_SeqFeature( $feature );
+    # mark unique feature location
+    $o->{"feature_by_loc"}->{ $feature->seq_id().$feature->primary_tag.$feature->location()->to_FTstring() } = $feature;
+    # store by feature unique id
+    $o->{"feature_by_id"}->{ $feature->annotation()->{"unique_id"} } = $feature;
+
+    return;
 }
-  if ( $outgoing_feature->has_tag("locus_tag") ) {
-    foreach my $locus_tag_value ( $outgoing_feature->get_tag_values("locus_tag") ) {
-      if ( exists $o->{"forbidden_locus_tags"}->{$locus_tag_value} ) {
-        delete $o->{"forbidden_locus_tags"}->{$locus_tag_value};
-      }
+
+sub feature_rules {
+  my ( $o, $feature ) = @_;
+  if ( $feature->primary_tag =~ m/^CDS/ ) {
+
+    # get the translation with complete = false
+    my $translation = get_protein_sequence_of_feature( $o, $feature, 0 );
+    # checking for proper stop codon
+    if ( $translation !~ m/\*$/ ) {
+      print_verbose ( $o, "Skipping CDS feature with no stop codon at the end: ".$feature->primary_tag.":".$feature->start."-".$feature->end );
+      return 1;
     }
-  }
+    # refresh the translation with complete = true
+    $translation = get_protein_sequence_of_feature( $o, $feature, 1 );
+    # checking for proper start codon
+    if ( $translation !~ m/^M/ ) {
+      print_verbose ( $o, "Skipping CDS feature with no start codon at the beginning: ".$feature->primary_tag.":".$feature->start."-".$feature->end );
+      return 1;
+    }
+
+    # checking for internal stop codon
+    if ( $translation =~ m/\*/ ) {
+      print_verbose ( $o, "Skipping CDS feature with internal stop codons: ".$feature->primary_tag.":".$feature->start."-".$feature->end );
+      return 1;
+    }
 
   }
   # all good
@@ -491,7 +519,7 @@ sub overlap_rules {
     }
 
     elsif ( $check_feature->primary_tag eq "rRNA" ) {
-        # rRNA features are not to be skipped
+      # rRNA features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "tRNA" ) {
@@ -503,7 +531,7 @@ sub overlap_rules {
     }
 
     elsif ( $check_feature->primary_tag eq "tmRNA" ) {
-        # tmRNA features are not to be skipped
+      # tmRNA features are not to be skipped
     }
 
     elsif ( $check_feature->primary_tag eq "ncRNA" ) {
@@ -518,15 +546,16 @@ sub overlap_rules {
         # misc_binding features are not to be skipped
     }
 
-    # CDS features are most difficult
     elsif ( $check_feature->primary_tag eq "CDS" ) {
+      # CDS features are most complex
 
-        #########################CONTAINS#########################
-        # CDS features should not contain any important features, we remove the longer
-        #--------------------------------------------------------------------------------------> CDS
-        #                               <--------------- tRNA
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "contains", ["tRNA", "tmRNA"] ) ) {
-            print_verbose ( $o, "Skipping ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.") due to overlap with ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.")" );
+      # CDS-CDS overlaps
+      foreach my $feature ( get_adjoined_features ( $o, $check_feature, "overlaps", "CDS" ) ) {
+        # derived from homology
+        if ( $check_feature->annotation()->{"method"} eq "homology" ) {
+          # doesn't matter whom contans whom -> if this is the same gene -> do not add a second one at the same place
+          if ( ( $feature->contains( $check_feature ) or $check_feature->contains( $feature ) ) and $check_feature->annotation()->{"gene_id"} eq $feature->annotation()->{"gene_id"} ) {
+            print_verbose ( $o, "Skipping same gene annotated at the same place ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
             return 1;
           }
         }
@@ -540,25 +569,20 @@ sub overlap_rules {
         }
       }
 
-        #########################OVERLAPS#########################
-        # a CDS overlaping a rRNA is likely a mistake, we skip it
-        #--------------------------------------------------------------------------------------> CDS
-        #                                                                                   <------------------------------- rRNA
-        #                                                                            ---------------> repeat_reagion
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "overlaps", ["rRNA"] ) ) {
-            print_verbose ( $o, "Skipping ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.") due to overlap with ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.")" );
-            return 1;
+      # CDS-RNA overlaps
+      foreach my $feature ( get_adjoined_features ( $o, $check_feature, "overlaps", "rRNA", "tRNA", "tmRNA" ) ) {
+        print_verbose ( $o, "Skipping CDS feature overlapping an RNA gene: ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
+        return 1;
+      }
+
+      # CDS-repeat overlaps
+      foreach my $feature ( get_adjoined_features ( $o, $check_feature, "overlaps", "repeat_region" ) ) {
+        # if overlaps CRISPR, do not annotate
+        if ( $feature->annotation()->{"type"} eq "CRISPR" ) {
+          print_verbose ( $o, "Skipping CDS feature overlapping a CRISPR array: ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.")" );
+          return 1;
         }
-        # among ncRNA, for now only features with ncRNA_class=ribozyme and =RNase_P_RNA are not allowed to overlap with CDS
-        # a CDS overlaping these types of ncRNA is likely a mistake, we skip it
-        #--------------------------------------------------------------------------------------> CDS
-        #                                                                                   <------------------------------- ncRNA, nc_RNA_class=ribozyme
-        foreach my $overlapped_feature ( get_overlapped_features ( $o, $check_feature, "overlaps", ["ncRNA"] ) ) {
-            if ( grep { $_ =~ m/^ribozyme$|^RNase_P_RNA$/ } $overlapped_feature->get_tagset_values("ncRNA_class" ) ) {
-                print_verbose ( $o, "Skipping ".$check_feature->primary_tag." (".$check_feature->start."..".$check_feature->end.") due to overlap with ".$overlapped_feature->primary_tag." (".$overlapped_feature->start."..".$overlapped_feature->end.")" );
-                return 1;
-            }
-        }
+      }
 
     }
 
