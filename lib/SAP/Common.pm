@@ -843,7 +843,20 @@ sub parse_line {
                                                                                              # From: https://www.ncbi.nlm.nih.gov/genbank/genome_validation/
            }
   }
-}
+  if ( $program eq "aragorn" ) {
+    #>1-60 tmRNA c[3604541,3604903]
+    #>1-98 tRNA-Phe(gaa) c[5387551,5387626]
+    #[0]   [1]           [2]
+    return { "seq_id" => ( $l->[0] =~ m/^>(\d+)-\d+$/ )[0],
+             "start" => ( $l->[2] =~ m/^c?\[(\d+),\d+\]$/ )[0],
+             "start_type" => "EXACT", # aragorn can only produce exact coordinates
+             "end" => ( $l->[2] =~ m/^c?\[\d+,(\d+)\]$/ )[0],
+             "end_type" => "EXACT", # aragorn can only produce exact coordinates
+             "strand" => $l->[2] =~ m/^c/ ? -1 : 1,
+             "score" => 0,
+             "product" => $l->[1],
+           }
+  }
 
   if ( $program eq "prodigal" ) {
     ##gff-version  3
