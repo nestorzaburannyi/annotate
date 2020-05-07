@@ -799,6 +799,26 @@ sub parse_line {
              "product" => $l->[8] =~ s/s_rRNA/S subunit ribosomal rRNA/ri, # make the product name nicer by using the /r option
            }
   }
+  if ( $program eq "trnascanse" ) {
+    #Sequence                tRNA    Bounds  tRNA    Anti    Intron Bounds   Inf
+    #Name            tRNA #  Begin   End     Type    Codon   Begin   End     Score   Note
+    #--------        ------  -----   ------  ----    -----   -----   ----    ------  ------
+    #1               1       229152  229228  Ile     GAT     0       0       75      pseudo
+    #[0]             [1]     [2]     [3]     [4]     [5]     [6]     [7]     [8]     [9]
+    return { "seq_id" => $l->[0] =~ s/\s+//ri, # make use of the /r option, sequence name has trailing spaces
+             "start" => $l->[2] > $l->[3] ? $l->[3] : $l->[2],
+             "start_type" => "EXACT", # trnascanse can only produce exact coordinates
+             "end" => $l->[2] > $l->[3] ? $l->[2] : $l->[3],
+             "end_type" => "EXACT", # trnascanse can only produce exact coordinates
+             "strand" => $l->[2] > $l->[3] ? -1 : 1,
+             "score" => $l->[8],
+             "type" => "tRNA",
+             "product" => $l->[4] eq "Undet" ? "tRNA-Xxx" : "tRNA-".$l->[4]."(".$l->[5].")", # SEQ_FEAT.MissingTrnaAA
+                                                                                             # Explanation: The amino acid that the tRNA carries is not included.
+                                                                                             # Suggestion: Include the amino acid as the product of the tRNA. If the amino acid of a tRNA is unknown, use tRNA-Xxx as the product.
+                                                                                             # From: https://www.ncbi.nlm.nih.gov/genbank/genome_validation/
+           }
+  }
 }
 
   if ( $program eq "prodigal" ) {
