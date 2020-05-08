@@ -1076,7 +1076,7 @@ sub get_command {
       return $o->{"cwd"}."/bin/trnascanse/tRNAscan-SE -q -B ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/trnascanse";
     }
     elsif ( $program eq "aragorn" ) {
-      return $o->{"cwd"}."/bin/aragorn/aragorn -fon -gc11 ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/aragorn";
+      return $o->{"cwd"}."/bin/aragorn/aragorn -fon -gc".$o->{"gcode"}." ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/aragorn";
     }
     elsif ( $program eq "infernal" ) {
       return $o->{"cwd"}."/bin/infernal/cmscan --tblout ".$o->{"job"}."/infernal --fmt 2 --anytrunc --oskip --oclan --clanin ".$o->{"cwd"}."/databases/rfam/Rfam.clanin --notextw --cut_ga ".$o->{"cwd"}."/databases/rfam/Rfam.cm ".$o->{"job"}."/input_sequences";
