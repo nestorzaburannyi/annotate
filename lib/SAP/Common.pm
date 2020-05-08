@@ -1072,7 +1072,7 @@ sub get_command {
       return $o->{"cwd"}."/bin/rnammer/rnammer -m lsu,ssu,tsu -S bac -T /tmp ".$o->{"job"}."/input_sequences -gff ".$o->{"job"}."/rnammer";
     }
     elsif ( $program eq "trnascanse" ) {
-      return $o->{"cwd"}."/bin/trnascanse/tRNAscan-SE -q -Q -B ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/trnascanse";
+      return $o->{"cwd"}."/bin/trnascanse/tRNAscan-SE -q -B ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/trnascanse";
     }
     elsif ( $program eq "aragorn" ) {
       return $o->{"cwd"}."/bin/aragorn/aragorn -fon -gc11 ".$o->{"job"}."/input_sequences -o ".$o->{"job"}."/aragorn";
