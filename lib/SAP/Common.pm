@@ -164,7 +164,6 @@ sub initialize_options {
             "cds-h!"                                        => \$o->{"cds-h"},
                 "cds-h-program=s"                           => \$o->{"cds-h-program"},
                 "cds-h-score=s"                             => \$o->{"cds-h-score"},
-                "cds-h-identity=s"                          => \$o->{"cds-h-identity"},
             #annotation
             "cds-a!"                                        => \$o->{"cds-a"},
                 "cds-a-program=s"                           => \$o->{"cds-a-program"},
