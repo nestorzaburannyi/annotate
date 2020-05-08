@@ -116,6 +116,7 @@ sub initialize_options {
         "locus_digit" => "5",
         "step" => "10",
         "complete" => "0",
+        "gcode" => "11",
 	  };
         #getting options
     GetOptions (
@@ -170,6 +171,7 @@ sub initialize_options {
                 "cds-a-score=s"                             => \$o->{"cds-a-score"},
         #meta data
         "taxid=s"                                           => \$o->{"taxid"},
+        "gcode=i"                                           => \$o->{"gcode"},
         "strain=s"                                          => \$o->{"strain"},
         "prefix=s"                                          => \$o->{"prefix"},
         "bioproject=s"                                      => \$o->{"bioproject"},
@@ -264,6 +266,7 @@ Optional parameters:
         -cds-h                  boolean         true                                    prediction of CDS genes (homology-based)
         -cds-a                  boolean         true                                    annotation of CDS genes
         -taxid                  integer         -                                       NCBI taxonomy id of the organism (e.g. 52)
+        -gcode                  integer         -                                       NCBI genetic code table (e.g. 11)
         -strain                 string          -                                       strain name
         -prefix                 string          -                                       prefix for locus numbering (NCBI-compatibility)
         -bioproject             string          -                                       a BioProject identifier (NCBI-compatibility)
