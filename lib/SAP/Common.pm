@@ -738,41 +738,31 @@ sub clean_up_uniprot {
   return $description // "Hypothetical protein";
 }
 
-    sub parse_file {
-        my ( $o, $file, $action, $divider, $program ) = @_;
-        # open file if it"s not open.
-        if (not $filehandles{$file}) {
-            open $filehandles{$file}, "<", $file;
-        }
-        # get-a-record
-        if ( $action eq "record" ) {
-            # consider double slash (or other) as a record division
-            local $/ = $divider;
-            while (my $line = readline ( $filehandles{$file})) {
-                return $line;
-            }
-        }
-        # get-a-line
-        elsif ( $action eq "line" ) {
-            while (my $line = readline ( $filehandles{$file})) {
-                # chomp line first
-                chomp $line;
-                # skip empty lines
-                next if ( $line =~ m/^$/);
-                # skip comments
-                next if ( $line =~ m/^#/);
-                # skip header in tRNAscan-SE
+sub parse_file {
+  my ( $o, $file, $divider, $program ) = @_;
+  # open file if it"s not open.
+  open my $filehandle, "<", $file;
+  my @lines;
+  while ( my $line = readline ( $filehandle) ) {
+    # chomp line first
+    chomp $line;
+    # skip empty lines
+    next if ( $line =~ m/^$/);
+    # skip comments
+    next if ( $line =~ m/^#/);
+    # skip header in tRNAscan-SE
     next if $program eq "trnascanse" and $line =~ m/^Sequence|^Name|^-/;
     # skip sequence lines in ARAGORN
     next if (( $program eq "aragorn") && ( $line !~ m/^>/));
-                # skip the header line from PANNZER
-                next if (( $program eq "pannzer") && ( $line =~ m/^qpid/));
-                # warn on parse error
-                print_log( $o, "Parse error in file $file, line $.") if not (my @line = split (/$divider/, $line));
+    # skip the header line from PANNZER
+    next if (( $program eq "pannzer") && ( $line =~ m/^qpid/));
+    # warn on parse error
+    print_log( $o, "Parse error in file $file, line $.") if not (my @line = split (/$divider/, $line));
     # push the line to the lines
     push @lines, \@line;
   }
   return map { parse_line( $o, $program, $_ ) } @lines;
+}
 
 sub parse_line {
   # returns line elements that are required depending on a type of a program
@@ -1057,8 +1047,20 @@ sub parse_line {
                         } : { "note" => "repeat unit" },
            }
   }
-                return \@line;
-            }
+
+}
+
+sub get_line {
+  my ( $o, $file, $id, $divider ) = @_;
+  # open file if it"s not open.
+  open my $filehandle, "<", $file;
+  while ( my $line = readline ( $filehandle) ) {
+    # chomp line first
+    chomp $line;
+    my @line = split (/$divider/, $line);
+    if ( $line[0] eq $id ) {
+      return \@line;
+    }
         }
     }
 
