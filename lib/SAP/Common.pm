@@ -285,9 +285,7 @@ Advanced parameters:
         -rna-tm-program         string          aragorn                                 aragorn, infernal
         -rna-nc-program         string          infernal                                infernal
         -cds-i-program          string          prodigal                                prodigal, glimmer, genemarks
-        -cds-i-score            string          5                                       score threshold for ab initio predictions
         -cds-h-program          string          blast                                   blast, diamond
-        -cds-h-evalue           string          1e-5                                    e-value threshold for homology searches
         -cds-a-program          string          pannzer                                 pannzer, emapper
 
 Note: you can disable modules or submodules of the program by prepending "-no" to the respective option: "-no-cds" will cause the pipeline not to predict any CDS
