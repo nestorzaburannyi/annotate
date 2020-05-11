@@ -170,7 +170,7 @@ sub initialize_options {
                 "cds-a-program=s"                           => \$o->{"cds-a-program"},
                 "cds-a-score=s"                             => \$o->{"cds-a-score"},
         #meta data
-        "taxid=s"                                           => \$o->{"taxid"},
+        "taxid=i"                                           => \$o->{"taxid"},
         "gcode=i"                                           => \$o->{"gcode"},
         "strain=s"                                          => \$o->{"strain"},
         "prefix=s"                                          => \$o->{"prefix"},
