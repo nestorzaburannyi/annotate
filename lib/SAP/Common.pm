@@ -188,6 +188,8 @@ sub initialize_options {
         "antismash"                                         => \$o->{"antismash"},
         "output|o=s"                                        => \$o->{"output"},
     ) or exit;
+    return $o;
+}
 
 sub initialize_pipeline {
     my ( $o, $cwd ) = @_;
