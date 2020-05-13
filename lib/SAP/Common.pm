@@ -1105,7 +1105,7 @@ sub get_command {
         return $o->{"cwd"}."/bin/blast/blastx -query_gencode ".$o->{"gcode"}." -outfmt '6 qseqid sseqid qstart qend sstart send slen pident bitscore stitle' -max_target_seqs 1000000 -db ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta -query ".$o->{"job"}."/input_sequences -out ".$o->{"job"}."/blast";
     }
     elsif ( $program eq "diamond" ) {
-        return $o->{"cwd"}."/bin/diamond/diamond blastx --query-gencode ".$o->{"gcode"}." --outfmt 6 qseqid sseqid qstart qend sstart send slen pident bitscore stitle --max-target-seqs 0 --query ".$o->{"job"}."/input_sequences --db ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta --out ".$o->{"job"}."/diamond";
+        return $o->{"cwd"}."/bin/diamond/diamond blastx --masking 0 --min-score 30 --id 95 --range-culling -F 15 --subject-cover 95 --query-gencode ".$o->{"gcode"}." --outfmt 6 qseqid sseqid qstart qend sstart send slen pident bitscore stitle --max-target-seqs 0 --query ".$o->{"job"}."/input_sequences --db ".$o->{"cwd"}."/databases/uniprot/uniprot_sprot.fasta --out ".$o->{"job"}."/diamond";
     }
     elsif ( $program eq "pannzer" ) {
         return "python ".$o->{"cwd"}."/bin/pannzer/runsanspanz.py -H localhost -T localhost -d ".$o->{"cwd"}."/databases/pannzer -i ".$o->{"job"}."/input_annotation -o ,".$o->{"job"}."/output.desc,".$o->{"job"}."/output.go,".$o->{"job"}."/output.anno";
