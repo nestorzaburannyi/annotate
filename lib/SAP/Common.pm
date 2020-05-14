@@ -34,19 +34,15 @@ our @EXPORT = qw(
                 create_seq_hash
                 prepare_input
                 parse_file
+                get_line
                 create_feature
-                clone_feature
-                store_feature
                 check_and_store_feature
                 add_leading_zeros
-                find_appropriate_cds_feature
-                get_overlapped_features
                 clean_up_description
             );
 
 ######################################################## PARAMETERS PART ########################################################
 sub initialize_options {
-    my ( $cwd ) = @_;
     #setting default values
     my $o = {
         #modules
