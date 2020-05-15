@@ -40,6 +40,6 @@ cds_prediction ( $o ) if ( $o->{"cds"} );
 output_and_validate ( $o );
 
 # finish
-print_log ( $o, "Done.\x0" );
+print_log ( $o, "Done." );
 
 exit 0;
