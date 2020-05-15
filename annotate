@@ -11,6 +11,7 @@ BEGIN {
 use lib "$working_folder/lib";
 use SAP::Common;
 use SAP::Update;
+use SAP::DNA;
 use SAP::RNA;
 use SAP::CDS;
 use SAP::Output;
@@ -29,6 +30,9 @@ create_seq_hash ( $o );
 
 # prepare input fasta file which will be used for most of the subcommands
 prepare_input ( $o, "sequences" );
+
+# perform DNA gene prediction if required
+dna_prediction ( $o ) if ( $o->{"dna"} );
 
 # perform RNA gene prediction if required
 rna_prediction ( $o ) if ( $o->{"rna"} );
