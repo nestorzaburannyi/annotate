@@ -19,7 +19,7 @@ use SAP::Output;
 my $o = initialize_options($working_folder);
 
 # download and initialize databases if requested
-update( $o ) if ( $o->{"update"} );
+update( $o, $working_folder ) if ( $o->{"update"} );
 
 # no update - run
 initialize_pipeline( $o, $working_folder );
