@@ -51,9 +51,9 @@ sub initialize_options {
         #DNA feature prediction
         "dna" => 1,
             #CRISPR
-            "dna-crispr" => 1,
-                "dna-crispr-program" => "minced",
-                "dna-crispr-score" => -inf,
+            "dna-c" => 1,
+                "dna-c-program" => "minced",
+                "dna-c-score" => -inf,
             #tandem repeats
             "dna-tandem" => 0,
                 "dna-tandem-program" => "trf",
@@ -126,9 +126,9 @@ sub initialize_options {
         #DNA feature prediction
         "dna!"                                              => \$o->{"dna"},
             #CRISPR
-            "dna-crispr!"                                   => \$o->{"dna-crispr"},
-                "dna-crispr-program=s"                      => \$o->{"dna-crispr-program"},
-                "dna-crispr-score=s"                        => \$o->{"dna-crispr-score"},
+            "dna-c!"                                        => \$o->{"dna-c"},
+                "dna-c-program=s"                           => \$o->{"dna-c-program"},
+                "dna-c-score=s"                             => \$o->{"dna-c-score"},
             #tandem repeats
             "dna-tandem!"                                   => \$o->{"dna-tandem"},
                 "dna-tandem-program=s"                      => \$o->{"dna-tandem-program"},

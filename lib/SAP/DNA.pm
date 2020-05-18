@@ -11,17 +11,17 @@ our @EXPORT = qw(dna_prediction);
 sub dna_prediction {
     my ( $o ) = @_;
     print_log( $o, "Starting DNA feature predictions..." );
-    if ( $o->{"dna-crispr"} and $o->{"dna-crispr-program"} eq "pilercr" ) {
+    if ( $o->{"dna-c"} and $o->{"dna-c-program"} eq "pilercr" ) {
         run_pilercr ( $o );
     }
-    if ( $o->{"dna-crispr"} and $o->{"dna-crispr-program"} eq "minced" ) {
+    if ( $o->{"dna-c"} and $o->{"dna-c-program"} eq "minced" ) {
         run_minced ( $o );
     }
     if ( $o->{"dna-tandem"} and $o->{"dna-tandem-program"} eq "trf" ) {
         run_trf ( $o );
     }
 
-    if ( $o->{"dna-crispr"} ) {
+    if ( $o->{"dna-c"} ) {
         parse_crispr_prediction ( $o );
     }
     if ( $o->{"dna-tandem"} ) {
@@ -54,21 +54,21 @@ sub run_trf {
 sub parse_crispr_prediction {
   my ( $o ) = @_;
   print_log( $o, "Parsing CRISPR predictions..." );
-  foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"dna-crispr-program"}, "\\t", $o->{"dna-crispr-program"} ) ) {
+  foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"dna-c-program"}, "\\t", $o->{"dna-c-program"} ) ) {
     # program-independent block
     # skip low scores if set by the user
-    next if ( $l->{"score"} < $o->{"dna-crispr-score"} );
+    next if ( $l->{"score"} < $o->{"dna-c-score"} );
     # create repeat_region sequence feature candidate
     my $feature = create_feature ( $o, $l );
 
     # program-specific block
-    if ( $o->{"dna-crispr-program"} eq "pilercr" ) {
+    if ( $o->{"dna-c-program"} eq "pilercr" ) {
       # inference tag
-      $feature->add_tag_value ("inference", "COORDINATES:ab initio prediction:".$o->{"dna-crispr-program"}.":".$o->{$o->{"dna-crispr-program"}."-version"} );
+      $feature->add_tag_value ("inference", "COORDINATES:ab initio prediction:".$o->{"dna-c-program"}.":".$o->{$o->{"dna-c-program"}."-version"} );
     }
-    elsif ( $o->{"dna-crispr-program"} eq "minced" ) {
+    elsif ( $o->{"dna-c-program"} eq "minced" ) {
       # inference tag
-      $feature->add_tag_value ("inference", "COORDINATES:ab initio prediction:".$o->{"dna-crispr-program"}.":".$o->{$o->{"dna-crispr-program"}."-version"} );
+      $feature->add_tag_value ("inference", "COORDINATES:ab initio prediction:".$o->{"dna-c-program"}.":".$o->{$o->{"dna-c-program"}."-version"} );
     }
 
     # check and store repeat_region sequence feature
