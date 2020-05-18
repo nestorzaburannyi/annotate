@@ -91,8 +91,8 @@ sub initialize_options {
                 "cds-a-program" => "pannzer",
                 "cds-a-score" => -inf,
         #additional parameters
-        "program-name" => "Sequence Annotation Pipeline",
-        "program-version" => "20200106",
+        "program-name" => "ProSnap: Prokaryotic Sequence Annotation Pipeline",
+        "program-version" => "20200518",
         "rnammer-version" => "1.2",
         "trnascanse-version" => "2.0.5",
         "aragorn-version" => "1.2.38",
