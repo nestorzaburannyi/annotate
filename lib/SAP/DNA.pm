@@ -17,14 +17,14 @@ sub dna_prediction {
     if ( $o->{"dna-c"} and $o->{"dna-c-program"} eq "minced" ) {
         run_minced ( $o );
     }
-    if ( $o->{"dna-tandem"} and $o->{"dna-tandem-program"} eq "trf" ) {
+    if ( $o->{"dna-t"} and $o->{"dna-t-program"} eq "trf" ) {
         run_trf ( $o );
     }
 
     if ( $o->{"dna-c"} ) {
         parse_crispr_prediction ( $o );
     }
-    if ( $o->{"dna-tandem"} ) {
+    if ( $o->{"dna-t"} ) {
         parse_tandem_prediction ( $o );
     }
 }
@@ -33,7 +33,7 @@ sub run_pilercr {
     my ( $o ) = @_;
     print_log( $o, "Running PILER-CR ".$o->{"pilercr-version"}."..." );
     my ( $c ) = get_command ( $o, "pilercr" );
-    run_program ( $o, $c );
+    #run_program ( $o, $c );
 }
 
 sub run_minced {
@@ -48,7 +48,7 @@ sub run_trf {
     my ( $o ) = @_;
     print_log( $o, "Running Tandem Repeat Finder ".$o->{"trf-version"}."..." );
     my ( $c ) = get_command ( $o, "trf" );
-    run_program ( $o, $c );
+    #run_program ( $o, $c );
 }
 
 sub parse_crispr_prediction {
@@ -79,10 +79,10 @@ sub parse_crispr_prediction {
 sub parse_tandem_prediction {
   my ( $o, $s ) = @_;
   print_log( $o, "Parsing tandem repeat predictions..." );
-  foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"dna-tandem-program"}, "\\s+", $o->{"dna-tandem-program"} ) ) {
+  foreach my $l ( parse_file( $o, $o->{"job"}."/".$o->{"dna-t-program"}, "\\s+", $o->{"dna-t-program"} ) ) {
     # program-independent block
     # skip low scores if set by the user
-    next if ( $l->{"score"} < $o->{"dna-tandem-score"} );
+    next if ( $l->{"score"} < $o->{"dna-t-score"} );
     # set the primary tag
     $l->{"primary_tag"} = "repeat_region";
 
@@ -90,11 +90,11 @@ sub parse_tandem_prediction {
     my $feature = create_feature ( $o, $l );
 
     # program-specific block
-    if ( $o->{"dna-tandem-program"} eq "trf" ) {
+    if ( $o->{"dna-t-program"} eq "trf" ) {
       # rpt_type tag
       $feature->add_tag_value ("rpt_type", "tandem");
       # inference tag
-      $feature->add_tag_value ("inference", "COORDINATES:ab initio prediction:".$o->{"dna-tandem-program"}.":".$o->{$o->{"dna-tandem-program"}."-version"} );
+      $feature->add_tag_value ("inference", "COORDINATES:ab initio prediction:".$o->{"dna-t-program"}.":".$o->{$o->{"dna-t-program"}."-version"} );
     }
 
     # check and store repeat_region sequence feature

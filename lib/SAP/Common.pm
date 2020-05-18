@@ -55,9 +55,9 @@ sub initialize_options {
                 "dna-c-program" => "minced",
                 "dna-c-score" => -inf,
             #tandem repeats
-            "dna-tandem" => 0,
-                "dna-tandem-program" => "trf",
-                "dna-tandem-score" => -inf,
+            "dna-t" => 0,
+                "dna-t-program" => "trf",
+                "dna-t-score" => -inf,
         #RNA gene prediction
         "rna" => 1,
             #rRNA
@@ -130,9 +130,9 @@ sub initialize_options {
                 "dna-c-program=s"                           => \$o->{"dna-c-program"},
                 "dna-c-score=s"                             => \$o->{"dna-c-score"},
             #tandem repeats
-            "dna-tandem!"                                   => \$o->{"dna-tandem"},
-                "dna-tandem-program=s"                      => \$o->{"dna-tandem-program"},
-                "dna-tandem-score=s"                        => \$o->{"dna-tandem-score"},
+            "dna-t!"                                        => \$o->{"dna-t"},
+                "dna-t-program=s"                           => \$o->{"dna-t-program"},
+                "dna-t-score=s"                             => \$o->{"dna-t-score"},
         #RNA gene prediction
         "rna!"                                              => \$o->{"rna"},
             #rRNA
